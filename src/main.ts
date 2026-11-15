@@ -6,6 +6,7 @@ import type { TerrainSettings } from './terrain/generator';
 import { CameraRig } from './camera';
 import type { CameraMode } from './camera';
 import { TrackEditor } from './track/editor';
+import { TrainEditor } from './train/editor';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const canvas = $<HTMLCanvasElement>('#world');
@@ -65,6 +66,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(12000, 24, 16), new THREE.Sh
 scene.add(sky);
 let world: TerrainWorld | undefined;
 let trackEditor: TrackEditor | undefined;
+let trainEditor: TrainEditor | undefined;
 let playing = false, ready = false;
 let dragging: 'pan' | 'orbit' | null = null;
 let dragPointer: number | null = null;
@@ -118,6 +120,7 @@ document.querySelectorAll<HTMLElement>('.settings-open').forEach(button => butto
   settingsReturnFocus = button;
   clearInput();
   trackEditor?.suspend();
+  trainEditor?.suspend();
   if (locked()) document.exitPointerLock();
   $('#settings-root').hidden = false;
   $('#gameplay-settings').hidden = true;
@@ -147,6 +150,7 @@ function menuView() {
   clearInput();
   if (locked()) document.exitPointerLock();
   trackEditor?.dispose(); trackEditor = undefined;
+  trainEditor?.dispose(); trainEditor = undefined;
   if (world) { scene.remove(world.group); world.dispose(); world = undefined; }
   menu.hidden = false; game.hidden = true; loading.hidden = true; crosshair.hidden = true;
   document.body.classList.remove('playing');
@@ -173,7 +177,9 @@ start.addEventListener('click', () => {
   world = new TerrainWorld(settings);
   scene.add(world.group);
   trackEditor = new TrackEditor(scene, camera, canvas, world);
+  trainEditor = new TrainEditor(scene, camera, canvas, world, trackEditor.network);
   $<HTMLButtonElement>('#build-track').disabled = true;
+  $<HTMLButtonElement>('#place-train').disabled = true;
   rig.reset(600, 900, ground);
   world.update(rig.position.x, rig.position.z, rig.position.y);
   $('#world-name').textContent = settings.seed;
@@ -186,7 +192,13 @@ $('#build-track').addEventListener('click', () => {
   if (!playing || !ready || !trackEditor) return;
   clearInput();
   if (locked()) document.exitPointerLock();
+  trainEditor?.setEnabled(false);
   trackEditor.setEnabled(!trackEditor.enabled);
+});
+$('#place-train').addEventListener('click', () => {
+  if (!playing || !ready || !trainEditor) return;
+  clearInput(); if (locked()) document.exitPointerLock();
+  trackEditor?.setEnabled(false); trainEditor.setEnabled(!trainEditor.enabled);
 });
 $('#random-seed').addEventListener('click', () => {
   const values = crypto.getRandomValues(new Uint32Array(2));
@@ -197,7 +209,7 @@ $('#share').addEventListener('click', async () => {
   catch { $('#share').textContent = 'Copy the URL to share'; }
 });
 async function captureMouse() {
-  if (!playing || !ready || settingsDialog.open || rig.mode !== 'free' || trackEditor?.enabled) return;
+  if (!playing || !ready || settingsDialog.open || rig.mode !== 'free' || trackEditor?.enabled || trainEditor?.enabled) return;
   try { await canvas.requestPointerLock(); }
   catch { $('#capture').textContent = 'Drag the landscape to look around'; }
 }
@@ -206,9 +218,10 @@ canvas.addEventListener('click', () => { if (!dragging) void captureMouse(); });
 canvas.addEventListener('pointerdown', (event) => {
   if (!playing || !ready || settingsDialog.open || locked()) return;
   canvas.focus({ preventScroll: true });
+  if (trainEditor?.pointerDown(event)) { event.preventDefault(); keys.clear(); return; }
   if (trackEditor?.pointerDown(event)) { event.preventDefault(); keys.clear(); return; }
   if (dragPointer !== null || ![0, 1, 2].includes(event.button)) return;
-  if (rig.mode === 'free' && event.button !== (trackEditor?.enabled ? 2 : 0)) return;
+  if (rig.mode === 'free' && event.button !== (trackEditor?.enabled || trainEditor?.enabled ? 2 : 0)) return;
   event.preventDefault();
   dragging = rig.mode === 'free' || event.button === 1 ? 'orbit' : 'pan';
   dragPointer = event.pointerId;
@@ -218,6 +231,7 @@ canvas.addEventListener('pointerdown', (event) => {
   canvas.setPointerCapture(event.pointerId);
 });
 canvas.addEventListener('pointermove', event => {
+  if (playing && ready && !settingsDialog.open && !dragging) trainEditor?.pointerMove(event);
   if (playing && ready && !settingsDialog.open && !dragging && trackEditor?.pointerMove(event)) { event.preventDefault(); return; }
   if (!dragging || event.pointerId !== dragPointer || locked()) return;
   if (!(event.buttons & dragButton) || !playing || !ready || settingsDialog.open) { endDrag(); return; }
@@ -231,7 +245,7 @@ canvas.addEventListener('pointermove', event => {
 canvas.addEventListener('pointerup', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer && !(event.buttons & dragButton)) endDrag(); });
 canvas.addEventListener('pointercancel', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer) endDrag(); });
 canvas.addEventListener('lostpointercapture', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer) endDrag(); });
-canvas.addEventListener('pointerleave', event => trackEditor?.leave(event.relatedTarget));
+canvas.addEventListener('pointerleave', event => { trackEditor?.leave(event.relatedTarget); trainEditor?.leave(); });
 canvas.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
 canvas.addEventListener('contextmenu', event => event.preventDefault());
 window.addEventListener('mousemove', event => {
@@ -245,7 +259,7 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('pointerlockerror', () => { $('#capture').textContent = 'Drag the landscape to look around'; });
 window.addEventListener('keydown', event => {
   if (!playing || settingsDialog.open || (event.target instanceof HTMLElement && /INPUT|SELECT|TEXTAREA/.test(event.target.tagName))) return;
-  if (event.code === 'Escape') { trackEditor?.escape(); clearInput(); return; }
+  if (event.code === 'Escape') { if (!trainEditor?.escape()) trackEditor?.escape(); clearInput(); return; }
   if (event.code === 'F3') {
     event.preventDefault();
     if (!event.repeat) debugOverlay.hidden = !debugOverlay.hidden;
@@ -253,6 +267,7 @@ window.addEventListener('keydown', event => {
   }
   if (event.code === 'KeyC') { event.preventDefault(); if (!event.repeat) toggleCamera(); return; }
   if (event.code === 'KeyG' && trackEditor?.enabled) { event.preventDefault(); if (!event.repeat) trackEditor.toggleGrid(); return; }
+  if (event.code === 'KeyR' && trainEditor?.enabled) { event.preventDefault(); if (!event.repeat) trainEditor.reversePreview(); return; }
   if (event.key === 'Shift') trackEditor?.modifiersChanged(event.shiftKey);
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
     event.preventDefault(); keys.add(event.code);
@@ -291,13 +306,14 @@ renderer.setAnimationLoop(time => {
     $('#loading-message').textContent = world.error;
   } else if (!ready) {
     $<HTMLProgressElement>('#load-progress').value = stats.nearby / 9;
-    if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; }
+    if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; $<HTMLButtonElement>('#place-train').disabled = false; }
   }
   if (ready && !settingsDialog.open && !trackEditor?.isDragging) rig.update(keys, delta, ground, (x, z) => world!.hasTerrainAt(x, z));
   world.update(rig.position.x, rig.position.z, rig.position.y);
   camera.position.set(rig.position.x - world.origin.x, rig.position.y, rig.position.z - world.origin.y);
   camera.rotation.set(rig.pitch, rig.yaw, 0);
   trackEditor?.update(time);
+  trainEditor?.update(time);
   sky.position.copy(camera.position);
   renderer.render(scene, camera);
   hudTime += delta;
@@ -312,4 +328,4 @@ renderer.setAnimationLoop(time => {
     $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }
 });
-window.addEventListener('pagehide', () => { trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
+window.addEventListener('pagehide', () => { trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });

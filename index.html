@@ -39,7 +39,29 @@
         </aside>
         <div class="controls"><button id="camera-toggle" title="Switch camera mode (C)">Overlook · C</button><button id="capture" hidden>Click to look around</button><button class="settings-open">Settings</button><button id="share">Copy world link</button><button id="back">Main menu</button></div>
         <div class="bottom-hud"><p id="camera-hint" class="hint"></p></div>
-        <nav id="actions" aria-label="Build actions"><button id="build-track" type="button" aria-pressed="false" disabled><span aria-hidden="true">╫</span> Build track</button></nav>
+        <nav id="actions" aria-label="Build actions"><button id="build-track" type="button" aria-pressed="false" disabled><span aria-hidden="true">╫</span> Build track</button><button id="place-train" type="button" aria-pressed="false" disabled><span aria-hidden="true">▣</span> Place vehicles</button></nav>
+        <section id="train-panel" hidden aria-labelledby="train-title">
+          <div class="track-panel-heading"><h2 id="train-title">Train builder</h2><button id="train-done" type="button">Done</button></div>
+          <div class="train-builder-scroll">
+          <p class="fleet-note">WARBONNET COLLECTION · 1:1 SCALE</p>
+          <div class="train-tools"><button id="train-new" type="button">Create empty train</button><select id="train-selector" aria-label="Select train" disabled></select></div>
+          <ol id="train-consist" aria-label="Train consist from front to rear"></ol><p id="train-empty">Choose a vehicle to create a train.</p>
+          <div id="train-trash" hidden>▥ Drop a consist vehicle here to delete it</div>
+          <div class="train-tools"><button id="train-append-front" type="button" disabled>Append to front</button><button id="train-append-rear" type="button" disabled>Append to rear</button></div>
+          <p class="fleet-note">VEHICLE CATALOG · CLICK TO CREATE A TRAIN</p>
+          <div class="vehicle-catalog" aria-label="Vehicle models">
+            <button type="button" data-vehicle="ge-809"><strong>GE 809 · Wide cab</strong><span>Red/gray GE demonstrator · 20.22 m</span></button>
+            <button type="button" data-vehicle="atsf-f7a"><strong>F7A · Warbonnet</strong><span>EMD passenger locomotive · 15.44 m</span></button>
+            <button type="button" data-vehicle="atsf-coach"><strong>Streamlined coach</strong><span>Stainless-steel chair car · 25.91 m</span></button>
+            <button type="button" data-vehicle="atsf-pleasure-dome"><strong>Pleasure Dome</strong><span>Raised glass dome lounge · 25.70 m</span></button>
+          </div>
+          </div>
+          <p id="train-specs"></p><p id="train-status" role="status"></p>
+          <p id="train-support" hidden>A parked train’s supporting track was changed or removed. It remains at its last valid position.</p>
+          <button id="train-place" class="train-place" type="button" disabled>Place train on track</button>
+          <div class="train-tools"><button id="train-reverse" type="button" disabled>Reverse preview · R</button><button id="train-undo" type="button" disabled>Return last train to builder</button></div>
+          <p id="train-count"></p><p class="track-help">Choose a catalog vehicle to create a train. Append vehicles using front/rear controls. Drag draft vehicles to the trash to remove them. Place train on track shows a translucent preview; <kbd>R</kbd> reverses it. Snap to either end of a parked train to merge. <kbd>Esc</kbd> cancels placement.</p>
+        </section>
         <section id="track-panel" hidden aria-labelledby="track-title">
           <div class="track-panel-heading"><h2 id="track-title">Build track</h2><button id="track-done" type="button">Done</button></div>
           <label for="track-gauge">TRACK GAUGE</label><select id="track-gauge"></select>
