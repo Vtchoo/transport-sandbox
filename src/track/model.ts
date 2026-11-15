@@ -52,6 +52,9 @@ export class TrackNetwork {
     const node = this.nodes.get(id), edges = this.incident(id);
     if (!node || edges.length !== 2) return;
     const [first, second] = edges;
+    const firstSide = first.a === id ? first.aSide : first.bSide;
+    const secondSide = second.a === id ? second.aSide : second.bSide;
+    if (firstSide === secondSide) return;
     const a = first.a === id ? first.b : first.a, b = second.a === id ? second.b : second.a;
     if (a === b || first.gauge !== second.gauge || first.gauge !== node.gauge) return;
     if (this.nodes.get(a)!.position.distanceTo(this.nodes.get(b)!.position) < 1) return;
@@ -61,7 +64,7 @@ export class TrackNetwork {
   canMerge(id: number) { return this.mergeParts(id) !== undefined; }
   merge(id: number) {
     const parts = this.mergeParts(id);
-    if (!parts) throw new Error('Merge requires exactly two compatible tracks with distinct endpoints that are not already connected.');
+    if (!parts) throw new Error('Merge requires exactly two compatible tracks on opposite sides, with distinct endpoints that are not already connected.');
     const { first, second, a, b } = parts;
     const edge: TrackSegment = {
       id: this.nextSegment++, a, b, gauge: first.gauge,

@@ -135,6 +135,25 @@ test('merging detaches parallel members and preserves the remaining group, inclu
   }
 });
 
+test('same-side connections cannot merge regardless of endpoint ordering', () => {
+  for (const side of [-1, 1]) for (const reverseA of [false, true]) for (const reverseB of [false, true]) {
+    const network = new TrackNetwork();
+    const middle = network.addNode(p(0, 0, 0), 1435);
+    const a = network.addNode(p(100, 0, 0), 1435), b = network.addNode(p(100, 10, 20), 1435);
+    const first = reverseA ? network.connect(middle, a, 1435) : network.connect(a, middle, 1435);
+    const second = reverseB ? network.connect(b, middle, 1435) : network.connect(middle, b, 1435);
+    if (first.a === middle.id) first.aSide = side; else first.bSide = side;
+    if (second.a === middle.id) second.aSide = side; else second.bSide = side;
+    const nodes = [...network.nodes.values()], segments = [...network.segments.values()];
+    assert.equal(network.canMerge(middle.id), false);
+    assert.throws(() => network.merge(middle.id), /opposite sides/);
+    assert.deepEqual([...network.nodes.values()], nodes);
+    assert.deepEqual([...network.segments.values()], segments);
+    if (second.a === middle.id) second.aSide = -side; else second.bSide = -side;
+    assert.equal(network.canMerge(middle.id), true);
+  }
+});
+
 test('invalid merges are rejected without removing nodes or tracks', () => {
   const network = new TrackNetwork();
   const a = network.addNode(p(-100, 0, 0), 1435), middle = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(100, 0, 0), 1435);
