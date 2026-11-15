@@ -1,0 +1,54 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#182c2b" />
+    <meta name="description" content="Explore a seeded, real-scale railway world with streaming procedural terrain." />
+    <title>Railway World — Terrain Sandbox</title>
+  </head>
+  <body>
+    <canvas id="world" aria-label="Procedural terrain world. WASD to move, mouse to look, E and Q to change altitude."></canvas>
+    <div id="app">
+      <header><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">Ⅱ</span> RAILWAY WORLD</a><span class="version">TERRAIN SANDBOX <span>·</span> v0.2</span></header>
+      <main id="menu">
+        <div class="eyebrow"><span></span> A WORLD WORTH CROSSING</div>
+        <h1>Beyond the<br /><em>next mountain.</em></h1>
+        <p>Mountain ranges, river valleys, an open horizon.<br />The beginning of your railway world.</p>
+        <form id="world-settings" onsubmit="return false">
+          <label for="seed">WORLD SEED</label>
+          <div class="seed-row"><input id="seed" type="text" maxlength="100" spellcheck="false" autocomplete="off" /><button id="random-seed" type="button" aria-label="Generate a random seed" title="Random seed">↻</button></div>
+          <details><summary>Terrain settings</summary>
+            <label for="mountains">MOUNTAIN RELIEF <output id="mountain-value" for="mountains"></output></label>
+            <input id="mountains" type="range" min="400" max="3000" step="100" value="1800" />
+            <label for="scale">LANDFORM SCALE</label>
+            <select id="scale"><option value="0.5">Compact · 0.5×</option><option value="1" selected>Natural · 1×</option><option value="2">Expansive · 2×</option></select>
+          </details>
+          <button id="start" class="primary" type="button">Start game <span aria-hidden="true">↗</span></button>
+        </form>
+        <span class="menu-note">Same seed. Same settings. Same world.</span>
+        <button class="settings-open menu-settings" type="button">Settings</button>
+      </main>
+      <section id="game" hidden aria-label="World controls">
+        <div class="world-heading"><span id="camera-label" class="eyebrow" aria-live="polite">OVERLOOK CAMERA</span><h2 id="world-name"></h2><div id="range"></div></div>
+        <div class="controls"><button id="camera-toggle" title="Switch camera mode (C)">Overlook · C</button><button id="capture" hidden>Click to look around</button><button class="settings-open">Settings</button><button id="share">Copy world link</button><button id="back">Main menu</button></div>
+        <div class="telemetry"><span id="coordinates"></span><span id="altitude"></span><span id="speed"></span></div>
+        <div class="bottom-hud"><span id="streaming"></span><p id="camera-hint" class="hint"></p></div>
+      </section>
+      <div id="loading" hidden role="status" aria-live="polite"><span class="eyebrow">BUILDING YOUR WORLD</span><p id="loading-message">Generating the surrounding terrain…</p><progress id="load-progress" max="1" value="0"></progress></div>
+      <div id="crosshair" hidden aria-hidden="true">+</div>
+      <dialog id="settings" aria-labelledby="settings-title">
+        <div class="settings-heading"><h2 id="settings-title">Settings</h2><button id="settings-close" aria-label="Close settings">✕</button></div>
+        <section id="settings-root" aria-label="Settings categories"><button id="open-gameplay" class="settings-category">Gameplay <span aria-hidden="true">→</span></button></section>
+        <section id="gameplay-settings" hidden aria-label="Gameplay settings">
+          <button id="settings-back" class="settings-back">← Settings</button><h3>Gameplay</h3>
+          <label for="camera-mode">CAMERA MODE</label><select id="camera-mode"><option value="overlook">Overlook (default)</option><option value="free">Free camera</option></select>
+          <p>Overlook pans and orbits above the terrain. Free camera lets you fly and look around independently.</p>
+          <p class="shortcut-note">Press <kbd>C</kbd> during gameplay to switch. Your preference is saved automatically.</p>
+        </section>
+      </dialog>
+      <footer><span><i></i> REAL SCALE · 1 UNIT = 1 METRE</span><span>ENDLESS TERRAIN. A PLACE TO BEGIN.</span></footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
