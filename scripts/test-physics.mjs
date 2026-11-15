@@ -4,7 +4,7 @@ import { buildSync } from 'esbuild';
 import * as THREE from 'three';
 const load = async entry => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', external: ['three'] });
-  return import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text.replaceAll('"three"', JSON.stringify(import.meta.resolve('three')))).toString('base64')}`);
+  return import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text.replace(/"three(?:\/[^\"]*)?"/g, spec => JSON.stringify(import.meta.resolve(JSON.parse(spec))))).toString('base64')}`);
 };
 const { physicsStep, trainPerformance, curveSpeedLimit, brakingDeceleration } = await load('src/train/physics.ts');
 const { TrainRoute, RouteEnd } = await load('src/train/route.ts');

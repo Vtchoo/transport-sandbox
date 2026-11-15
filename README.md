@@ -114,6 +114,7 @@ This is an independent implementation with [TerraForged](https://github.com/Terr
 - `train/cars/coach.ts`, `train/cars/pleasure-dome.ts`: passenger car definitions and body models.
 - `train/catalog.ts`: ordered vehicle registry, gauge-specific bogie definitions and compatibility lookups; shared interfaces live in `train/types.ts`.
 - `train/render.ts`: vehicle assembly, body-builder registry, preview tinting and GPU resource cleanup.
+- `train/instances.ts`: body/bogie instancing by model, gauge, material and 512 m spatial cell. Merged templates share GPU resources across identical vehicles; body and bogie transforms remain independent. Placed trains and draft viewport previews use these batches, while placement ghosts keep independent translucent materials. Original hierarchies remain available for picking and simulation. This reduces draw calls; vehicle triangles and CPU simulation are still present.
 - `train/model-parts.ts`, `train/cars/passenger-body.ts`, `train/bogies.ts`: shared mesh/material helpers, passenger shell details and bogie models.
 - `train/placement.ts`: direction-aware connected-track fitting, independent bogie poses and placement overlap checks.
 - `train/consist.ts`: draft trains, ordered vehicle items, gauge intersections, front/rear merging and whole-train placement offsets.

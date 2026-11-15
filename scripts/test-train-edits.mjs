@@ -4,7 +4,7 @@ import { buildSync } from 'esbuild';
 import * as THREE from 'three';
 const load = async entry => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', external: ['three'] });
-  const code = outputFiles[0].text.replaceAll('"three"', JSON.stringify(import.meta.resolve('three')));
+  const code = outputFiles[0].text.replace(/"three(?:\/[^\"]*)?"/g, spec => JSON.stringify(import.meta.resolve(JSON.parse(spec))));
   return import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 };
 const { TrainEditor } = await load('src/train/editor.ts');
