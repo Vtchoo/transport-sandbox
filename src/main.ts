@@ -252,11 +252,15 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (event.code === 'KeyC') { event.preventDefault(); if (!event.repeat) toggleCamera(); return; }
+  if (event.key === 'Shift') trackEditor?.modifiersChanged(event.shiftKey);
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
     event.preventDefault(); keys.add(event.code);
   }
 });
-window.addEventListener('keyup', event => keys.delete(event.code));
+window.addEventListener('keyup', event => {
+  keys.delete(event.code);
+  if (!settingsDialog.open && event.key === 'Shift') trackEditor?.modifiersChanged(event.shiftKey);
+});
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 canvas.addEventListener('wheel', event => {

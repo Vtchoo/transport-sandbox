@@ -16,6 +16,25 @@ const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.t
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
 
+test('straight placement follows the outgoing 3D tangent and grade on either side', () => {
+  const editor = Object.create(TrackEditor.prototype);
+  const node = { position: p(100, 20, -50), axis: p(1, 0.25, 1).normalize() };
+  const target = p(180, 100, -30), original = target.clone();
+  editor.start = { node, side: 1 };
+  const snapped = editor.placementPoint(target, true);
+  const delta = snapped.clone().sub(node.position);
+  assert.ok(delta.clone().cross(node.axis).length() < 1e-8);
+  assert.ok(delta.dot(node.axis) > 0); assert.notEqual(snapped.y, target.y);
+  assert.ok(target.equals(original));
+  assert.equal(editor.placementPoint(target, false), target);
+  editor.start.side = -1;
+  assert.ok(editor.placementPoint(target, true).equals(node.position));
+  const behind = node.position.clone().addScaledVector(node.axis, -50).add(p(0, 10, 0));
+  assert.ok(editor.placementPoint(behind, true).sub(node.position).dot(node.axis) < 0);
+  editor.pendingSplit = {};
+  assert.ok(editor.placementPoint(target, true).sub(node.position).dot(node.axis) > 0);
+});
+
 test('splitting and branching commit together or restore the original segment after failure', () => {
   const network = new TrackNetwork();
   const a = network.addNode(p(0, 10, 0), 1435), b = network.addNode(p(100, 20, 20), 1435);
@@ -374,6 +393,28 @@ test('editor hover actions support confirmation, continuous parallel placement, 
     assert.ok(survivor.position.equals(survivorPosition));
     assert.equal(element('track-merge').hidden, true);
     assert.equal(earthworks.length, editor.network.segments.size);
+    // Shift changes a stationary preview and the placed track uses the same line.
+    editor.start = { node: a, side: 1 };
+    editor.terrainPoint = () => p(80, 30, 80);
+    editor.pointerMove({ clientX: 480, clientY: 500, shiftKey: false });
+    const freeGhost = editor.ghost;
+    editor.modifiersChanged(true);
+    assert.notEqual(editor.ghost, freeGhost);
+    assert.match(element('track-status').textContent, /Straight snap/);
+    editor.modifiersChanged(false);
+    assert.doesNotMatch(element('track-status').textContent, /Straight snap/);
+    editor.modifiersChanged(true);
+    const previewRail = editor.ghost.children[1].geometry.getAttribute('position').array.slice();
+    const expected = editor.placementPoint(p(80, 30, 80), true);
+    editor.pointerDown({ button: 0, clientX: 480, clientY: 500, shiftKey: true });
+    const snappedNode = editor.start.node;
+    assert.ok(snappedNode.position.distanceTo(expected) < 1e-8);
+    const snappedEdge = editor.network.incident(snappedNode.id)[0];
+    const actualRail = editor.segmentMeshes.get(snappedEdge.id).children[1].geometry.getAttribute('position').array;
+    assert.equal(actualRail.length, previewRail.length);
+    for (let i = 0; i < actualRail.length; i++) assert.ok(Math.abs(actualRail[i] - previewRail[i]) < 1e-5);
+    const snappedCurve = editor.network.curve(snappedEdge);
+    for (let i = 0; i <= 10; i++) assert.ok(snappedCurve.getPoint(i / 10).distanceTo(a.position.clone().lerp(expected, i / 10)) < 1e-8);
   } finally {
     editor?.dispose();
     for (const [key, descriptor] of saved) {

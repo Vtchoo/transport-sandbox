@@ -270,6 +270,20 @@ export class TrackEditor {
     }
     return result;
   }
+  private placementPoint(point: THREE.Vector3, straight: boolean) {
+    if (!straight || !this.start) return point;
+    const { node, side } = this.start;
+    const direction = node.axis.clone().normalize();
+    const distance = point.clone().sub(node.position).dot(direction);
+    // Keep the selected outgoing side; provisional split branches can use either side.
+    const along = this.pendingSplit ? distance : side * Math.max(0, distance * side);
+    return node.position.clone().addScaledVector(direction, along);
+  }
+  modifiersChanged(shiftKey: boolean) {
+    if (!this.enabled || this.drag || !this.start || !this.lastPointer || this.lastPointer.shiftKey === shiftKey) return;
+    const { clientX, clientY, pointerId, buttons } = this.lastPointer;
+    this.pointerMove({ clientX, clientY, pointerId, buttons, shiftKey } as PointerEvent);
+  }
   pointerDown(event: PointerEvent) {
     if (!this.enabled || event.button !== 0) return false;
     const pick = this.pick(event);
@@ -293,7 +307,7 @@ export class TrackEditor {
     this.hideNodeButtons();
     if (this.start && (!pick || !pick.edge && !pick.spacing && pick.node.id !== this.start.node.id)) {
       const point = pick?.node.position ?? this.terrainPoint(event);
-      if (point) this.placeSecond(point, pick?.node);
+      if (point) this.placeSecond(pick ? point : this.placementPoint(point, event.shiftKey), pick?.node);
       return true;
     }
     if (pick) {
@@ -374,9 +388,10 @@ export class TrackEditor {
       this.hoverNode(event);
       this.directionButton.hidden = true;
       const node = this.pick(event, true)?.node;
-      const point = node?.position ?? this.terrainPoint(event);
+      const terrain = node ? undefined : this.terrainPoint(event);
+      const point = node?.position ?? (terrain && this.placementPoint(terrain, event.shiftKey));
       if (point && point.distanceTo(this.start.node.position) >= 1) {
-        const key = `${point.x.toFixed(1)},${point.y.toFixed(1)},${point.z.toFixed(1)},${node?.id ?? ''}`;
+        const key = `${point.x.toFixed(1)},${point.y.toFixed(1)},${point.z.toFixed(1)},${node?.id ?? ''},${!!event.shiftKey}`;
         if (key !== this.ghostKey) {
           this.clearGhost(); this.ghostKey = key;
           const curve = this.network.preview(this.start.node, point, this.start.side, node);
@@ -388,7 +403,7 @@ export class TrackEditor {
           if (node && node.gauge !== this.gauge) {
             this.ghost.traverse(object => { if (object instanceof THREE.Mesh) object.material.color.set(0xee5555); });
             this.message(`Gauge mismatch: this node uses ${node.gauge.toLocaleString()} mm.`);
-          } else this.message(node ? `Click to connect to node ${node.id} · ${this.gauge.toLocaleString()} mm.` : 'Click to place the next node. Esc stops placement.');
+          } else this.message(node ? `Click to connect to node ${node.id} · ${this.gauge.toLocaleString()} mm.` : event.shiftKey ? 'Straight snap · click to place on the outgoing tangent. Release Shift for free placement.' : 'Click to place the next node. Hold Shift for straight snap; Esc stops placement.');
           this.group.add(this.ghost);
         }
       } else this.clearGhost();
