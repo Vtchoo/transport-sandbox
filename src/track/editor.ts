@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { TrackNetwork, GAUGES, trackFrame } from './model';
 import type { TrackNode, TrackSegment, Side } from './model';
 import { makeTrack, disposeTrack, updateSleeperLOD } from './render';
+import { WorldGrid } from './grid';
 import type { TerrainWorld } from '../terrain/world';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
@@ -14,6 +15,9 @@ export class TrackEditor {
   private rails = new THREE.Group();
   private segmentMeshes = new Map<number, THREE.Group>();
   private gizmos = new THREE.Group();
+  private grid = new WorldGrid();
+  private gridPoint?: THREE.Vector3;
+  private lastGridSpacing = 5;
   private ghost?: THREE.Group;
   private sphere = new THREE.SphereGeometry(1, 12, 8);
   private nodeMaterial = new THREE.MeshBasicMaterial({ color: 0xf7df9e, depthTest: false });
@@ -58,6 +62,16 @@ export class TrackEditor {
   gauge = 1435;
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld) {
     this.group.add(this.rails, this.gizmos); scene.add(this.group);
+    this.group.add(this.grid); this.grid.visible = false;
+    const gridSelect = $<HTMLSelectElement>('track-grid');
+    gridSelect.value = '0';
+    gridSelect.addEventListener('change', () => {
+      this.grid.setSpacing(Number(gridSelect.value));
+      if (this.grid.spacing) this.lastGridSpacing = this.grid.spacing;
+      this.clearGhost();
+      if (this.lastPointer && !this.drag) this.pointerMove(this.lastPointer);
+      this.message(this.grid.spacing ? `World grid snap · ${this.grid.spacing} m. Existing nodes and Shift straight snap take priority.` : 'World grid snap off.');
+    }, { signal: this.abort.signal });
     this.splitMarker.visible = false; this.splitMarker.renderOrder = 21; this.group.add(this.splitMarker);
     const select = $<HTMLSelectElement>('track-gauge');
     select.replaceChildren(...GAUGES.map(gauge => new Option(gauge.label, String(gauge.mm))));
@@ -183,10 +197,17 @@ export class TrackEditor {
   }
   get enabled() { return this.visible; }
   get isDragging() { return !!this.drag; }
+  toggleGrid() {
+    if (!this.enabled) return;
+    const select = $<HTMLSelectElement>('track-grid');
+    select.value = String(this.grid.spacing ? 0 : this.lastGridSpacing);
+    select.dispatchEvent(new Event('change'));
+  }
   setEnabled(enabled: boolean) {
     this.hideSplit();
     this.resetDelete();
     this.visible = enabled; this.gizmos.visible = enabled;
+    this.grid.showAt(this.gridPoint, enabled);
     $('track-panel').hidden = !enabled;
     $('build-track').setAttribute('aria-pressed', String(enabled));
     this.hideNodeButtons();
@@ -271,7 +292,7 @@ export class TrackEditor {
     return result;
   }
   private placementPoint(point: THREE.Vector3, straight: boolean) {
-    if (!straight || !this.start) return point;
+    if (!straight || !this.start) return this.grid ? this.grid.snap(point) : point;
     const { node, side } = this.start;
     const direction = node.axis.clone().normalize();
     const distance = point.clone().sub(node.position).dot(direction);
@@ -323,7 +344,7 @@ export class TrackEditor {
     }
     const point = this.terrainPoint(event);
     if (point) {
-      const node = this.network.addNode(point, this.gauge);
+      const node = this.network.addNode(this.placementPoint(point, false), this.gauge);
       this.start = { node, side: 1 }; this.selected = node.id;
       this.refreshGizmos(); this.message('First node placed. Click again to build the track.');
     } else this.message('Point at loaded terrain to place a node.');
@@ -377,7 +398,8 @@ export class TrackEditor {
           const offset = drag.initialOffset! + next.clone().sub(drag.anchor).dot(trackFrame(group.axis).right);
           this.network.setParallelOffset(drag.pick.node, offset);
         } else if (drag.pick.edge) this.network.moveHandle(drag.pick.edge, drag.pick.node.id, next);
-        else this.network.moveNode(drag.pick.node, next);
+        else this.network.moveNode(drag.pick.node, drag.vertical ? next : this.grid.snap(next));
+        this.gridPoint = drag.pick.node.position.clone();
         drag.changed = true; this.changed();
         this.message(drag.pick.spacing ? 'Parallel spacing · lateral movement only' : `${drag.pick.edge ? 'Handle' : 'Node'} · ${drag.vertical ? 'vertical only' : 'horizontal only'} · Shift changes axis`);
       }
@@ -390,6 +412,7 @@ export class TrackEditor {
       const node = this.pick(event, true)?.node;
       const terrain = node ? undefined : this.terrainPoint(event);
       const point = node?.position ?? (terrain && this.placementPoint(terrain, event.shiftKey));
+      this.gridPoint = point?.clone();
       if (point && point.distanceTo(this.start.node.position) >= 1) {
         const key = `${point.x.toFixed(1)},${point.y.toFixed(1)},${point.z.toFixed(1)},${node?.id ?? ''},${!!event.shiftKey}`;
         if (key !== this.ghostKey) {
@@ -407,7 +430,10 @@ export class TrackEditor {
           this.group.add(this.ghost);
         }
       } else this.clearGhost();
-    } else this.hoverNode(event);
+    } else {
+      this.hoverNode(event);
+      if (this.grid.spacing) this.gridPoint = this.terrainPoint(event);
+    }
     this.hoverSplit(event);
     return false;
   }
@@ -661,6 +687,7 @@ export class TrackEditor {
       this.viewSignature = signature;
     }
     const eye = this.camera.position.clone().add(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y));
+    this.grid.showAt(this.gridPoint, this.enabled && !!this.gridPoint && this.actionsInRange(this.gridPoint));
     if (this.splitMarker.visible) {
       const units = eye.distanceTo(this.splitMarker.position) * 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) / this.canvas.clientHeight;
       this.splitMarker.scale.setScalar(Math.max(0.08, units * 7));
@@ -683,6 +710,7 @@ export class TrackEditor {
   dispose() {
     this.setEnabled(false); this.abort.abort();
     this.scene.remove(this.group); disposeTrack(this.rails);
+    this.grid.dispose();
     this.segmentMeshes.clear();
     this.splitSamples.clear();
     for (const child of this.gizmos.children) if (child instanceof THREE.Line) child.geometry.dispose();

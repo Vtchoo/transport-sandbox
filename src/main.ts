@@ -252,6 +252,7 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (event.code === 'KeyC') { event.preventDefault(); if (!event.repeat) toggleCamera(); return; }
+  if (event.code === 'KeyG' && trackEditor?.enabled) { event.preventDefault(); if (!event.repeat) trackEditor.toggleGrid(); return; }
   if (event.key === 'Shift') trackEditor?.modifiersChanged(event.shiftKey);
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
     event.preventDefault(); keys.add(event.code);

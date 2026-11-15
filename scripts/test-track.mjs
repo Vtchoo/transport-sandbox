@@ -12,9 +12,34 @@ const load = (entry) => {
 const { TrackNetwork, trackFrame } = await load('src/track/model.ts');
 const { TrackEditor } = await load('src/track/editor.ts');
 const { makeTrack, updateSleeperLOD, disposeTrack } = await load('src/track/render.ts');
+const { WorldGrid, snapWorldPoint } = await load('src/track/grid.ts');
 const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.ts');
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('world grid uses absolute X/Z multiples, preserves elevation and stays aligned across origin shifts', () => {
+  for (const spacing of [1, 5, 10, 25]) {
+    const point = p(-123.4, 17.35, 1000023.7), before = point.clone();
+    const snapped = snapWorldPoint(point, spacing);
+    assert.ok(Math.abs(snapped.x / spacing - Math.round(snapped.x / spacing)) < 1e-8);
+    assert.ok(Math.abs(snapped.z / spacing - Math.round(snapped.z / spacing)) < 1e-8);
+    assert.equal(snapped.y, point.y); assert.ok(point.equals(before));
+    const grid = new WorldGrid();
+    grid.setSpacing(spacing); grid.showAt(point, true);
+    assert.ok(grid.visible); assert.ok(grid.position.equals(snapped));
+    assert.equal(grid.rotation.y, 0);
+    const parent = new THREE.Group(); parent.position.set(100, 0, -1000000); parent.add(grid);
+    parent.updateMatrixWorld(true);
+    assert.ok(grid.getWorldPosition(p(0, 0, 0)).distanceTo(snapped.clone().add(parent.position)) < 1e-8);
+    const helper = grid.children[0]; let disposed = false;
+    helper.geometry.addEventListener('dispose', () => { disposed = true; });
+    grid.setSpacing(0); assert.equal(grid.children.length, 0); assert.equal(disposed, true);
+    grid.showAt(point, true); assert.equal(grid.visible, false);
+    grid.dispose();
+  }
+  const point = p(3.2, 9, 8.7);
+  assert.ok(snapWorldPoint(point, 0).equals(point));
+});
 
 test('straight placement follows the outgoing 3D tangent and grade on either side', () => {
   const editor = Object.create(TrackEditor.prototype);
@@ -415,6 +440,41 @@ test('editor hover actions support confirmation, continuous parallel placement, 
     for (let i = 0; i < actualRail.length; i++) assert.ok(Math.abs(actualRail[i] - previewRail[i]) < 1e-5);
     const snappedCurve = editor.network.curve(snappedEdge);
     for (let i = 0; i <= 10; i++) assert.ok(snappedCurve.getPoint(i / 10).distanceTo(a.position.clone().lerp(expected, i / 10)) < 1e-8);
+    // Grid toggle remembers spacing and never edits tracks merely by toggling.
+    editor.lastPointer = undefined;
+    const gridNodes = editor.network.nodes.size, gridSegments = editor.network.segments.size;
+    assert.equal(editor.grid.spacing, 0);
+    editor.toggleGrid(); assert.equal(editor.grid.spacing, 5); assert.equal(element('track-grid').value, '5');
+    element('track-grid').value = '25'; element('track-grid').dispatchEvent(new Event('change'));
+    editor.toggleGrid(); assert.equal(editor.grid.spacing, 0);
+    editor.toggleGrid(); assert.equal(editor.grid.spacing, 25);
+    assert.equal(editor.network.nodes.size, gridNodes); assert.equal(editor.network.segments.size, gridSegments);
+    editor.start = { node: a, side: 1 };
+    const gridTarget = p(132, 12.75, -38);
+    assert.ok(editor.placementPoint(gridTarget, false).equals(p(125, 12.75, -50)));
+    const tangentPoint = editor.placementPoint(gridTarget, true);
+    assert.ok(tangentPoint.clone().sub(a.position).cross(a.axis).length() < 1e-8);
+    // Existing nodes remain the target even when Shift and the grid are both on.
+    const existing = editor.network.addNode(p(131, 7, 72), 1435), originalPick = editor.pick;
+    editor.pick = () => ({ node: existing });
+    editor.pointerDown({ button: 0, clientX: 531, clientY: 400, shiftKey: true });
+    assert.equal(editor.start.node, existing); assert.ok(existing.position.equals(p(131, 7, 72)));
+    editor.pick = originalPick;
+    editor.start = undefined;
+    // A new first node also snaps, keeping its terrain-derived elevation.
+    editor.terrainPoint = () => p(-132, 23.75, 138);
+    editor.pointerDown({ button: 0, clientX: 268, clientY: 600 });
+    assert.ok(editor.start.node.position.equals(p(-125, 23.75, 150)));
+    editor.cancelPlacement();
+    editor.canvas.hasPointerCapture = () => false;
+    editor.ray = () => new THREE.Ray(p(-123, 100, 139), p(0, -1, 0));
+    editor.drag = { pick: { node: existing }, pointer: 1, anchor: existing.position.clone(), screenY: 500, vertical: false, changed: false, affected: editor.affectedSegments({ node: existing }) };
+    editor.pointerMove({ pointerId: 1, buttons: 1, clientX: 268, clientY: 600, shiftKey: false });
+    assert.ok(existing.position.equals(p(-125, 7, 150)));
+    editor.endDrag();
+    editor.setEnabled(false);
+    assert.equal(editor.grid.visible, false);
+    editor.toggleGrid(); assert.equal(editor.grid.spacing, 25); // Inactive tool ignores G.
   } finally {
     editor?.dispose();
     for (const [key, descriptor] of saved) {
