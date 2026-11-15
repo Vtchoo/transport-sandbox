@@ -12,7 +12,68 @@ const { makeVehicle, disposeVehicle, tintVehicle } = await load('src/train/rende
 const { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPositions, COUPLER_GAP } = await load('src/train/consist.ts');
 const { sampleTrack, vehiclePose, applyVehiclePose, vehiclesOverlap } = await load('src/train/placement.ts');
 const { TrackNetwork } = await load('src/track/model.ts');
+const { catalogDestination, catalogAllows } = await load('src/train/catalog-routing.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('catalog targets only the frontmost editable train tab, with no fallback to a lower editor', () => {
+  const builder = new TrainBuilder(), train = builder.create(); builder.add(VEHICLES[0]);
+  assert.equal(catalogDestination(undefined), undefined);
+  assert.equal(catalogDestination({ train, tab: 'viewport' }), undefined);
+  assert.equal(catalogDestination({ train, tab: 'edit' }), train);
+  train.placed = true; assert.equal(catalogDestination({ train, tab: 'edit' }), train);
+});
+
+test('catalog filtering uses the entire consist gauge intersection and validates bogie mappings', () => {
+  const builder = new TrainBuilder(), train = builder.create(); builder.add(VEHICLES[0]); builder.add(VEHICLES[1]);
+  assert.equal(catalogAllows(VEHICLES[2], train), true);
+  const incompatible = { ...VEHICLES[2], bogiesByGauge: { 1000: 'blomberg-b-1435' } };
+  assert.equal(catalogAllows(incompatible, train), false);
+  assert.equal(catalogAllows(incompatible), true);
+  const multiGauge = { ...VEHICLES[2], bogiesByGauge: { ...VEHICLES[2].bogiesByGauge, 1000: 'not-a-bogie' } };
+  assert.equal(catalogAllows(multiGauge, train), true);
+  train.items.push({ id: 99, definition: incompatible, facing: 1 });
+  assert.equal(catalogAllows(VEHICLES[0], train), false);
+});
+
+test('workbench inserts, reorders, flips and transfers vehicles without changing their identities', () => {
+  const builder = new TrainBuilder(), first = builder.create();
+  const loco = builder.add(VEHICLES[0]), coach = builder.add(VEHICLES[1]);
+  const dome = builder.add(VEHICLES[2], 1);
+  assert.deepEqual(first.items.map(item => item.id), [loco.id, dome.id, coach.id]);
+  assert.equal(builder.moveItem(first.id, coach.id, first.id, 0), true);
+  assert.deepEqual(first.items.map(item => item.id), [coach.id, loco.id, dome.id]);
+  assert.equal(builder.moveItem(first.id, coach.id, first.id, 1), false);
+  builder.flip(coach.id); assert.equal(coach.facing, -1);
+  const second = builder.create(); builder.add(VEHICLES[3]);
+  builder.moveItem(first.id, coach.id, second.id, 1);
+  assert.equal(second.items[1], coach); assert.equal(coach.facing, -1);
+  assert.deepEqual(first.items.map(item => item.id), [loco.id, dome.id]);
+  assert.equal(builder.selected, second);
+  second.placed = true;
+  second.speed = 2;
+  assert.throws(() => builder.moveItem(second.id, coach.id, first.id, 0), /stopped first/);
+  assert.throws(() => builder.flip(coach.id), /stopped first/);
+  second.placed = false; second.speed = 0;
+  const before = builder.snapshot();
+  second.items[0].definition = { ...VEHICLES[3], bogiesByGauge: { 1000: 'not-a-bogie' } };
+  assert.throws(() => builder.moveItem(first.id, loco.id, second.id, 0), /compatible gauge/);
+  assert.equal(first.items[0], loco); assert.equal(second.items.length, 2);
+  builder.restore(before);
+});
+
+test('builder snapshots restore separate trains and item orientation without ID reuse or aliasing', () => {
+  const builder = new TrainBuilder(), first = builder.create(); builder.add(VEHICLES[0]);
+  const second = builder.create(), coach = builder.add(VEHICLES[1]);
+  const snapshot = builder.snapshot();
+  builder.flip(coach.id); builder.merge(first, second, 'rear'); first.placed = true;
+  builder.restore(snapshot);
+  assert.equal(builder.trains.length, 2); assert.equal(builder.selected.id, second.id);
+  assert.equal(builder.selected.items[0].facing, 1); assert.equal(builder.trains[0].placed, false);
+  builder.flip(coach.id); assert.equal(snapshot.trains[1].items[0].facing, 1);
+  const extra = builder.create(), item = builder.add(VEHICLES[2]);
+  builder.restore(snapshot); assert.ok(builder.create().id > extra.id); assert.ok(builder.add(VEHICLES[0]).id > item.id);
+  assert.throws(() => builder.add(VEHICLES[1], -1), /insertion/);
+});
 
 test('train builder keeps separate drafts, appends front/rear and removes only the chosen draft item', () => {
   const builder = new TrainBuilder(), train = builder.create();
@@ -28,8 +89,9 @@ test('train builder keeps separate drafts, appends front/rear and removes only t
   builder.merge(train, leading, 'front');
   assert.deepEqual(train.items.map(item => item.id), [extra.id, loco.id, dome.id]);
   train.placed = true;
-  assert.equal(builder.remove(train.id, loco.id), false);
-  assert.throws(() => builder.add(VEHICLES[1]), /unplaced/);
+  train.speed = 2;
+  assert.throws(() => builder.remove(train.id, loco.id), /stopped first/);
+  assert.throws(() => builder.add(VEHICLES[1]), /stopped first/);
   const other = builder.create(); builder.add(VEHICLES[1]);
   const before = other.items.length;
   assert.throws(() => builder.add({ ...VEHICLES[0], bogiesByGauge: {} }), /no compatible gauge/);

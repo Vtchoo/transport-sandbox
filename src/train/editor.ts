@@ -6,140 +6,164 @@ import type { VehicleVisual } from './render';
 import { applyVehiclePose, vehiclesOverlap, sampleTrack } from './placement';
 import type { TrackPosition } from './placement';
 import type { VehiclePose } from './placement';
-import { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPositions } from './consist';
-import type { TrainConsist } from './consist';
+import { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPositions, editedConsistPosition, trainIsStopped } from './consist';
+import type { TrainConsist, BuilderSnapshot } from './consist';
 import type { TerrainWorld } from '../terrain/world';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
-const DRAG_TYPE = 'application/x-railway-train-item';
 type End = 'front' | 'rear';
 interface ParkedTrain { train: TrainConsist; visuals: VehicleVisual[]; position: TrackPosition; supported: boolean }
 interface AppendTarget { parked: ParkedTrain; end: End; combined: TrackPosition }
+interface SavedTransform { position: number[]; quaternion: number[] }
+interface EditorSnapshot {
+  builder: BuilderSnapshot;
+  parked: { train: number; position: TrackPosition; supported: boolean; visuals: { gauge: number; transforms: SavedTransform[] }[] }[];
+}
 export class TrainEditor {
   readonly group = new THREE.Group();
   readonly builder = new TrainBuilder();
+  onClose?: () => void;
+  onChange?: (action?: string) => void;
+  onMessage?: (train: number | undefined, text: string) => void;
+  onWarning?: (text: string) => void;
   private parked: ParkedTrain[] = [];
   private ghosts: VehicleVisual[] = [];
   private ghostKey = '';
   private target?: TrackPosition;
   private appendTarget?: AppendTarget;
-  private catalogAppend?: { train: TrainConsist; end: End };
   private facing: Side = 1;
   private reverseAppend = false;
   private visible = false;
   private placing = false;
   private valid = false;
   private pointer?: { clientX: number; clientY: number };
-  private dragged?: { train: number; item: number };
   private signature = '';
-  private abort = new AbortController();
   private routeTime = 0;
-  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld, private network: TrackNetwork) {
-    scene.add(this.group); const options = { signal: this.abort.signal };
-    $('train-new').addEventListener('click', () => {
-      this.cancelPreview(); this.catalogAppend = undefined; this.builder.create(); this.builderInfo();
-      this.message('Empty train created. Choose its first vehicle from the catalog.');
-    }, options);
-    $('train-selector').addEventListener('change', () => {
-      this.cancelPreview(); this.catalogAppend = undefined;
-      this.builder.selected = this.builder.trains.find(train => train.id === Number($<HTMLSelectElement>('train-selector').value));
-      this.builderInfo(); this.message('Select Append to front/rear to add catalog vehicles to this draft, or choose a catalog vehicle to create a new train.');
-    }, options);
-    for (const [id, end] of [['train-append-front', 'front'], ['train-append-rear', 'rear']] as const) $(id).addEventListener('click', () => {
-      const train = this.builder.selected; if (!train || train.placed) return;
-      this.cancelPreview(); this.catalogAppend = { train, end };
-      this.message(`Choose a catalog vehicle to append to the ${end} of ${train.name}.`);
-    }, options);
-    document.querySelectorAll<HTMLButtonElement>('[data-vehicle]').forEach(button => button.addEventListener('click', () => {
-      const append = this.catalogAppend; this.catalogAppend = undefined; this.cancelPreview();
-      const existing = this.builder.selected;
-      const train = !append && existing && !existing.placed && existing.items.length === 0 ? existing : this.builder.create();
-      this.builder.selected = train;
-      try {
-        this.builder.add(vehicleDefinition(button.dataset.vehicle!));
-        if (append) this.builder.merge(append.train, train, append.end);
-        this.builderInfo(); this.message(append ? 'Vehicle appended. Append another vehicle or place this train.' : 'New train created. Append more vehicles or choose Place train on track.');
-      } catch (error) { this.builderInfo(); this.message((error as Error).message); }
-    }, options));
-    $('train-place').addEventListener('click', () => {
-      const train = this.builder.selected; if (!train || train.placed || !train.items.length) return;
-      this.catalogAppend = undefined; this.placing = true; this.clearGhosts(); this.builderInfo();
-      this.reverseAppend = false;
-      this.message('Hover track to preview the train. R reverses facing. Snap to a parked train’s front/rear to append.');
-      if (this.pointer) this.pointerMove(this.pointer); this.canvas.focus({ preventScroll: true });
-    }, options);
-    $('train-reverse').addEventListener('click', () => this.reversePreview(), options);
-    $('train-done').addEventListener('click', () => this.setEnabled(false), options);
-    $('train-undo').addEventListener('click', () => this.undoPlacement(), options);
-    const trash = $('train-trash');
-    trash.addEventListener('dragover', event => {
-      if (!this.dragged || !event.dataTransfer?.types.includes(DRAG_TYPE)) return;
-      event.preventDefault(); event.dataTransfer.dropEffect = 'move'; trash.classList.add('drop-ready');
-    }, options);
-    trash.addEventListener('dragleave', () => trash.classList.remove('drop-ready'), options);
-    trash.addEventListener('drop', event => {
-      event.preventDefault(); trash.classList.remove('drop-ready', 'drag-active');
-      try {
-        const payload = JSON.parse(event.dataTransfer?.getData(DRAG_TYPE) || '{}');
-        if (this.dragged && this.dragged.train === payload.train && this.dragged.item === payload.item) this.removeItem(payload.train, payload.item);
-      } catch { /* Ignore unrelated drag payloads. */ }
-      this.dragged = undefined;
-    }, options);
-    this.builderInfo(); this.setEnabled(false);
-  }
+  private history: { label: string; state: EditorSnapshot }[] = [];
+  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld, private network: TrackNetwork) { scene.add(this.group); }
   get enabled() { return this.visible; }
+  get isPlacing() { return this.placing; }
+  get canUndo() { return this.history.length > 0; }
+  isSupported(id: number) { return this.parked.find(parked => parked.train.id === id)?.supported ?? true; }
+  trackGauge(id: number) { const parked = this.parked.find(parked => parked.train.id === id); return parked && this.network.segments.get(parked.position.edge)?.gauge; }
+  selectTrain(id: number) {
+    if (this.builder.selected?.id !== id) this.cancelPreview();
+    this.builder.selected = this.builder.trains.find(train => train.id === id);
+  }
+  addVehicle(id: string, targetId?: number, index?: number) {
+    return this.editConsist('Add vehicle', () => {
+      const train = targetId === undefined ? this.builder.create() : this.builder.trains.find(train => train.id === targetId);
+      if (!train) throw new Error('Open a train in Edit train first.');
+      const definition = vehicleDefinition(id), gauge = this.trackGauge(train.id);
+      if (!trainIsStopped(train)) throw new Error('Train must be stopped first.');
+      if (gauge !== undefined && !compatibleGauges([...train.items.map(item => item.definition), definition]).includes(gauge)) throw new Error(`This vehicle is incompatible with the train’s ${gauge.toLocaleString()} mm track.`);
+      this.builder.selected = train; this.builder.add(definition, index ?? train.items.length);
+    });
+  }
+  editConsist(label: string, action: () => boolean | void) {
+    const originals = this.parked.map(parked => ({ parked, items: parked.train.items.map(item => ({ ...item })), position: { ...parked.position } }));
+    let lifted = false;
+    const success = this.perform(label, () => {
+      if (action() === false) return false;
+      const changed = originals.filter(({ parked, items }) => items.length !== parked.train.items.length || items.some((item, index) => { const next = parked.train.items[index]; return next?.id !== item.id || next.facing !== item.facing || next.definition !== item.definition; }));
+      const affected = new Set(changed.map(({ parked }) => parked));
+      const created: VehicleVisual[] = [];
+      const plans: { parked: ParkedTrain; position?: TrackPosition; visuals?: VehicleVisual[] }[] = [];
+      // Shrinking sources are evaluated before growing destinations during transfers.
+      changed.sort((a, b) => (consistLayout(a.parked.train.items.map(item => item.definition)).length - consistLayout(a.items.map(item => item.definition)).length) - (consistLayout(b.parked.train.items.map(item => item.definition)).length - consistLayout(b.items.map(item => item.definition)).length));
+      try {
+        for (const { parked, items, position } of changed) {
+          if (!trainIsStopped(parked.train)) throw new Error('Train must be stopped first.');
+          if (!parked.train.items.length) { plans.push({ parked }); continue; }
+          let visuals: VehicleVisual[] | undefined;
+          try {
+            const next = editedConsistPosition(this.network, items, parked.train.items, position);
+            visuals = this.createVisuals(parked.train, next); created.push(...visuals);
+            const others = [...this.parked.filter(other => !affected.has(other)).flatMap(other => other.visuals), ...plans.flatMap(plan => plan.visuals ?? [])];
+            if (visuals.some(visual => others.some(other => vehiclesOverlap(visual, other)))) throw new Error('Not enough free track: another train occupies this space.');
+            plans.push({ parked, position: next, visuals });
+          } catch (error) {
+            const message = (error as Error).message;
+            if (!message.startsWith('Not enough') && !message.includes('curve is too tight')) throw error;
+            if (visuals) { for (const visual of visuals) { this.group.remove(visual.group); disposeVehicle(visual); created.splice(created.indexOf(visual), 1); } }
+            plans.push({ parked }); lifted = true;
+          }
+        }
+      } catch (error) { created.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); }); throw error; }
+      for (const plan of plans) {
+        plan.parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
+        if (plan.visuals && plan.position) { plan.parked.visuals = plan.visuals; plan.parked.position = plan.position; plan.parked.supported = true; }
+        else { plan.parked.train.placed = false; this.parked.splice(this.parked.indexOf(plan.parked), 1); }
+      }
+    });
+    if (success && lifted) { const text = 'Not enough free track for the edited train. It has been lifted for repositioning.'; this.message(text); this.onWarning?.(text); }
+    return success;
+  }
+  startPlacement() {
+    const train = this.builder.selected; if (!this.enabled || !train || train.placed || !train.items.length) return;
+    this.placing = true; this.reverseAppend = false; this.clearGhosts(); this.builderInfo();
+    this.message('Hover track to preview. R reverses; Esc cancels.'); this.canvas.focus({ preventScroll: true });
+    if (this.pointer) this.pointerMove(this.pointer);
+  }
   reversePreview() {
     if (!this.enabled || !this.placing) return;
     this.facing = this.facing === 1 ? -1 : 1; this.reverseAppend = !this.reverseAppend;
     if (this.pointer) this.pointerMove(this.pointer);
   }
-  setEnabled(enabled: boolean) {
-    this.visible = enabled; $('train-panel').hidden = !enabled;
-    $('place-train').setAttribute('aria-pressed', String(enabled)); this.cancelPreview(); this.catalogAppend = undefined; this.builderInfo();
-    if (enabled) this.message('Choose a catalog vehicle to create a train. Use Append to front/rear to build its consist.');
+  setEnabled(enabled: boolean) { if (!enabled) this.cancelPreview(); this.visible = enabled; }
+  private builderInfo() { this.canvas.classList.toggle('placing-train', this.placing); this.onChange?.(); }
+  private message(text: string) {
+    this.onMessage?.(this.builder.selected?.id, text);
+    const hint = $('train-placement-hint'); hint.hidden = !this.enabled || !this.placing || !this.pointer;
+    hint.textContent = `${text}\n${this.valid ? 'Click to place' : 'Choose a track position'} · R reverse · Esc cancel`;
+    hint.classList.toggle('invalid', !this.valid);
+    if (this.pointer) { hint.style.left = `${Math.max(8, Math.min(this.pointer.clientX + 20, innerWidth - 280))}px`; hint.style.top = `${Math.max(8, Math.min(this.pointer.clientY + 22, innerHeight - 110))}px`; }
   }
-  private message(text: string) { $('train-status').textContent = text; }
-  private removeItem(train: number, item: number) {
-    if (!this.builder.remove(train, item)) return;
-    this.cancelPreview(); this.builderInfo(); this.message('Vehicle removed from the train.');
+  trainFocus(id: number) {
+    const parked = this.parked.find(parked => parked.train.id === id);
+    if (!parked) return;
+    const center = new THREE.Vector3(); parked.visuals.forEach(visual => center.add(visual.group.position)); center.divideScalar(parked.visuals.length);
+    return { center: center.sub(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y)), length: consistLayout(parked.train.items.map(item => item.definition)).length };
   }
-  private builderInfo() {
-    const train = this.builder.selected, editable = !!train && !train.placed;
-    const selector = $<HTMLSelectElement>('train-selector');
-    selector.replaceChildren(...this.builder.trains.map(item => new Option(`${item.name}${item.placed ? ' · parked' : ' · building'}`, String(item.id))));
-    selector.disabled = !this.builder.trains.length; if (train) selector.value = String(train.id);
-    const list = $('train-consist'); list.replaceChildren();
-    train?.items.forEach((item, index) => {
-      const row = document.createElement('li'); row.className = 'consist-item'; row.draggable = editable; row.dataset.itemId = String(item.id);
-      const text = document.createElement('span'), title = document.createElement('strong'), detail = document.createElement('small');
-      title.textContent = `${index + 1}. ${item.definition.name}`; detail.textContent = `${item.definition.length.toFixed(2)} m${index === 0 ? ' · front' : ''}${item.facing === -1 ? ' · reversed' : ''}`;
-      text.append(title, detail); row.append(text);
-      if (editable) {
-        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.title = 'Remove vehicle';
-        remove.setAttribute('aria-label', `Remove vehicle ${index + 1}: ${item.definition.name}`);
-        remove.addEventListener('click', () => this.removeItem(train!.id, item.id)); row.append(remove);
-        row.addEventListener('dragstart', event => {
-          this.dragged = { train: train!.id, item: item.id }; event.dataTransfer?.setData(DRAG_TYPE, JSON.stringify(this.dragged));
-          if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
-          row.classList.add('dragging'); $('train-trash').classList.add('drag-active');
-        });
-        row.addEventListener('dragend', () => {
-          this.dragged = undefined; row.classList.remove('dragging'); $('train-trash').classList.remove('drop-ready', 'drag-active');
-        });
-      }
-      list.append(row);
+  pickTrain(event: { clientX: number; clientY: number }) {
+    const rect = this.canvas.getBoundingClientRect(), ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2), this.camera);
+    this.group.updateMatrixWorld(true);
+    const hit = ray.intersectObjects(this.parked.flatMap(train => train.visuals.map(visual => visual.group)), true)[0];
+    if (!hit) return;
+    for (const parked of this.parked) for (const visual of parked.visuals) { let object: THREE.Object3D | null = hit.object; while (object) { if (object === visual.group) return parked.train.id; object = object.parent; } }
+  }
+  private capture(): EditorSnapshot {
+    return { builder: this.builder.snapshot(), parked: this.parked.map(parked => ({
+      train: parked.train.id, position: { ...parked.position }, supported: parked.supported,
+      visuals: parked.visuals.map(visual => ({ gauge: visual.gauge, transforms: [visual.group, visual.body, ...visual.bogies].map(object => ({ position: object.position.toArray(), quaternion: object.quaternion.toArray() })) })),
+    })) };
+  }
+  private restore(state: EditorSnapshot) {
+    this.parked.forEach(parked => parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); }));
+    this.builder.restore(state.builder);
+    this.parked = state.parked.map(saved => {
+      const train = this.builder.trains.find(train => train.id === saved.train)!;
+      const visuals = train.items.map((item, i) => {
+        const visual = makeVehicle(item.definition, saved.visuals[i].gauge);
+        [visual.group, visual.body, ...visual.bogies].forEach((object, j) => { const transform = saved.visuals[i].transforms[j]; object.position.fromArray(transform.position); object.quaternion.fromArray(transform.quaternion); });
+        this.group.add(visual.group); return visual;
+      });
+      return { train, visuals, position: { ...saved.position }, supported: saved.supported };
     });
-    $('train-empty').hidden = !!train?.items.length;
-    $('train-empty').textContent = train ? 'Choose a catalog vehicle for this empty train.' : 'Choose a catalog vehicle to create a train.';
-    $('train-trash').hidden = !editable || !train!.items.length;
-    $('train-trash').classList.remove('drop-ready', 'drag-active');
-    for (const id of ['train-append-front', 'train-append-rear']) $<HTMLButtonElement>(id).disabled = !editable;
-    const definitions = train?.items.map(item => item.definition) ?? [];
-    $('train-specs').textContent = definitions.length ? `${definitions.length} vehicles · ${consistLayout(definitions).length.toFixed(2)} m total\nCompatible gauge: ${compatibleGauges(definitions).map(gauge => `${gauge.toLocaleString()} mm`).join(', ')}` : '';
-    $<HTMLButtonElement>('train-place').disabled = !editable || !definitions.length || this.placing;
-    $<HTMLButtonElement>('train-reverse').disabled = !this.placing;
-    $('train-count').textContent = `${this.parked.length} parked train${this.parked.length === 1 ? '' : 's'} · ${this.parked.reduce((sum, item) => sum + item.visuals.length, 0)} vehicles`;
-    $<HTMLButtonElement>('train-undo').disabled = this.parked.length === 0;
+  }
+  perform(label: string, action: () => boolean | void) {
+    const before = this.capture();
+    try {
+      if (action() === false) return false;
+      this.history.push({ label, state: before }); if (this.history.length > 50) this.history.shift();
+      this.cancelPreview(); this.onChange?.(label); this.builderInfo(); this.message(`${label} complete. Ctrl+Z to undo.`); return true;
+    } catch (error) { this.restore(before); this.cancelPreview(); this.builderInfo(); this.message((error as Error).message); this.onWarning?.((error as Error).message); return false; }
+  }
+  undo() {
+    const entry = this.history.pop(); if (!entry) return;
+    this.cancelPreview(); this.restore(entry.state);
+    this.onChange?.('Undo'); this.builderInfo(); this.message(`Undid: ${entry.label}.`);
   }
   private project(point: THREE.Vector3) {
     const p = point.clone().sub(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y)).project(this.camera), rect = this.canvas.getBoundingClientRect();
@@ -184,10 +208,16 @@ export class TrainEditor {
     if (!this.placing || !this.builder.selected) return false;
     const train = this.builder.selected, definitions = train.items.map(item => item.definition);
     this.target = this.pick(event); this.appendTarget = undefined; this.valid = false;
+    $('train-coupler').hidden = true;
     let appendError: string | undefined;
     try {
       const append = this.pickAppend(event, consistLayout(definitions).length);
-      if (append) { this.target = { ...append.incoming, facing: append.incoming.facing * (this.reverseAppend ? -1 : 1) as Side }; this.appendTarget = append; }
+      if (append) {
+        this.target = { ...append.incoming, facing: append.incoming.facing * (this.reverseAppend ? -1 : 1) as Side }; this.appendTarget = append;
+        const length = consistLayout(append.parked.train.items.map(item => item.definition)).length;
+        const point = this.project(sampleTrack(this.network, append.parked.position, (append.end === 'front' ? 1 : -1) * length / 2).point);
+        const marker = $('train-coupler'); marker.hidden = false; marker.style.left = `${point.x}px`; marker.style.top = `${point.y}px`;
+      }
     } catch (error) { appendError = (error as Error).message; }
     if (!this.target) { this.ghosts.forEach(visual => { visual.group.visible = false; }); this.message(appendError ?? 'Hover track to preview the train. R reverses facing.'); return false; }
     const target = this.target, gauge = this.network.segments.get(target.edge)!.gauge;
@@ -208,9 +238,10 @@ export class TrainEditor {
       this.ghosts.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, train.items[i].facing)));
       if (this.ghosts.some(visual => this.parked.some(parked => parked.visuals.some(other => vehiclesOverlap(visual, other, parked === this.appendTarget?.parked ? 0 : 0.08))))) throw new Error('This train overlaps a parked train.');
       this.valid = true;
-      this.message(this.appendTarget ? `Click to append to the ${this.appendTarget.end} of ${this.appendTarget.parked.train.name}.` : `Click to place ${train.name} · ${definitions.length} vehicles. R reverses; Esc cancels.`);
+      this.message(this.appendTarget ? `Attach to ${this.appendTarget.end} · ${this.appendTarget.parked.train.name}` : `${train.name} · ${definitions.length} vehicles · ready to place`);
     } catch (error) {
-      this.message((error as Error).message);
+      const raw = (error as Error).message;
+      this.message(raw.includes('gauge') ? `Requires ${compatibleGauges(definitions).map(gauge => `${gauge.toLocaleString()} mm`).join(' or ')} track. This track is ${gauge.toLocaleString()} mm.` : raw.includes('Not enough') ? 'Not enough track ahead or behind this point. Move the train farther along the track.' : raw);
       const curve = this.network.curve(this.network.segments.get(target.edge)!);
       const center = curve.getPointAt(target.u), direction = curve.getTangentAt(target.u).multiplyScalar(target.facing), { offsets } = consistLayout(definitions);
       this.ghosts.forEach((visual, i) => {
@@ -231,45 +262,44 @@ export class TrainEditor {
     if (!this.enabled || !this.placing || event.button !== 0) return false;
     this.pointerMove(event); const train = this.builder.selected;
     if (!this.valid || !this.target || !train) return true;
-    const append = this.appendTarget;
-    if (append) {
-      const parked = append.parked;
-      this.builder.merge(parked.train, train, append.end, this.reverseAppend);
-      parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
-      parked.position = { ...append.combined }; parked.visuals = this.createVisuals(parked.train, parked.position); parked.supported = true;
-    } else {
-      const position = { ...this.target }, visuals = this.createVisuals(train, position); train.placed = true;
-      this.parked.push({ train, visuals, position, supported: true });
-    }
-    this.cancelPreview(); this.builderInfo(); this.message(append ? `Trains merged into ${append.parked.train.name}.` : `${train.name} placed. Choose a catalog vehicle to create another train.`); return true;
-  }
-  private undoPlacement() {
-    const last = this.parked.pop();
-    if (last) { last.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); }); last.train.placed = false; this.builder.selected = last.train; }
-    this.cancelPreview(); this.builderInfo(); this.message('Last parked train returned to the builder.');
+    const append = this.appendTarget, target = { ...this.target };
+    this.perform(append ? 'Attach trains' : 'Place train', () => {
+      if (append) {
+        const parked = append.parked;
+        this.builder.merge(parked.train, train, append.end, this.reverseAppend);
+        parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
+        parked.position = { ...append.combined }; parked.visuals = this.createVisuals(parked.train, parked.position); parked.supported = true;
+      } else {
+        const position = target, visuals = this.createVisuals(train, position); train.placed = true;
+        this.parked.push({ train, visuals, position, supported: true });
+      }
+    });
+    return true;
   }
   leave() { this.pointer = undefined; this.clearGhosts(); }
   suspend() { this.pointer = undefined; this.clearGhosts(); }
   escape() {
     if (!this.enabled) return false;
     if (this.placing) { this.cancelPreview(); this.builderInfo(); this.message('Placement cancelled. Your train is unchanged.'); }
-    else if (this.catalogAppend) { this.catalogAppend = undefined; this.message('Append cancelled.'); }
-    else this.setEnabled(false);
+    else if (this.onClose) this.onClose(); else this.setEnabled(false);
     return true;
   }
-  private cancelPreview() { this.placing = false; this.clearGhosts(); }
+  private cancelPreview() { this.placing = false; this.canvas.classList.remove('placing-train'); this.clearGhosts(); }
   private clearGhosts(resetTarget = true) {
+    $('train-placement-hint').hidden = true; $('train-coupler').hidden = true;
     this.ghosts.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); }); this.ghosts = []; this.ghostKey = '';
     if (resetTarget) { this.target = undefined; this.appendTarget = undefined; this.valid = false; }
   }
   update(time: number) {
     this.group.position.set(-this.world.origin.x, 0, -this.world.origin.y);
     if (time - this.routeTime > 250) {
+      const previous = this.parked.map(train => train.supported).join(',');
       for (const parked of this.parked) {
         try { const poses = consistPoses(this.network, parked.train.items.map(item => item.definition), parked.position); parked.visuals.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, parked.train.items[i].facing))); parked.supported = true; }
         catch { parked.supported = false; }
       }
-      $('train-support').hidden = this.parked.every(train => train.supported); this.routeTime = time;
+      this.routeTime = time;
+      if (previous !== this.parked.map(train => train.supported).join(',')) this.onChange?.();
     }
     if (this.enabled && this.placing && this.pointer) {
       const signature = [...this.camera.position, this.camera.rotation.x, this.camera.rotation.y, this.world.origin.x, this.world.origin.y, this.network.segments.size].join(',');
@@ -277,7 +307,7 @@ export class TrainEditor {
     }
   }
   dispose() {
-    this.setEnabled(false); this.abort.abort(); this.scene.remove(this.group);
+    this.setEnabled(false); this.scene.remove(this.group);
     this.parked.forEach(train => train.visuals.forEach(disposeVehicle)); this.parked = []; this.group.clear();
   }
 }

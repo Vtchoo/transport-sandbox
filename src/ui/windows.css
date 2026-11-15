@@ -1,0 +1,36 @@
+/* Shared chrome; content inside each window keeps its own layout. */
+#app .game-window {
+  position: fixed; margin: 0; padding: 10px; max-width: none; max-height: none; min-width: 0;
+  display: flex; flex-direction: column; gap: 8px; overflow: hidden; pointer-events: auto;
+  background: #233b33fa; border: 1px solid #526b58; border-radius: 5px;
+  box-shadow: 0 5px 18px #07151080, inset 1px 1px #a6b69d24; text-shadow: none;
+}
+#app .game-window.window-active { border-color: #c4b77e; box-shadow: 0 8px 28px #07151099, inset 1px 1px #e0d59c33; }
+#app .game-window-titlebar {
+  display: flex; flex: 0 0 32px; min-height: 32px; align-items: center; justify-content: space-between;
+  gap: 8px; margin: -10px -10px 2px; padding: 3px 4px 3px 10px;
+  background: #344f40; border-bottom: 1px solid #102a21; cursor: grab; touch-action: none; user-select: none;
+}
+#app .window-active > .game-window-titlebar { background: linear-gradient(#6a7954, #4b6245); }
+#app .game-window-titlebar h2 { margin: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-window-controls { display: flex; gap: 3px; flex-shrink: 0; }
+#app .game-window-controls button {
+  display: grid; place-items: center; width: 25px; height: 24px; padding: 0; font-size: 18px; line-height: 1;
+  color: #ebefd8; background: #203b31; border: 1px solid #94a67b66; border-radius: 2px; cursor: pointer;
+  box-shadow: inset 1px 1px #c7d9aa33, inset -1px -1px #10271f;
+}
+#app .game-window-controls button:hover { background: #66744d; }
+#app .game-window-controls button:last-child:hover { background: #854939; }
+#app .game-window-resize {
+  position: absolute; right: 0; bottom: 0; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 0;
+  background: repeating-linear-gradient(135deg, transparent 0 3px, #b4bd8c88 3px 4px, transparent 4px 6px);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%); cursor: nwse-resize; touch-action: none;
+}
+#app .window-moving, #app .window-moving > .game-window-titlebar { cursor: grabbing; user-select: none; }
+#app .window-collapsed { height: 34px !important; padding-bottom: 0; }
+#app .window-collapsed > :not(.game-window-titlebar) { display: none !important; }
+.game-window-content { flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
+#window-taskbar { position: fixed; left: 12px; bottom: 9px; display: flex; flex-wrap: wrap; gap: 5px; max-width: calc(100vw - 24px); pointer-events: auto; z-index: 60; }
+#window-taskbar button { padding: 7px 12px; border: 1px solid #899d70; border-radius: 3px; background: #294235f5; color: #e8efd6; font-size: 11px; box-shadow: inset 1px 1px #c3d09b22; }
+#window-taskbar button:hover { background: #526747; }
+#game-warning { position: fixed; z-index: 10000; pointer-events: none; max-width: min(330px, calc(100vw - 16px)); padding: 10px 14px; border: 1px solid #edbb7b; border-radius: 4px; color: #fff1d5; background: #743b29f5; box-shadow: 0 4px 15px #0007, inset 1px 1px #ffe6b333; font-size: 12px; line-height: 1.5; text-shadow: none; }

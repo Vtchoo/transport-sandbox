@@ -39,29 +39,28 @@
         </aside>
         <div class="controls"><button id="camera-toggle" title="Switch camera mode (C)">Overlook · C</button><button id="capture" hidden>Click to look around</button><button class="settings-open">Settings</button><button id="share">Copy world link</button><button id="back">Main menu</button></div>
         <div class="bottom-hud"><p id="camera-hint" class="hint"></p></div>
-        <nav id="actions" aria-label="Build actions"><button id="build-track" type="button" aria-pressed="false" disabled><span aria-hidden="true">╫</span> Build track</button><button id="place-train" type="button" aria-pressed="false" disabled><span aria-hidden="true">▣</span> Place vehicles</button></nav>
-        <section id="train-panel" hidden aria-labelledby="train-title">
-          <div class="track-panel-heading"><h2 id="train-title">Train builder</h2><button id="train-done" type="button">Done</button></div>
-          <div class="train-builder-scroll">
-          <p class="fleet-note">WARBONNET COLLECTION · 1:1 SCALE</p>
-          <div class="train-tools"><button id="train-new" type="button">Create empty train</button><select id="train-selector" aria-label="Select train" disabled></select></div>
-          <ol id="train-consist" aria-label="Train consist from front to rear"></ol><p id="train-empty">Choose a vehicle to create a train.</p>
-          <div id="train-trash" hidden>▥ Drop a consist vehicle here to delete it</div>
-          <div class="train-tools"><button id="train-append-front" type="button" disabled>Append to front</button><button id="train-append-rear" type="button" disabled>Append to rear</button></div>
-          <p class="fleet-note">VEHICLE CATALOG · CLICK TO CREATE A TRAIN</p>
-          <div class="vehicle-catalog" aria-label="Vehicle models">
+        <nav id="actions" aria-label="Build actions"><button id="build-track" type="button" aria-pressed="false" disabled><span aria-hidden="true">╫</span> Build track</button><button id="place-train" type="button" aria-pressed="false" disabled><span aria-hidden="true">▣</span> Vehicles</button><button id="show-trains" type="button" disabled>Trains</button></nav>
+        <section id="vehicle-catalog-panel" hidden aria-labelledby="vehicle-catalog-title">
+          <div class="track-panel-heading"><h2 id="vehicle-catalog-title">Vehicle catalog</h2><button id="vehicle-catalog-close" type="button">Close</button></div>
+          <p id="catalog-context" class="catalog-context"></p>
+          <div class="catalog-scroll">          <div class="vehicle-catalog" aria-label="Vehicle models">
             <button type="button" data-vehicle="ge-809"><strong>GE 809 · Wide cab</strong><span>Red/gray GE demonstrator · 20.22 m</span></button>
             <button type="button" data-vehicle="atsf-f7a"><strong>F7A · Warbonnet</strong><span>EMD passenger locomotive · 15.44 m</span></button>
             <button type="button" data-vehicle="atsf-coach"><strong>Streamlined coach</strong><span>Stainless-steel chair car · 25.91 m</span></button>
             <button type="button" data-vehicle="atsf-pleasure-dome"><strong>Pleasure Dome</strong><span>Raised glass dome lounge · 25.70 m</span></button>
+          </div></div>
+          <p id="catalog-empty" hidden>No compatible vehicles are available.</p>
+          <div class="catalog-preview">
+            <canvas id="catalog-viewport" width="384" height="216" aria-label="Rotating vehicle preview" hidden></canvas>
+            <p id="catalog-preview-name">Hover a vehicle to preview it</p>
           </div>
-          </div>
-          <p id="train-specs"></p><p id="train-status" role="status"></p>
-          <p id="train-support" hidden>A parked train’s supporting track was changed or removed. It remains at its last valid position.</p>
-          <button id="train-place" class="train-place" type="button" disabled>Place train on track</button>
-          <div class="train-tools"><button id="train-reverse" type="button" disabled>Reverse preview · R</button><button id="train-undo" type="button" disabled>Return last train to builder</button></div>
-          <p id="train-count"></p><p class="track-help">Choose a catalog vehicle to create a train. Append vehicles using front/rear controls. Drag draft vehicles to the trash to remove them. Place train on track shows a translucent preview; <kbd>R</kbd> reverses it. Snap to either end of a parked train to merge. <kbd>Esc</kbd> cancels placement.</p>
+          <p class="track-help">Edit train on the frontmost train window: append to its rear. Otherwise, click a vehicle to create a new train.</p>
         </section>
+        <section id="train-list-panel" hidden aria-labelledby="train-list-title">
+          <div class="track-panel-heading"><h2 id="train-list-title">Trains</h2><button id="train-list-close" type="button">Close</button></div>
+          <div id="train-fleet" class="fleet-list"></div>
+        </section>
+        <div id="train-placement-hint" hidden></div><div id="train-coupler" hidden aria-hidden="true"></div>
         <section id="track-panel" hidden aria-labelledby="track-title">
           <div class="track-panel-heading"><h2 id="track-title">Build track</h2><button id="track-done" type="button">Done</button></div>
           <label for="track-gauge">TRACK GAUGE</label><select id="track-gauge"></select>
@@ -82,6 +81,8 @@
       </section>
       <div id="loading" hidden role="status" aria-live="polite"><span class="eyebrow">BUILDING YOUR WORLD</span><p id="loading-message">Generating the surrounding terrain…</p><progress id="load-progress" max="1" value="0"></progress></div>
       <div id="crosshair" hidden aria-hidden="true">+</div>
+      <nav id="window-taskbar" hidden aria-label="Minimized windows"></nav>
+      <div id="game-warning" hidden role="alert" aria-live="assertive"></div>
       <dialog id="settings" aria-labelledby="settings-title">
         <div class="settings-heading"><h2 id="settings-title">Settings</h2><button id="settings-close" aria-label="Close settings">✕</button></div>
         <section id="settings-root" aria-label="Settings categories"><button id="open-gameplay" class="settings-category">Gameplay <span aria-hidden="true">→</span></button></section>

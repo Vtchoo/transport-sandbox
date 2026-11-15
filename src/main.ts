@@ -7,6 +7,12 @@ import { CameraRig } from './camera';
 import type { CameraMode } from './camera';
 import { TrackEditor } from './track/editor';
 import { TrainEditor } from './train/editor';
+import { TrainWindows } from './train/windows';
+import { TrainViewports } from './train/viewports';
+import { WindowManager } from './ui/windows';
+import './ui/windows.css';
+import { icon } from './ui/icons';
+import { WarningMessages } from './ui/warnings';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const canvas = $<HTMLCanvasElement>('#world');
@@ -67,6 +73,9 @@ scene.add(sky);
 let world: TerrainWorld | undefined;
 let trackEditor: TrackEditor | undefined;
 let trainEditor: TrainEditor | undefined;
+let trainWindows: TrainWindows | undefined;
+let skipCaptureClick = false;
+const trainViewports = new TrainViewports(renderer, scene);
 let playing = false, ready = false;
 let dragging: 'pan' | 'orbit' | null = null;
 let dragPointer: number | null = null;
@@ -91,6 +100,19 @@ function endDrag() {
 }
 function clearInput() { keys.clear(); endDrag(); trackEditor?.endDrag(); }
 function locked() { return document.pointerLockElement === canvas; }
+function syncWindowTools(active?: string) {
+  clearInput();
+  if (locked()) document.exitPointerLock();
+  const trackActive = active === 'track';
+  if (trackEditor?.enabled !== trackActive) trackEditor?.setEnabled(trackActive, windows.isVisible('track'));
+  trainWindows?.activate(active);
+}
+const windows = new WindowManager($('#window-taskbar'), syncWindowTools);
+const warnings = new WarningMessages($('#game-warning'));
+$('#place-train span').replaceChildren(icon('car'));
+$('#show-trains').prepend(icon('train'));
+windows.register({ id: 'track', element: $('#track-panel'), titlebar: $('#track-panel .track-panel-heading'), title: 'Build track', closeButton: $('#track-done'), scrollContent: true, bounds: { x: 24, y: 85, width: 330, height: 460 }, minWidth: 280, minHeight: 240, onClose: () => trackEditor?.setEnabled(false) });
+windows.register({ id: 'settings', element: settingsDialog, titlebar: $('#settings .settings-heading'), title: 'Settings', closeButton: $('#settings-close'), modal: true, scrollContent: true, bounds: { x: (innerWidth - 440) / 2, y: 120, width: 440, height: 360 }, minWidth: 300, minHeight: 240, onClose: () => { settingsDialog.close(); clearInput(); settingsReturnFocus?.focus(); } });
 function cameraUI() {
   const overlook = rig.mode === 'overlook';
   $('#camera-label').textContent = overlook ? 'OVERLOOK CAMERA' : 'FREE CAMERA';
@@ -125,6 +147,7 @@ document.querySelectorAll<HTMLElement>('.settings-open').forEach(button => butto
   $('#settings-root').hidden = false;
   $('#gameplay-settings').hidden = true;
   settingsDialog.showModal();
+  windows.open('settings');
 }));
 $('#open-gameplay').addEventListener('click', () => {
   $('#settings-root').hidden = true;
@@ -137,14 +160,16 @@ $('#settings-back').addEventListener('click', () => {
   $('#open-gameplay').focus();
 });
 function closeSettings() {
-  settingsDialog.close();
-  clearInput();
-  settingsReturnFocus?.focus();
+  windows.close('settings');
 }
 $('#settings-close').addEventListener('click', closeSettings);
 settingsDialog.addEventListener('cancel', event => { event.preventDefault(); closeSettings(); });
 cameraUI();
 function menuView() {
+  warnings.hide();
+  windows.closeAll();
+  trainWindows?.dispose(); trainWindows = undefined;
+  trainViewports.clear();
   playing = false; ready = false;
   debugOverlay.hidden = true;
   clearInput();
@@ -178,8 +203,12 @@ start.addEventListener('click', () => {
   scene.add(world.group);
   trackEditor = new TrackEditor(scene, camera, canvas, world);
   trainEditor = new TrainEditor(scene, camera, canvas, world, trackEditor.network);
+  trainEditor.onWarning = text => warnings.show(text);
+  trainWindows = new TrainWindows(trainEditor, windows);
+  trackEditor.onClose = () => windows.close('track');
   $<HTMLButtonElement>('#build-track').disabled = true;
   $<HTMLButtonElement>('#place-train').disabled = true;
+  $<HTMLButtonElement>('#show-trains').disabled = true;
   rig.reset(600, 900, ground);
   world.update(rig.position.x, rig.position.z, rig.position.y);
   $('#world-name').textContent = settings.seed;
@@ -192,14 +221,14 @@ $('#build-track').addEventListener('click', () => {
   if (!playing || !ready || !trackEditor) return;
   clearInput();
   if (locked()) document.exitPointerLock();
-  trainEditor?.setEnabled(false);
-  trackEditor.setEnabled(!trackEditor.enabled);
+  if (trackEditor.enabled) windows.close('track'); else windows.open('track');
 });
 $('#place-train').addEventListener('click', () => {
   if (!playing || !ready || !trainEditor) return;
   clearInput(); if (locked()) document.exitPointerLock();
-  trackEditor?.setEnabled(false); trainEditor.setEnabled(!trainEditor.enabled);
+  trainWindows?.toggleCatalog();
 });
+$('#show-trains').addEventListener('click', () => { if (playing && ready) trainWindows?.openFleet(); });
 $('#random-seed').addEventListener('click', () => {
   const values = crypto.getRandomValues(new Uint32Array(2));
   seedInput.value = `${values[0].toString(36)}-${values[1].toString(36)}`;
@@ -214,11 +243,16 @@ async function captureMouse() {
   catch { $('#capture').textContent = 'Drag the landscape to look around'; }
 }
 $('#capture').addEventListener('click', captureMouse);
-canvas.addEventListener('click', () => { if (!dragging) void captureMouse(); });
+canvas.addEventListener('click', () => { if (!skipCaptureClick && !dragging) void captureMouse(); skipCaptureClick = false; });
 canvas.addEventListener('pointerdown', (event) => {
   if (!playing || !ready || settingsDialog.open || locked()) return;
   canvas.focus({ preventScroll: true });
-  if (trainEditor?.pointerDown(event)) { event.preventDefault(); keys.clear(); return; }
+  skipCaptureClick = false;
+  if (trainEditor?.pointerDown(event)) { skipCaptureClick = true; event.preventDefault(); keys.clear(); return; }
+  if (event.button === 0) {
+    const id = trainEditor?.pickTrain(event);
+    if (id !== undefined) { skipCaptureClick = true; trainWindows?.openTrain(id, 'viewport'); event.preventDefault(); clearInput(); return; }
+  }
   if (trackEditor?.pointerDown(event)) { event.preventDefault(); keys.clear(); return; }
   if (dragPointer !== null || ![0, 1, 2].includes(event.button)) return;
   if (rig.mode === 'free' && event.button !== (trackEditor?.enabled || trainEditor?.enabled ? 2 : 0)) return;
@@ -258,8 +292,10 @@ document.addEventListener('pointerlockchange', () => {
 });
 document.addEventListener('pointerlockerror', () => { $('#capture').textContent = 'Drag the landscape to look around'; });
 window.addEventListener('keydown', event => {
-  if (!playing || settingsDialog.open || (event.target instanceof HTMLElement && /INPUT|SELECT|TEXTAREA/.test(event.target.tagName))) return;
-  if (event.code === 'Escape') { if (!trainEditor?.escape()) trackEditor?.escape(); clearInput(); return; }
+  if (!playing || settingsDialog.open || (event.target instanceof HTMLElement && (/INPUT|TEXTAREA/.test(event.target.tagName) || event.target.isContentEditable))) return;
+  if (event.code === 'KeyZ' && !event.shiftKey && (event.ctrlKey || event.metaKey) && trainWindows?.hasActiveWindow) { event.preventDefault(); if (!event.repeat) trainEditor?.undo(); return; }
+  if (event.target instanceof HTMLSelectElement) return;
+  if (event.code === 'Escape') { if (!trainWindows?.escape()) trackEditor?.escape(); clearInput(); return; }
   if (event.code === 'F3') {
     event.preventDefault();
     if (!event.repeat) debugOverlay.hidden = !debugOverlay.hidden;
@@ -306,7 +342,7 @@ renderer.setAnimationLoop(time => {
     $('#loading-message').textContent = world.error;
   } else if (!ready) {
     $<HTMLProgressElement>('#load-progress').value = stats.nearby / 9;
-    if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; $<HTMLButtonElement>('#place-train').disabled = false; }
+    if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; $<HTMLButtonElement>('#place-train').disabled = false; $<HTMLButtonElement>('#show-trains').disabled = false; }
   }
   if (ready && !settingsDialog.open && !trackEditor?.isDragging) rig.update(keys, delta, ground, (x, z) => world!.hasTerrainAt(x, z));
   world.update(rig.position.x, rig.position.z, rig.position.y);
@@ -314,6 +350,7 @@ renderer.setAnimationLoop(time => {
   camera.rotation.set(rig.pitch, rig.yaw, 0);
   trackEditor?.update(time);
   trainEditor?.update(time);
+  if (trainWindows) trainViewports.update(time, trainWindows);
   sky.position.copy(camera.position);
   renderer.render(scene, camera);
   hudTime += delta;
@@ -328,4 +365,4 @@ renderer.setAnimationLoop(time => {
     $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }
 });
-window.addEventListener('pagehide', () => { trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
+window.addEventListener('pagehide', () => { warnings.dispose(); trainWindows?.dispose(); trainViewports.dispose(); windows.dispose(); trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });

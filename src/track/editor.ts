@@ -60,6 +60,7 @@ export class TrackEditor {
   private ghostKey = '';
   private visible = false;
   gauge = 1435;
+  onClose?: () => void;
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld) {
     this.group.add(this.rails, this.gizmos); scene.add(this.group);
     this.group.add(this.grid); this.grid.visible = false;
@@ -152,7 +153,7 @@ export class TrackEditor {
       this.refreshGizmos();
       this.message(`Parallel node added · ${this.network.defaultSpacing(node.gauge).toFixed(3)} m default spacing. Drag its purple handle to adjust; click terrain to extend.`);
     }, { signal: this.abort.signal });
-    $('track-done').addEventListener('click', () => this.setEnabled(false), { signal: this.abort.signal });
+    $('track-done').addEventListener('click', () => this.onClose ? this.onClose() : this.setEnabled(false), { signal: this.abort.signal });
     this.deleteButton.addEventListener('click', () => {
       if (!this.enabled || this.drag || this.deleteButton.hidden || !this.hoverDirection) return;
       const node = this.network.nodes.get(this.hoverDirection.node.id);
@@ -203,12 +204,12 @@ export class TrackEditor {
     select.value = String(this.grid.spacing ? 0 : this.lastGridSpacing);
     select.dispatchEvent(new Event('change'));
   }
-  setEnabled(enabled: boolean) {
+  setEnabled(enabled: boolean, keepOpen = false) {
     this.hideSplit();
     this.resetDelete();
     this.visible = enabled; this.gizmos.visible = enabled;
     this.grid.showAt(this.gridPoint, enabled);
-    $('track-panel').hidden = !enabled;
+    $('track-panel').hidden = !(enabled || keepOpen);
     $('build-track').setAttribute('aria-pressed', String(enabled));
     this.hideNodeButtons();
     this.hideStraighten();
@@ -591,7 +592,7 @@ export class TrackEditor {
     if (this.confirmStraighten !== undefined) { this.hideStraighten(); this.message('Straightening cancelled.'); return true; }
     if (this.drag) this.endDrag();
     else if (this.start) { this.cancelPlacement(); this.message('Placement stopped. Click terrain to start a new chain, or edit existing nodes.'); }
-    else this.setEnabled(false);
+    else if (this.onClose) this.onClose(); else this.setEnabled(false);
     return true;
   }
   private cancelPlacement() {
