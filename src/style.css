@@ -1,4 +1,6 @@
 @import './train/style.css';
+#track-confirm-split { position: fixed; transform: translate(-50%, -100%); padding: 8px 12px; border: 1px solid #9ee4c5; border-radius: 5px; background: #284e3ef5; color: #edf5df; font-size: 11px; pointer-events: auto; z-index: 8; box-shadow: 0 2px 7px #0007; white-space: nowrap; }
+#track-confirm-split:hover { background: #38654e; }
 .setup-choice, #advanced-setup { padding: 10px 0; margin: 0; border: 0; min-width: 0; }
 .setup-choice legend, #advanced-setup legend { font-size: 12px; color: #c6d7bc; }
 .setup-choice label { display: flex; gap: 9px; align-items: center; letter-spacing: 0; font-size: 13px; cursor: pointer; }

@@ -331,6 +331,9 @@ window.addEventListener('keydown', event => {
   if (event.code === 'KeyC') { event.preventDefault(); if (!event.repeat) toggleCamera(); return; }
   if (event.code === 'KeyG' && trackEditor?.enabled) { event.preventDefault(); if (!event.repeat) trackEditor.toggleGrid(); return; }
   if (event.code === 'KeyR' && trainEditor?.enabled) { event.preventDefault(); if (!event.repeat) trainEditor.reversePreview(); return; }
+  if ((event.code === 'KeyZ' || event.code === 'KeyX') && !event.ctrlKey && !event.metaKey && !event.altKey && trackEditor?.enabled) {
+    event.preventDefault(); trackEditor.rotateEnd(event.code === 'KeyZ' ? -1 : 1); return;
+  }
   if (event.key === 'Shift') trackEditor?.modifiersChanged(event.shiftKey);
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
     event.preventDefault(); keys.add(event.code);

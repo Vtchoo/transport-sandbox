@@ -12,7 +12,7 @@ export function trainPerformance(definitions: readonly VehicleDefinition[], mode
   const realMax = Math.min(...definitions.map(d => d.physics.maxSpeedMps));
   return { mass, power: powered.reduce((sum, d) => sum + d.physics.powerW, 0) * 0.82,
     traction: powered.reduce((sum, d) => sum + Math.min(d.physics.tractiveEffortN, d.physics.massKg * GRAVITY * 0.25), 0),
-    maxSpeed: powered.length ? realMax * (mode === 'ho' ? (60 / 3.6) / 45.599 : 1) : 0,
+    maxSpeed: powered.length ? realMax * (mode === 'ho' ? (120 / 3.6) / 45.599 : 1) : 0,
     response: mode === 'ho' ? 9 : 1,
     brakeForce: mass * 0.65 };
 }
@@ -20,7 +20,17 @@ export function trainPerformance(definitions: readonly VehicleDefinition[], mode
 export function physicsStep(definitions: readonly VehicleDefinition[], speed: number, powered: boolean, grade: number, mode: PhysicsMode, dt: number, speedLimit = Infinity) {
   const p = trainPerformance(definitions, mode), v = Math.abs(speed);
   if (!p.mass || dt <= 0) return { speed: v, distance: 0 };
-  const equivalentSpeed = mode === 'ho' ? v * 45.599 / (60 / 3.6) : v;
+  if (mode === 'ho') {
+    // Ideal regulated motors compensate for grade/resistance without a power or adhesion ceiling.
+    // Nominal locomotive traction only sets the finite response rate; heavier consists respond slower.
+    const target = powered ? Math.max(0, Math.min(p.maxSpeed, speedLimit)) : 0;
+    const acceleration = p.traction / (p.mass * 1.06) * p.response;
+    const braking = brakingDeceleration(grade, mode);
+    let next = v + Math.max(-braking * dt, Math.min(acceleration * dt, target - v));
+    if (target === 0 && next < 0.001) next = 0;
+    return { speed: next, distance: (v + next) / 2 * dt };
+  }
+  const equivalentSpeed = v;
   const resistance = p.mass * GRAVITY * 0.0015 + p.mass * LINEAR_RESISTANCE_SI * equivalentSpeed + 4 * equivalentSpeed ** 2;
   const gravity = p.mass * GRAVITY * grade;
   const limit = Math.min(p.maxSpeed, speedLimit), braking = !powered || v > limit;
@@ -33,4 +43,4 @@ export function physicsStep(definitions: readonly VehicleDefinition[], speed: nu
   return { speed: next, distance: (v + next) / 2 * dt };
 }
 /** Conservative net service braking deceleration, allowing for downhill gravity. */
-export function brakingDeceleration(grade: number, mode: PhysicsMode) { return Math.max(0.05, (0.65 + GRAVITY * grade) / 1.06) * (mode === 'ho' ? 9 : 1); }
+export function brakingDeceleration(grade: number, mode: PhysicsMode) { return mode === 'ho' ? 0.65 / 1.06 * 9 : Math.max(0.05, (0.65 + GRAVITY * grade) / 1.06); }

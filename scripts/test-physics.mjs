@@ -6,7 +6,7 @@ const load = async entry => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', external: ['three'] });
   return import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text.replaceAll('"three"', JSON.stringify(import.meta.resolve('three')))).toString('base64')}`);
 };
-const { physicsStep, trainPerformance, curveSpeedLimit } = await load('src/train/physics.ts');
+const { physicsStep, trainPerformance, curveSpeedLimit, brakingDeceleration } = await load('src/train/physics.ts');
 const { TrainRoute, RouteEnd } = await load('src/train/route.ts');
 const { TrackNetwork } = await load('src/track/model.ts');
 const { TrainEditor } = await load('src/train/editor.ts');
@@ -25,7 +25,7 @@ test('vehicle mass, locomotive power and grades affect acceleration; unpowered c
 });
 test('HO responds faster, preserves relative model top speeds, and braking reaches zero without reversing', () => {
   assert.ok(physicsStep([f7, coach], 0, true, 0, 'ho', 0.05).speed > physicsStep([f7, coach], 0, true, 0, 'realistic', 0.05).speed * 8);
-  assert.ok(Math.abs(trainPerformance([f7], 'ho').maxSpeed * 3.6 - 60) < 0.001);
+  assert.ok(Math.abs(trainPerformance([f7], 'ho').maxSpeed * 3.6 - 120) < 0.001);
   assert.ok(Math.abs(trainPerformance([ge], 'ho').maxSpeed / trainPerformance([f7], 'ho').maxSpeed - ge.physics.maxSpeedMps / f7.physics.maxSpeedMps) < 1e-8);
   const stop = mode => { let v=10, distance=0, seconds=0; while(v>0 && seconds<100) { const next=physicsStep([f7, coach],v,false,0,mode,0.05);v=next.speed;distance+=next.distance;seconds+=0.05; } assert.equal(v,0);return distance; };
   assert.ok(stop('ho') < stop('realistic') / 8);
@@ -36,14 +36,41 @@ test('GE with passenger coaches reaches its flat-track rating and loses speed pr
     for(let i=0;i<16000;i++) speed=physicsStep([ge,coach,coach],speed,true,grade,mode,0.05).speed;
     return speed;
   };
-  for(const mode of ['realistic','ho']) {
+  for(const mode of ['realistic']) {
     const limit=trainPerformance([ge,coach,coach],mode).maxSpeed;
     assert.ok(Math.abs(settle(0,mode)-limit)<0.01,'Excessive resistance prevents reaching level-track rating');
     assert.ok(settle(.02,mode)>limit*.95,'Ordinary grade causes an excessive speed loss');
     const steep=settle(.08,mode);assert.ok(steep>0&&steep<limit*.8,'Grade must still reduce the power-limited equilibrium speed');
   }
 });
-test('curve speed follows radius and HO lateral response while traction remains power limited', () => {
+test('HO regulated motors reach the same target uphill or downhill, with load affecting acceleration', () => {
+  for (const definitions of [[ge,coach,coach],[f7,...Array(20).fill(coach)]]) {
+    const limit=trainPerformance(definitions,'ho').maxSpeed;
+    for (const grade of [-.4,0,.02,.08,.4]) {
+      let speed=0;
+      const initial=physicsStep(definitions,speed,true,grade,'ho',.05).speed;
+      assert.ok(initial>0&&initial<limit,'Acceleration must be finite');
+      for(let i=0;i<2000;i++)speed=physicsStep(definitions,speed,true,grade,'ho',.05).speed;
+      assert.ok(Math.abs(speed-limit)<1e-8,'Grade/load must not lower HO equilibrium speed');
+    }
+  }
+  const light=physicsStep([ge],0,true,.3,'ho',.05).speed,heavy=physicsStep([ge,coach,dome],0,true,.3,'ho',.05).speed;
+  assert.ok(light>heavy);
+  assert.equal(physicsStep([coach],0,true,-.4,'ho',.05).speed,0,'Unpowered cars cannot drive themselves');
+});
+test('HO respects curve/obstacle targets and brakes to rest with the grade-independent planning rate', () => {
+  for(const grade of [-.4,0,.4]) {
+    let speed=10;
+    const initial=physicsStep([ge,coach],speed,true,grade,'ho',.05,3);
+    assert.ok(initial.speed<speed&&initial.speed>3,'Lower targets require finite braking');
+    assert.ok(Math.abs((speed-initial.speed)/.05-brakingDeceleration(grade,'ho'))<1e-8);
+    for(let i=0;i<100;i++)speed=physicsStep([ge,coach],speed,true,grade,'ho',.05,3).speed;
+    assert.equal(speed,3);
+    for(let i=0;i<100;i++)speed=physicsStep([ge,coach],speed,false,grade,'ho',.05).speed;
+    assert.equal(speed,0);
+  }
+});
+test('curve speed follows radius and HO lateral response while realistic traction remains power limited', () => {
   assert.equal(curveSpeedLimit(Infinity,'realistic'),Infinity);
   assert.ok(Math.abs(curveSpeedLimit(400,'realistic') / curveSpeedLimit(100,'realistic') - 2) < 1e-8);
   assert.equal(curveSpeedLimit(100,'ho') / curveSpeedLimit(100,'realistic'),3);

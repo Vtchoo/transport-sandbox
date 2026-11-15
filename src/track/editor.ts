@@ -35,7 +35,8 @@ export class TrackEditor {
   private straightenButton = $<HTMLButtonElement>('track-straighten');
   private deleteSegmentButton = $<HTMLButtonElement>('track-delete-segment');
   private splitTarget?: { edge: number; t: number; point: THREE.Vector3 };
-  private pendingSplit?: { edge: TrackSegment; t: number };
+  private pendingSplit?: { edge: TrackSegment; t: number; point: THREE.Vector3 };
+  private splitButton = $<HTMLButtonElement>('track-confirm-split');
   private confirmDeleteSegment?: number;
   private deleteButton = $<HTMLButtonElement>('track-delete');
   private mergeButton = $<HTMLButtonElement>('track-merge');
@@ -58,6 +59,7 @@ export class TrackEditor {
   private earthAt = 0;
   private lastBuild = 0;
   private ghostKey = '';
+  private endRotation = 0;
   private visible = false;
   gauge = 1435;
   onClose?: () => void;
@@ -74,6 +76,17 @@ export class TrackEditor {
       this.message(this.grid.spacing ? `World grid snap · ${this.grid.spacing} m. Existing nodes and Shift straight snap take priority.` : 'World grid snap off.');
     }, { signal: this.abort.signal });
     this.splitMarker.visible = false; this.splitMarker.renderOrder = 21; this.group.add(this.splitMarker);
+    this.splitButton.hidden = true;
+    this.splitButton.addEventListener('click', () => {
+      const pending = this.pendingSplit;
+      if (!this.enabled || this.drag || !pending || !this.actionsInRange(pending.point)) return;
+      try {
+        const { node } = this.network.split(pending.edge, pending.t);
+        this.pendingSplit = undefined; this.selected = node.id;
+        this.changed(); this.clearGhost(); this.rebuild(); this.commitEarthworks();
+        this.message('Track split. Drag the new node to edit it, or use its + button to build a track.');
+      } catch (error) { this.cancelPlacement(); this.message((error as Error).message); }
+    }, { signal: this.abort.signal });
     const select = $<HTMLSelectElement>('track-gauge');
     select.replaceChildren(...GAUGES.map(gauge => new Option(gauge.label, String(gauge.mm))));
     select.value = String(this.gauge);
@@ -297,8 +310,8 @@ export class TrackEditor {
     const { node, side } = this.start;
     const direction = node.axis.clone().normalize();
     const distance = point.clone().sub(node.position).dot(direction);
-    // Keep the selected outgoing side; provisional split branches can use either side.
-    const along = this.pendingSplit ? distance : side * Math.max(0, distance * side);
+    // Keep the selected outgoing side.
+    const along = side * Math.max(0, distance * side);
     return node.position.clone().addScaledVector(direction, along);
   }
   modifiersChanged(shiftKey: boolean) {
@@ -306,8 +319,20 @@ export class TrackEditor {
     const { clientX, clientY, pointerId, buttons } = this.lastPointer;
     this.pointerMove({ clientX, clientY, pointerId, buttons, shiftKey } as PointerEvent);
   }
+  rotateEnd(direction: Side) {
+    if (!this.enabled || !this.start || this.drag || !this.lastPointer) return;
+    if (this.pick(this.lastPointer, true)) { this.message('Existing nodes keep their shared direction. Rotate a new end node instead.'); return; }
+    this.endRotation += direction * THREE.MathUtils.degToRad(5);
+    this.clearGhost(); this.pointerMove(this.lastPointer);
+    if (this.ghost) this.message(`End direction: ${Math.round(THREE.MathUtils.radToDeg(this.endRotation))}° · Z / X rotate · click to place.`);
+  }
+  private endDirection(point: THREE.Vector3) {
+    return this.start && this.endRotation ? point.clone().sub(this.start.node.position).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.endRotation) : undefined;
+  }
   pointerDown(event: PointerEvent) {
     if (!this.enabled || event.button !== 0) return false;
+    const cancellingSplit = !!this.pendingSplit;
+    if (cancellingSplit) this.cancelPlacement();
     const pick = this.pick(event);
     if (!this.start && !pick) {
       this.hoverSplit(event);
@@ -315,14 +340,14 @@ export class TrackEditor {
       if (target) {
         const edge = this.network.segments.get(target.edge)!;
         this.resetMerge(); this.resetDelete(); this.hideStraighten(); this.hideNodeButtons();
-        const node: TrackNode = { id: -1, position: target.point.clone(), axis: this.network.curve(edge).getTangent(target.t).normalize(), gauge: edge.gauge };
-        this.pendingSplit = { edge, t: target.t }; this.start = { node, side: 1 }; this.selected = undefined;
+        this.pendingSplit = { edge, t: target.t, point: target.point.clone() }; this.selected = undefined;
         this.gauge = edge.gauge; $<HTMLSelectElement>('track-gauge').value = String(this.gauge);
         this.hideSplit(); this.refreshGizmos();
-        this.message('Choose the second node to build a track and confirm the split. Esc cancels without changing the original track.');
+        this.message('Click Confirm split to add this node. Esc or clicking away cancels.');
         return true;
       }
     }
+    if (cancellingSplit && !pick) { this.message('Split cancelled.'); return true; }
     this.hideSplit();
     this.resetDelete();
     this.hideStraighten();
@@ -333,7 +358,6 @@ export class TrackEditor {
       return true;
     }
     if (pick) {
-      if (this.pendingSplit) this.cancelPlacement();
       this.selected = pick.node.id;
       const anchor = pick.edge ? this.network.handle(pick.edge, pick.node.id) : pick.spacing ? this.spacingPosition(pick.node) : pick.node.position.clone();
       this.drag = { pick, pointer: event.pointerId, anchor, screenY: event.clientY, vertical: event.shiftKey && !pick.spacing, changed: false,
@@ -357,11 +381,8 @@ export class TrackEditor {
     if (point.distanceTo(start.node.position) < 1) { this.message('Choose an end node at least 1 m away.'); return false; }
     const node = existing ?? this.network.addNode(point, this.gauge);
     try {
-      if (this.pendingSplit) start.side = point.clone().sub(start.node.position).dot(start.node.axis) >= 0 ? 1 : -1;
-      const segment = this.pendingSplit
-        ? this.network.splitAndConnect(this.pendingSplit.edge, this.pendingSplit.t, node, start.side).segment
-        : this.network.connect(start.node, node, this.gauge, start.side);
-      this.pendingSplit = undefined;
+      const segment = this.network.connect(start.node, node, this.gauge, start.side, existing ? undefined : this.endDirection(point));
+      this.endRotation = 0;
       // Continue away from the incoming handle, preserving the tangent at this node.
       this.start = { node, side: segment.bSide === 1 ? -1 : 1 };
       this.selected = node.id; this.clearGhost();
@@ -377,6 +398,7 @@ export class TrackEditor {
   pointerMove(event: PointerEvent) {
     if (!this.enabled) return false;
     this.lastPointer = event;
+    if (this.pendingSplit) { this.positionSplitButton(); return false; }
     if (this.drag) {
       const drag = this.drag;
       if (event.pointerId !== drag.pointer) return true;
@@ -418,11 +440,7 @@ export class TrackEditor {
         const key = `${point.x.toFixed(1)},${point.y.toFixed(1)},${point.z.toFixed(1)},${node?.id ?? ''},${!!event.shiftKey}`;
         if (key !== this.ghostKey) {
           this.clearGhost(); this.ghostKey = key;
-          const curve = this.network.preview(this.start.node, point, this.start.side, node);
-          if (this.pendingSplit) {
-            this.start.side = point.clone().sub(this.start.node.position).dot(this.start.node.axis) >= 0 ? 1 : -1;
-            curve.v1.copy(this.start.node.position).addScaledVector(this.start.node.axis, this.start.side * point.distanceTo(this.start.node.position) / 3);
-          }
+          const curve = this.network.preview(this.start.node, point, this.start.side, node, node ? undefined : this.endDirection(point));
           this.ghost = makeTrack(curve, this.gauge, true);
           if (node && node.gauge !== this.gauge) {
             this.ghost.traverse(object => { if (object instanceof THREE.Mesh) object.material.color.set(0xee5555); });
@@ -440,9 +458,16 @@ export class TrackEditor {
   }
   private hideSplit() {
     this.splitTarget = undefined; this.splitMarker.visible = !!this.pendingSplit;
-    if (this.pendingSplit && this.start) this.splitMarker.position.copy(this.start.node.position);
+    if (this.pendingSplit) this.splitMarker.position.copy(this.pendingSplit.point);
+    this.positionSplitButton();
+  }
+  private positionSplitButton() {
+    const pending = this.pendingSplit, point = pending && this.project(pending.point);
+    this.splitButton.hidden = !this.enabled || !pending || !point?.visible || !this.actionsInRange(pending.point);
+    if (!this.splitButton.hidden && point) { this.splitButton.style.left = `${point.x}px`; this.splitButton.style.top = `${point.y - 30}px`; }
   }
   private hoverSplit(event: PointerEvent) {
+    if (this.pendingSplit) { this.hideSplit(); return; }
     if (this.start || this.pick(event)) { this.hideSplit(); return; }
     let best = 16 * 16, target: typeof this.splitTarget;
     for (const edge of this.network.segments.values()) {
@@ -578,7 +603,7 @@ export class TrackEditor {
     if (drag) this.rebuild(drag.affected);
     if (drag?.changed) this.commitEarthworks();
   }
-  suspend() { this.hideSplit(); this.resetDelete(); this.endDrag(); this.hideNodeButtons(); this.hideStraighten(); this.clearGhost(); }
+  suspend() { if (this.pendingSplit) this.cancelPlacement(); this.hideSplit(); this.resetDelete(); this.endDrag(); this.hideNodeButtons(); this.hideStraighten(); this.clearGhost(); }
   leave(target: EventTarget | null) {
     if (target === this.mergeButton) return;
     if (this.drag || target === this.directionButton || target === this.deleteButton || target === this.parallelLeft || target === this.parallelRight || target === this.straightenButton || target === this.deleteSegmentButton) return;
@@ -586,6 +611,7 @@ export class TrackEditor {
   }
   escape() {
     if (!this.enabled) return false;
+    if (this.pendingSplit) { this.cancelPlacement(); this.message('Split cancelled.'); return true; }
     if (this.confirmMerge !== undefined) { this.resetMerge(); this.message('Merge cancelled.'); return true; }
     if (this.confirmDelete !== undefined) { this.resetDelete(); this.message('Deletion cancelled.'); return true; }
     if (this.confirmDeleteSegment !== undefined) { this.hideStraighten(); this.message('Segment deletion cancelled.'); return true; }
@@ -596,7 +622,7 @@ export class TrackEditor {
     return true;
   }
   private cancelPlacement() {
-    this.pendingSplit = undefined;
+    this.pendingSplit = undefined; this.endRotation = 0;
     this.resetMerge();
     this.hideSplit();
     this.resetDelete();
@@ -690,6 +716,7 @@ export class TrackEditor {
     const eye = this.camera.position.clone().add(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y));
     this.grid.showAt(this.gridPoint, this.enabled && !!this.gridPoint && this.actionsInRange(this.gridPoint));
     if (this.splitMarker.visible) {
+      this.positionSplitButton();
       const units = eye.distanceTo(this.splitMarker.position) * 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) / this.canvas.clientHeight;
       this.splitMarker.scale.setScalar(Math.max(0.08, units * 7));
       if (!this.pendingSplit && !this.actionsInRange(this.splitMarker.position)) this.hideSplit();

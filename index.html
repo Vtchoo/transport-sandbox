@@ -80,12 +80,13 @@
           <p id="track-status" role="status">Choose a start location.</p>
           <p id="track-earthworks" hidden>Updating terrain…</p>
           <p id="track-selection"></p>
-          <p class="track-help">Keep clicking to place nodes; <kbd>Esc</kbd> stops. Drag nodes or cyan handles horizontally; hold <kbd>Shift</kbd> for vertical movement. Hover beside a node: <kbd>+</kbd> extends, purple <kbd>Ⅱ+</kbd> adds a parallel node. Purple handles adjust spacing. Click a preview node on a track to start a branch; placing its second node confirms the split. Hover a segment’s middle to straighten or delete it.</p>
+          <p class="track-help">Keep clicking to place nodes; <kbd>Esc</kbd> stops. <kbd>Z</kbd> / <kbd>X</kbd> rotate the new end node direction. Drag nodes or cyan handles horizontally; hold <kbd>Shift</kbd> for vertical movement. Hover beside a node: <kbd>+</kbd> extends, purple <kbd>Ⅱ+</kbd> adds a parallel node. Purple handles adjust spacing. Click a track to preview a node, then Confirm split to add it; <kbd>Esc</kbd> cancels. Hover a segment’s middle to straighten or delete it.</p>
         </section>
         <button id="track-direction" type="button" hidden aria-label="Start track from node">+</button>
         <button id="track-delete" type="button" hidden aria-label="Delete node" title="Delete node">×</button>
         <button id="track-merge" type="button" hidden aria-label="Merge segments" title="Merge segments">⇄</button>
         <button id="track-straighten" type="button" hidden>Straighten</button>
+        <button id="track-confirm-split" type="button" hidden>Confirm split</button>
         <button id="track-delete-segment" type="button" hidden>Delete track</button>
         <button id="track-parallel-left" class="track-parallel" type="button" hidden aria-label="Add parallel node on the left">Ⅱ+</button>
         <button id="track-parallel-right" class="track-parallel" type="button" hidden aria-label="Add parallel node on the right">Ⅱ+</button>

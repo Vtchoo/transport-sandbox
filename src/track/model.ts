@@ -118,7 +118,7 @@ export class TrackNetwork {
     group.offsets.set(node.id, offset);
     node.position.copy(group.origin).addScaledVector(trackFrame(group.axis).right, offset);
   }
-  connect(a: TrackNode, b: TrackNode, gauge: number, aSide?: Side) {
+  connect(a: TrackNode, b: TrackNode, gauge: number, aSide?: Side, endDirection?: THREE.Vector3) {
     if (a.id === b.id) throw new Error('Choose a different end node.');
     if (a.gauge !== gauge || b.gauge !== gauge) throw new Error(`Gauge mismatch: both nodes must use ${gauge.toLocaleString()} mm.`);
     if ([...this.segments.values()].some(edge => edge.a === a.id && edge.b === b.id || edge.a === b.id && edge.b === a.id)) throw new Error('These nodes are already connected.');
@@ -126,10 +126,11 @@ export class TrackNetwork {
     if (chord.length() < 1) throw new Error('Nodes must be at least 1 m apart.');
     const length = chord.length() / 3;
     if (!this.directionLocked(a)) a.axis.copy(chord).normalize().multiplyScalar(aSide ?? 1);
-    if (!this.directionLocked(b)) b.axis.copy(chord).normalize();
+    const orientedEnd = !!endDirection && !this.directionLocked(b);
+    if (!this.directionLocked(b)) b.axis.copy(endDirection ?? chord).normalize();
     const segment: TrackSegment = { id: this.nextSegment++, a: a.id, b: b.id, gauge,
       aSide: aSide ?? (a.axis.dot(chord) >= 0 ? 1 : -1),
-      bSide: b.axis.dot(chord) >= 0 ? -1 : 1, aLength: length, bLength: length };
+      bSide: orientedEnd || b.axis.dot(chord) >= 0 ? -1 : 1, aLength: length, bLength: length };
     this.segments.set(segment.id, segment);
     return segment;
   }
@@ -192,11 +193,11 @@ export class TrackNetwork {
     edge.aLength = length / 3;
     edge.bLength = length / 3;
   }
-  preview(a: TrackNode, endpoint: THREE.Vector3, side: Side, b?: TrackNode) {
+  preview(a: TrackNode, endpoint: THREE.Vector3, side: Side, b?: TrackNode, endDirection?: THREE.Vector3) {
     const chord = endpoint.clone().sub(a.position), length = chord.length() / 3;
     const first = this.directionLocked(a) ? a.position.clone().addScaledVector(a.axis, side * length) : a.position.clone().addScaledVector(chord, 1 / 3);
     const endSide = b && b.axis.dot(chord) >= 0 ? -1 : 1;
-    const second = b && this.directionLocked(b) ? b.position.clone().addScaledVector(b.axis, endSide * length) : endpoint.clone().addScaledVector(chord, -1 / 3);
+    const second = b && this.directionLocked(b) ? b.position.clone().addScaledVector(b.axis, endSide * length) : endDirection ? endpoint.clone().addScaledVector(endDirection.clone().normalize(), -length) : endpoint.clone().addScaledVector(chord, -1 / 3);
     return new THREE.CubicBezierCurve3(a.position, first, second, endpoint);
   }
 }
