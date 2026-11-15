@@ -26,6 +26,8 @@ In free camera, **WASD / arrows** move horizontally, **E / Space, Q** rise / des
 
 **Main menu** unloads the world so you can change terrain settings.
 
+**F3** toggles the debug overlay in the top left. Coordinates, altitude, camera speed/zoom, chunk counts, triangles, FPS, world seed, and generator details are hidden by default.
+
 ## Reproducible generation
 
 Seed, mountain relief, landform scale, and generator version define a world. The menu remembers settings locally, and **Copy world link** shares seed, relief, and scale through URL parameters. Terrain is a pure function of absolute coordinates: chunk LOD, generation order, and worker timing do not change sampled heights. Terrain data regenerates from settings rather than being persisted.

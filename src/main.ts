@@ -72,6 +72,7 @@ const rig = new CameraRig();
 try { if (localStorage.getItem('rail-camera-mode') === 'free') rig.mode = 'free'; } catch { /* Storage is optional. */ }
 const keys = new Set<string>();
 const crosshair = $('#crosshair');
+const debugOverlay = $('#debug-overlay');
 const settingsDialog = $<HTMLDialogElement>('#settings');
 let settingsReturnFocus: HTMLElement | null = null;
 const cameraSelect = $<HTMLSelectElement>('#camera-mode');
@@ -95,8 +96,8 @@ function cameraUI() {
   cameraSelect.value = rig.mode;
   crosshair.hidden = overlook || !locked();
   $('#camera-hint').textContent = overlook
-    ? 'WASD / arrows: pan · Drag: pan · Middle drag: orbit / tilt · Q / E: rotate · Scroll: zoom · Shift: faster · C: free camera'
-    : 'WASD: move · Mouse / drag: look · E / Q: up / down · Shift: faster · Scroll: speed · C: overlook · Esc: release mouse';
+    ? 'WASD / arrows: pan · Drag: pan · Middle drag: orbit / tilt · Q / E: rotate · Scroll: zoom · Shift: faster · C: free camera · F3: debug'
+    : 'WASD: move · Mouse / drag: look · E / Q: up / down · Shift: faster · Scroll: speed · C: overlook · Esc: release mouse · F3: debug';
   canvas.setAttribute('aria-label', overlook
     ? 'Terrain overlook. WASD to pan, middle mouse drag to orbit, scroll to zoom.'
     : 'Free camera. WASD to move, mouse to look, E and Q to change altitude.');
@@ -139,6 +140,7 @@ settingsDialog.addEventListener('cancel', event => { event.preventDefault(); clo
 cameraUI();
 function menuView() {
   playing = false; ready = false;
+  debugOverlay.hidden = true;
   clearInput();
   if (locked()) document.exitPointerLock();
   if (world) { scene.remove(world.group); world.dispose(); world = undefined; }
@@ -228,6 +230,11 @@ document.addEventListener('pointerlockerror', () => { $('#capture').textContent 
 window.addEventListener('keydown', event => {
   if (!playing || settingsDialog.open || (event.target instanceof HTMLElement && /INPUT|SELECT|TEXTAREA/.test(event.target.tagName))) return;
   if (event.code === 'Escape') { clearInput(); return; }
+  if (event.code === 'F3') {
+    event.preventDefault();
+    if (!event.repeat) debugOverlay.hidden = !debugOverlay.hidden;
+    return;
+  }
   if (event.code === 'KeyC') { event.preventDefault(); if (!event.repeat) toggleCamera(); return; }
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) {
     event.preventDefault(); keys.add(event.code);

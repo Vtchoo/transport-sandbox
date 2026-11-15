@@ -30,10 +30,15 @@
         <button class="settings-open menu-settings" type="button">Settings</button>
       </main>
       <section id="game" hidden aria-label="World controls">
-        <div class="world-heading"><span id="camera-label" class="eyebrow" aria-live="polite">OVERLOOK CAMERA</span><h2 id="world-name"></h2><div id="range"></div></div>
+        <aside id="debug-overlay" hidden aria-label="World debug information">
+          <span class="debug-heading">RAILWAY WORLD · DEBUG · F3 TO HIDE</span>
+          <span id="camera-label">OVERLOOK CAMERA</span>
+          <span id="world-name"></span>
+          <span id="coordinates"></span><span id="altitude"></span><span id="speed"></span>
+          <span id="streaming"></span><span id="range"></span>
+        </aside>
         <div class="controls"><button id="camera-toggle" title="Switch camera mode (C)">Overlook · C</button><button id="capture" hidden>Click to look around</button><button class="settings-open">Settings</button><button id="share">Copy world link</button><button id="back">Main menu</button></div>
-        <div class="telemetry"><span id="coordinates"></span><span id="altitude"></span><span id="speed"></span></div>
-        <div class="bottom-hud"><span id="streaming"></span><p id="camera-hint" class="hint"></p></div>
+        <div class="bottom-hud"><p id="camera-hint" class="hint"></p></div>
       </section>
       <div id="loading" hidden role="status" aria-live="polite"><span class="eyebrow">BUILDING YOUR WORLD</span><p id="loading-message">Generating the surrounding terrain…</p><progress id="load-progress" max="1" value="0"></progress></div>
       <div id="crosshair" hidden aria-hidden="true">+</div>
