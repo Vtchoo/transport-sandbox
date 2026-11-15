@@ -97,7 +97,7 @@ export class TrainWindows {
     const existing = this.views.get(train.id); if (existing) return existing;
     const element = document.createElement('section'); element.id = `train-window-${train.id}`; element.dataset.trainId = String(train.id); element.className = 'train-window';
     element.innerHTML = `<div class="track-panel-heading"><h2></h2><button type="button" data-close>Close</button></div>
-      <div class="train-tabs" role="tablist" aria-label="Train tabs"><button type="button" role="tab" data-tab="viewport">Train viewport</button><button type="button" role="tab" data-tab="edit">Edit train</button></div>
+      <div class="train-tabs" role="tablist" aria-label="Train tabs"><button type="button" role="tab" data-tab="viewport"></button><button type="button" role="tab" data-tab="edit"></button></div>
       <div data-ui="train-overview" role="tabpanel"><canvas class="train-viewport" aria-label="Train viewport"></canvas><button type="button" class="train-run" data-ui="train-run">Start train</button><div class="train-tools"><button type="button" data-ui="train-follow">Follow train</button><button type="button" data-ui="train-pickup">Remove from track</button></div><p data-ui="train-location"></p><p data-ui="train-overview-specs"></p><p data-ui="train-support" hidden>Supporting track changed. The train remains at its last valid location.</p></div>
       <div data-ui="train-editor" role="tabpanel" class="train-editor-tab">
         <p data-ui="train-specs"></p><div class="consist-direction"><span>← FRONT</span><span>REAR →</span></div>
