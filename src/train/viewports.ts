@@ -36,10 +36,10 @@ export class TrainViewports {
           const visuals = train.items.map((item, index) => { const visual = makeVehicle(item.definition, Number(Object.keys(item.definition.bogiesByGauge)[0])); visual.group.position.z = layout.offsets[index]; visual.group.rotation.y = item.facing === -1 ? Math.PI : 0; preview.add(visual.group); return visual; });
           draft = { key, scene: preview, visuals }; this.drafts.set(id, draft);
         }
-        scene = draft!.scene; focus = { center: new THREE.Vector3(0, 2, 0), length: consistLayout(train.items.map(item => item.definition)).length };
+        scene = draft!.scene; focus = { center: draft!.visuals[0].group.position.clone().add(new THREE.Vector3(0, 2, 0)), length: train.items[0].definition.length };
       }
       if (!focus) continue;
-      const distance = Math.max(18, focus.length * 0.9);
+      const distance = Math.max(14, focus.length * 0.75);
       this.camera.position.copy(focus.center).add(new THREE.Vector3(distance * 0.95, distance * 0.48, distance * 0.45)); this.camera.lookAt(focus.center);
       this.renderCanvas(scene, canvas);
     }

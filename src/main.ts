@@ -13,6 +13,7 @@ import { WindowManager } from './ui/windows';
 import './ui/windows.css';
 import { icon } from './ui/icons';
 import { WarningMessages } from './ui/warnings';
+import type { PhysicsMode } from './train/physics';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const canvas = $<HTMLCanvasElement>('#world');
@@ -22,13 +23,21 @@ const seedInput = $<HTMLInputElement>('#seed');
 const mountainInput = $<HTMLInputElement>('#mountains');
 const scaleInput = $<HTMLSelectElement>('#scale');
 const url = new URL(location.href);
-let saved: Partial<TerrainSettings> = {};
+let saved: Partial<TerrainSettings> & { physics?: PhysicsMode } = {};
 try { saved = JSON.parse(localStorage.getItem('rail-world-v1') || '{}'); } catch { /* Storage is optional. */ }
 seedInput.value = url.searchParams.get('seed') ?? saved.seed ?? DEFAULT_SETTINGS.seed;
 const relief = Number(url.searchParams.get('relief') ?? saved.mountainHeight ?? DEFAULT_SETTINGS.mountainHeight);
 mountainInput.value = String(Number.isFinite(relief) ? Math.max(400, Math.min(3000, relief)) : DEFAULT_SETTINGS.mountainHeight);
 const scale = Number(url.searchParams.get('scale') ?? saved.horizontalScale ?? 1);
 scaleInput.value = [0.5, 1, 2].includes(scale) ? String(scale) : '1';
+const physicsSelect = $<HTMLSelectElement>('#physics-mode');
+physicsSelect.value = (url.searchParams.get('physics') ?? saved.physics) === 'realistic' ? 'realistic' : 'ho';
+if (['seed', 'relief', 'scale', 'physics'].some(key => url.searchParams.has(key))) $<HTMLInputElement>('input[name="setup"][value="advanced"]').checked = true;
+function setupUI() {
+  const advanced = $<HTMLInputElement>('input[name="setup"][value="advanced"]').checked;
+  const fields = $<HTMLFieldSetElement>('#advanced-setup'); fields.hidden = !advanced; fields.disabled = !advanced;
+}
+document.querySelectorAll('input[name="setup"]').forEach(radio => radio.addEventListener('change', setupUI)); setupUI();
 const updateRelief = () => { $('#mountain-value').textContent = `${Number(mountainInput.value).toLocaleString()} m`; };
 mountainInput.addEventListener('input', updateRelief);
 updateRelief();
@@ -38,6 +47,7 @@ try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 } catch {
   start.disabled = true;
+  $<HTMLButtonElement>('#new-game-open').disabled = true;
   $('.menu-note').textContent = 'WebGL is unavailable. Enable hardware acceleration to load the world.';
   throw new Error('WebGL is unavailable');
 }
@@ -87,6 +97,7 @@ const keys = new Set<string>();
 const crosshair = $('#crosshair');
 const debugOverlay = $('#debug-overlay');
 const settingsDialog = $<HTMLDialogElement>('#settings');
+const newGameDialog = $<HTMLDialogElement>('#new-game');
 let settingsReturnFocus: HTMLElement | null = null;
 const cameraSelect = $<HTMLSelectElement>('#camera-mode');
 const ground = (x: number, z: number) => world ? Math.max(world.settings.seaLevel, world.groundHeight(x, z)) : 0;
@@ -109,6 +120,9 @@ function syncWindowTools(active?: string) {
 }
 const windows = new WindowManager($('#window-taskbar'), syncWindowTools);
 const warnings = new WarningMessages($('#game-warning'));
+windows.register({ id: 'new-game', element: newGameDialog, titlebar: $('#new-game .settings-heading'), title: 'New game', closeButton: $('#new-game-close'), modal: true, scrollContent: true, bounds: { x: (innerWidth - 460) / 2, y: 100, width: 460, height: 610 }, minWidth: 300, minHeight: 330, onClose: () => { newGameDialog.close(); $('#new-game-open').focus(); } });
+$('#new-game-open').addEventListener('click', () => { newGameDialog.showModal(); windows.open('new-game'); $<HTMLInputElement>('input[name="setup"]:checked').focus(); });
+newGameDialog.addEventListener('cancel', event => { event.preventDefault(); windows.close('new-game'); });
 $('#place-train span').replaceChildren(icon('car'));
 $('#show-trains').prepend(icon('train'));
 windows.register({ id: 'track', element: $('#track-panel'), titlebar: $('#track-panel .track-panel-heading'), title: 'Build track', closeButton: $('#track-done'), scrollContent: true, bounds: { x: 24, y: 85, width: 330, height: 460 }, minWidth: 280, minHeight: 240, onClose: () => trackEditor?.setEnabled(false) });
@@ -166,6 +180,7 @@ $('#settings-close').addEventListener('click', closeSettings);
 settingsDialog.addEventListener('cancel', event => { event.preventDefault(); closeSettings(); });
 cameraUI();
 function menuView() {
+  rig.stopFollowing();
   warnings.hide();
   windows.closeAll();
   trainWindows?.dispose(); trainWindows = undefined;
@@ -180,22 +195,26 @@ function menuView() {
   menu.hidden = false; game.hidden = true; loading.hidden = true; crosshair.hidden = true;
   document.body.classList.remove('playing');
   start.disabled = false;
-  start.focus();
+  $('#new-game-open').focus();
 }
 start.addEventListener('click', () => {
   if (playing) return;
-  const settings: TerrainSettings = {
+  const advanced = $<HTMLInputElement>('input[name="setup"][value="advanced"]').checked;
+  const physics: PhysicsMode = advanced && physicsSelect.value === 'realistic' ? 'realistic' : 'ho';
+  const settings: TerrainSettings = advanced ? {
     seed: seedInput.value.trim() || DEFAULT_SETTINGS.seed,
     mountainHeight: Number(mountainInput.value), horizontalScale: Number(scaleInput.value), seaLevel: 0,
-  };
+  } : { ...DEFAULT_SETTINGS };
   seedInput.value = settings.seed;
-  try { localStorage.setItem('rail-world-v1', JSON.stringify(settings)); } catch { /* Private browsing is supported. */ }
+  try { localStorage.setItem('rail-world-v1', JSON.stringify({ ...settings, physics })); } catch { /* Private browsing is supported. */ }
   const shareUrl = new URL(location.href);
   shareUrl.searchParams.set('seed', settings.seed);
   shareUrl.searchParams.set('relief', String(settings.mountainHeight));
   shareUrl.searchParams.set('scale', String(settings.horizontalScale));
+  shareUrl.searchParams.set('physics', physics);
   history.replaceState(null, '', shareUrl);
   start.disabled = true;
+  windows.close('new-game');
   menu.hidden = true; game.hidden = false; loading.hidden = false;
   document.body.classList.add('playing');
   playing = true; ready = false;
@@ -203,8 +222,16 @@ start.addEventListener('click', () => {
   scene.add(world.group);
   trackEditor = new TrackEditor(scene, camera, canvas, world);
   trainEditor = new TrainEditor(scene, camera, canvas, world, trackEditor.network);
+  trainEditor.physicsMode = physics;
   trainEditor.onWarning = text => warnings.show(text);
-  trainWindows = new TrainWindows(trainEditor, windows);
+  trainWindows = new TrainWindows(trainEditor, windows, {
+    get current() { return rig.following; },
+    toggle(id) {
+      if (rig.following === id) { rig.stopFollowing(); return; }
+      const focus = trainEditor?.trainFocus(id, true); if (!focus) return;
+      clearInput(); if (locked()) document.exitPointerLock(); rig.followTrain(id, focus.center, ground);
+    },
+  });
   trackEditor.onClose = () => windows.close('track');
   $<HTMLButtonElement>('#build-track').disabled = true;
   $<HTMLButtonElement>('#place-train').disabled = true;
@@ -345,6 +372,10 @@ renderer.setAnimationLoop(time => {
     if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; $<HTMLButtonElement>('#place-train').disabled = false; $<HTMLButtonElement>('#show-trains').disabled = false; }
   }
   if (ready && !settingsDialog.open && !trackEditor?.isDragging) rig.update(keys, delta, ground, (x, z) => world!.hasTerrainAt(x, z));
+  if (rig.following !== undefined) {
+    const focus = trainEditor?.trainFocus(rig.following, true);
+    if (focus) rig.updateFollow(focus.center, ground); else rig.stopFollowing();
+  }
   world.update(rig.position.x, rig.position.z, rig.position.y);
   camera.position.set(rig.position.x - world.origin.x, rig.position.y, rig.position.z - world.origin.y);
   camera.rotation.set(rig.pitch, rig.yaw, 0);

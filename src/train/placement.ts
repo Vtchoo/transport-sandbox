@@ -5,11 +5,14 @@ import { vehicleBogie } from './catalog';
 import type { VehicleDefinition } from './catalog';
 import type { VehicleVisual } from './render';
 
-export interface TrackPosition { edge: number; u: number; facing: Side }
+export interface TrackPosition { edge: number; u: number; facing: Side; routeIndex?: number }
+export interface TrackSample { point: THREE.Vector3; tangent: THREE.Vector3; position: TrackPosition }
+export type TrackSampler = (position: TrackPosition, distance: number) => TrackSample;
 export interface VehiclePose { center: THREE.Vector3; front: THREE.Vector3; rear: THREE.Vector3; frontDirection: THREE.Vector3; rearDirection: THREE.Vector3 }
 
 /** Walk along compatible opposite-side connections; a turnout needs an explicit route. */
-export function sampleTrack(network: TrackNetwork, position: TrackPosition, distance: number) {
+export function sampleTrack(network: TrackNetwork, position: TrackPosition, distance: number, route?: TrackSampler): TrackSample {
+  if (route) return route(position, distance);
   let edge = network.segments.get(position.edge);
   if (!edge || !Number.isFinite(position.u) || !Number.isFinite(distance) || position.u < 0 || position.u > 1) throw new Error('Choose an existing track segment.');
   const gauge = edge.gauge, sign = distance < 0 ? -1 : 1;
@@ -33,15 +36,15 @@ export function sampleTrack(network: TrackNetwork, position: TrackPosition, dist
   throw new Error('Track route is too complex for placement.');
 }
 
-export function vehiclePose(network: TrackNetwork, definition: VehicleDefinition, position: TrackPosition): VehiclePose {
+export function vehiclePose(network: TrackNetwork, definition: VehicleDefinition, position: TrackPosition, route?: TrackSampler): VehiclePose {
   const edge = network.segments.get(position.edge);
   if (!edge) throw new Error('Track supporting this vehicle was removed.');
   vehicleBogie(definition, edge.gauge);
   // Couplers and the entire vehicle must fit, not just its bogie centers.
-  sampleTrack(network, position, definition.length / 2); sampleTrack(network, position, -definition.length / 2);
-  const center = sampleTrack(network, position, 0).point;
-  const front = sampleTrack(network, position, definition.bogieCenters / 2);
-  const rear = sampleTrack(network, position, -definition.bogieCenters / 2);
+  sampleTrack(network, position, definition.length / 2, route); sampleTrack(network, position, -definition.length / 2, route);
+  const center = sampleTrack(network, position, 0, route).point;
+  const front = sampleTrack(network, position, definition.bogieCenters / 2, route);
+  const rear = sampleTrack(network, position, -definition.bogieCenters / 2, route);
   if (front.point.distanceTo(rear.point) < definition.bogieCenters * 0.94) throw new Error('This curve is too tight for the vehicle’s bogie spacing.');
   return { center, front: front.point, rear: rear.point, frontDirection: front.tangent, rearDirection: rear.tangent };
 }

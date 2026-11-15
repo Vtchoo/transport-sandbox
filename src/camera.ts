@@ -14,16 +14,29 @@ export class CameraRig {
   pitch = -0.72;
   distance = 1100;
   speed = 60;
+  following?: number;
+  private followedPoint = new THREE.Vector3();
   private direction = new THREE.Vector3();
   private movement = new THREE.Vector3();
 
   reset(x: number, z: number, ground: Ground) {
+    this.stopFollowing();
     this.yaw = -0.5;
     this.pitch = -0.72;
     this.distance = 1100;
     this.target.set(x, ground(x, z), z);
     this.orbitPosition(ground);
     if (this.mode === 'free') this.pitch = -0.15;
+  }
+  followTrain(id: number, point: THREE.Vector3, ground: Ground) {
+    this.following = id; this.followedPoint.copy(point); this.target.copy(point); this.orbitPosition(ground);
+  }
+  stopFollowing() { this.following = undefined; }
+  updateFollow(point: THREE.Vector3, ground: Ground) {
+    if (this.following === undefined) return;
+    if (this.mode === 'overlook') { this.target.copy(point); this.orbitPosition(ground); }
+    else { this.position.add(point.clone().sub(this.followedPoint)); this.target.copy(point); this.position.y = Math.max(this.position.y, ground(this.position.x, this.position.z) + 8); }
+    this.followedPoint.copy(point);
   }
   private forward() {
     return this.direction.set(-Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), -Math.cos(this.yaw) * Math.cos(this.pitch));
@@ -72,6 +85,7 @@ export class CameraRig {
     if (this.mode === 'overlook') this.orbitPosition(ground);
   }
   pan(dx: number, dy: number, ground: Ground) {
+    if (dx || dy) this.stopFollowing();
     const scale = this.distance * 0.0012;
     this.target.x += (-dx * Math.cos(this.yaw) - dy * Math.sin(this.yaw)) * scale;
     this.target.z += (dx * Math.sin(this.yaw) - dy * Math.cos(this.yaw)) * scale;
@@ -87,6 +101,8 @@ export class CameraRig {
     }
   }
   update(keys: Set<string>, delta: number, ground: Ground, loaded: (x: number, z: number) => boolean) {
+    const panKeys = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ...(this.mode === 'free' ? ['KeyQ', 'KeyE', 'Space'] : [])];
+    if (panKeys.some(key => keys.has(key))) this.stopFollowing();
     const forward = Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown'));
     const right = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
     const vertical = Number(keys.has('KeyE') || keys.has('Space')) - Number(keys.has('KeyQ'));

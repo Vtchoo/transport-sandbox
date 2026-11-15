@@ -9,15 +9,20 @@ import type { VehiclePose } from './placement';
 import { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPositions, editedConsistPosition, trainIsStopped } from './consist';
 import type { TrainConsist, BuilderSnapshot } from './consist';
 import type { TerrainWorld } from '../terrain/world';
+import { TrainRoute } from './route';
+import type { RouteState } from './route';
+import { physicsStep, brakingDeceleration, trainPerformance, curveSpeedLimit } from './physics';
+import type { PhysicsMode } from './physics';
+import { hashSeed } from '../terrain/generator';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
 type End = 'front' | 'rear';
-interface ParkedTrain { train: TrainConsist; visuals: VehicleVisual[]; position: TrackPosition; supported: boolean }
+interface ParkedTrain { train: TrainConsist; visuals: VehicleVisual[]; position: TrackPosition; supported: boolean; route?: TrainRoute }
 interface AppendTarget { parked: ParkedTrain; end: End; combined: TrackPosition }
 interface SavedTransform { position: number[]; quaternion: number[] }
 interface EditorSnapshot {
   builder: BuilderSnapshot;
-  parked: { train: number; position: TrackPosition; supported: boolean; visuals: { gauge: number; transforms: SavedTransform[] }[] }[];
+  parked: { train: number; position: TrackPosition; supported: boolean; route?: RouteState; visuals: { gauge: number; transforms: SavedTransform[] }[] }[];
 }
 export class TrainEditor {
   readonly group = new THREE.Group();
@@ -26,6 +31,10 @@ export class TrainEditor {
   onChange?: (action?: string) => void;
   onMessage?: (train: number | undefined, text: string) => void;
   onWarning?: (text: string) => void;
+  onMotion?: () => void;
+  physicsMode: PhysicsMode = 'realistic';
+  private motionTime?: number;
+  private motionHud = 0;
   private parked: ParkedTrain[] = [];
   private ghosts: VehicleVisual[] = [];
   private ghostKey = '';
@@ -46,6 +55,28 @@ export class TrainEditor {
   get canUndo() { return this.history.length > 0; }
   isSupported(id: number) { return this.parked.find(parked => parked.train.id === id)?.supported ?? true; }
   trackGauge(id: number) { const parked = this.parked.find(parked => parked.train.id === id); return parked && this.network.segments.get(parked.position.edge)?.gauge; }
+  removeFromTrack(id: number) {
+    const parked = this.parked.find(p => p.train.id === id);
+    if (!parked) return false;
+    if (!trainIsStopped(parked.train)) { this.onWarning?.('Train must be stopped first.'); return false; }
+    return this.perform('Remove from track', () => {
+      this.builder.selected = parked.train;
+      parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
+      this.parked.splice(this.parked.indexOf(parked), 1);
+      parked.train.placed = false; parked.train.running = false; parked.train.speed = 0; parked.train.travelDirection = 1;
+    });
+  }
+  toggleRunning(id: number) {
+    const parked = this.parked.find(p => p.train.id === id);
+    if (!parked) { this.onWarning?.('Place this train on track first.'); return; }
+    if (!parked.train.running && !trainPerformance(parked.train.items.map(i => i.definition), this.physicsMode).power) { this.onWarning?.('Add a locomotive before starting this train.'); return; }
+    if (!parked.supported) { this.onWarning?.('Repair the supporting track before starting this train.'); return; }
+    parked.train.running = !parked.train.running;
+    this.onMotion?.();
+  }
+  private routeFor(parked: ParkedTrain) {
+    return parked.route ??= new TrainRoute(this.network, parked.position, hashSeed(`${this.world.settings?.seed ?? 'railway'}:${parked.train.id}`));
+  }
   selectTrain(id: number) {
     if (this.builder.selected?.id !== id) this.cancelPreview();
     this.builder.selected = this.builder.trains.find(train => train.id === id);
@@ -77,8 +108,8 @@ export class TrainEditor {
           if (!parked.train.items.length) { plans.push({ parked }); continue; }
           let visuals: VehicleVisual[] | undefined;
           try {
-            const next = editedConsistPosition(this.network, items, parked.train.items, position);
-            visuals = this.createVisuals(parked.train, next); created.push(...visuals);
+            const next = editedConsistPosition(this.network, items, parked.train.items, position, parked.route?.sample);
+            visuals = this.createVisuals(parked.train, next, parked.route); created.push(...visuals);
             const others = [...this.parked.filter(other => !affected.has(other)).flatMap(other => other.visuals), ...plans.flatMap(plan => plan.visuals ?? [])];
             if (visuals.some(visual => others.some(other => vehiclesOverlap(visual, other)))) throw new Error('Not enough free track: another train occupies this space.');
             plans.push({ parked, position: next, visuals });
@@ -93,7 +124,7 @@ export class TrainEditor {
       for (const plan of plans) {
         plan.parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
         if (plan.visuals && plan.position) { plan.parked.visuals = plan.visuals; plan.parked.position = plan.position; plan.parked.supported = true; }
-        else { plan.parked.train.placed = false; this.parked.splice(this.parked.indexOf(plan.parked), 1); }
+        else { plan.parked.train.placed = false; plan.parked.train.running = false; plan.parked.train.speed = 0; this.parked.splice(this.parked.indexOf(plan.parked), 1); }
       }
     });
     if (success && lifted) { const text = 'Not enough free track for the edited train. It has been lifted for repositioning.'; this.message(text); this.onWarning?.(text); }
@@ -119,11 +150,13 @@ export class TrainEditor {
     hint.classList.toggle('invalid', !this.valid);
     if (this.pointer) { hint.style.left = `${Math.max(8, Math.min(this.pointer.clientX + 20, innerWidth - 280))}px`; hint.style.top = `${Math.max(8, Math.min(this.pointer.clientY + 22, innerHeight - 110))}px`; }
   }
-  trainFocus(id: number) {
+  trainFocus(id: number, absolute = false) {
     const parked = this.parked.find(parked => parked.train.id === id);
-    if (!parked) return;
-    const center = new THREE.Vector3(); parked.visuals.forEach(visual => center.add(visual.group.position)); center.divideScalar(parked.visuals.length);
-    return { center: center.sub(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y)), length: consistLayout(parked.train.items.map(item => item.definition)).length };
+    const first = parked?.visuals[0];
+    if (!first) return;
+    const center = first.group.position.clone().add(first.body.position);
+    if (!absolute) center.sub(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y));
+    return { center, length: first.definition.length };
   }
   pickTrain(event: { clientX: number; clientY: number }) {
     const rect = this.canvas.getBoundingClientRect(), ray = new THREE.Raycaster();
@@ -135,7 +168,7 @@ export class TrainEditor {
   }
   private capture(): EditorSnapshot {
     return { builder: this.builder.snapshot(), parked: this.parked.map(parked => ({
-      train: parked.train.id, position: { ...parked.position }, supported: parked.supported,
+      train: parked.train.id, position: { ...parked.position }, supported: parked.supported, route: parked.route?.snapshot(),
       visuals: parked.visuals.map(visual => ({ gauge: visual.gauge, transforms: [visual.group, visual.body, ...visual.bogies].map(object => ({ position: object.position.toArray(), quaternion: object.quaternion.toArray() })) })),
     })) };
   }
@@ -149,7 +182,7 @@ export class TrainEditor {
         [visual.group, visual.body, ...visual.bogies].forEach((object, j) => { const transform = saved.visuals[i].transforms[j]; object.position.fromArray(transform.position); object.quaternion.fromArray(transform.quaternion); });
         this.group.add(visual.group); return visual;
       });
-      return { train, visuals, position: { ...saved.position }, supported: saved.supported };
+      return { train, visuals, position: { ...saved.position }, supported: saved.supported, route: saved.route ? new TrainRoute(this.network, saved.position, 0, saved.route) : undefined };
     });
   }
   perform(label: string, action: () => boolean | void) {
@@ -189,17 +222,17 @@ export class TrainEditor {
   }
   private pickAppend(event: { clientX: number; clientY: number }, incomingLength: number) {
     let nearest: { parked: ParkedTrain; end: End } | undefined, best = 28;
-    for (const parked of this.parked) for (const end of ['front', 'rear'] as const) {
+    for (const parked of this.parked.filter(p => trainIsStopped(p.train))) for (const end of ['front', 'rear'] as const) {
       try {
         const length = consistLayout(parked.train.items.map(item => item.definition)).length;
-        const p = this.project(sampleTrack(this.network, parked.position, (end === 'front' ? 1 : -1) * length / 2).point);
+        const p = this.project(sampleTrack(this.network, parked.position, (end === 'front' ? 1 : -1) * length / 2, parked.route?.sample).point);
         const distance = Math.hypot(p.x - event.clientX, p.y - event.clientY);
         if (p.visible && distance < best) { best = distance; nearest = { parked, end }; }
       } catch { /* Unsupported parked trains cannot accept a connection. */ }
     }
     if (!nearest) return;
     const length = consistLayout(nearest.parked.train.items.map(item => item.definition)).length;
-    const positions = appendPositions(this.network, nearest.parked.position, length, incomingLength, nearest.end);
+    const positions = appendPositions(this.network, nearest.parked.position, length, incomingLength, nearest.end, nearest.parked.route?.sample);
     return { ...nearest, ...positions };
   }
   pointerMove(event: { clientX: number; clientY: number }) {
@@ -215,7 +248,7 @@ export class TrainEditor {
       if (append) {
         this.target = { ...append.incoming, facing: append.incoming.facing * (this.reverseAppend ? -1 : 1) as Side }; this.appendTarget = append;
         const length = consistLayout(append.parked.train.items.map(item => item.definition)).length;
-        const point = this.project(sampleTrack(this.network, append.parked.position, (append.end === 'front' ? 1 : -1) * length / 2).point);
+        const point = this.project(sampleTrack(this.network, append.parked.position, (append.end === 'front' ? 1 : -1) * length / 2, append.parked.route?.sample).point);
         const marker = $('train-coupler'); marker.hidden = false; marker.style.left = `${point.x}px`; marker.style.top = `${point.y}px`;
       }
     } catch (error) { appendError = (error as Error).message; }
@@ -230,10 +263,10 @@ export class TrainEditor {
     this.ghosts.forEach(visual => { visual.group.visible = true; });
     try {
       if (appendError) throw new Error(appendError);
-      const poses = consistPoses(this.network, definitions, target);
+      const poses = consistPoses(this.network, definitions, target, this.appendTarget?.parked.route?.sample);
       if (this.appendTarget) {
         const old = this.appendTarget.parked.train.items.map(item => item.definition), incoming = this.reverseAppend ? [...definitions].reverse() : definitions;
-        consistPoses(this.network, this.appendTarget.end === 'front' ? [...incoming, ...old] : [...old, ...incoming], this.appendTarget.combined);
+        consistPoses(this.network, this.appendTarget.end === 'front' ? [...incoming, ...old] : [...old, ...incoming], this.appendTarget.combined, this.appendTarget.parked.route?.sample);
       }
       this.ghosts.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, train.items[i].facing)));
       if (this.ghosts.some(visual => this.parked.some(parked => parked.visuals.some(other => vehiclesOverlap(visual, other, parked === this.appendTarget?.parked ? 0 : 0.08))))) throw new Error('This train overlaps a parked train.');
@@ -251,8 +284,8 @@ export class TrainEditor {
     }
     this.ghosts.forEach(visual => tintVehicle(visual, this.valid)); return false;
   }
-  private createVisuals(train: TrainConsist, position: TrackPosition) {
-    const definitions = train.items.map(item => item.definition), poses = consistPoses(this.network, definitions, position), gauge = this.network.segments.get(position.edge)!.gauge;
+  private createVisuals(train: TrainConsist, position: TrackPosition, route?: TrainRoute) {
+    const definitions = train.items.map(item => item.definition), poses = consistPoses(this.network, definitions, position, route?.sample), gauge = this.network.segments.get(position.edge)!.gauge;
     return definitions.map((def, i) => { const visual = makeVehicle(def, gauge); applyVehiclePose(visual, this.itemPose(poses[i].pose, train.items[i].facing)); this.group.add(visual.group); return visual; });
   }
   private itemPose(pose: VehiclePose, facing: Side): VehiclePose {
@@ -268,7 +301,7 @@ export class TrainEditor {
         const parked = append.parked;
         this.builder.merge(parked.train, train, append.end, this.reverseAppend);
         parked.visuals.forEach(visual => { this.group.remove(visual.group); disposeVehicle(visual); });
-        parked.position = { ...append.combined }; parked.visuals = this.createVisuals(parked.train, parked.position); parked.supported = true;
+        parked.position = { ...append.combined }; parked.visuals = this.createVisuals(parked.train, parked.position, parked.route); parked.supported = true;
       } else {
         const position = target, visuals = this.createVisuals(train, position); train.placed = true;
         this.parked.push({ train, visuals, position, supported: true });
@@ -291,12 +324,16 @@ export class TrainEditor {
     if (resetTarget) { this.target = undefined; this.appendTarget = undefined; this.valid = false; }
   }
   update(time: number) {
+    const delta = this.motionTime === undefined ? 0 : Math.max(0, Math.min((time - this.motionTime) / 1000, 0.1)); this.motionTime = time;
     this.group.position.set(-this.world.origin.x, 0, -this.world.origin.y);
+    // Small fixed upper bound prevents high-speed consists tunnelling through another train.
+    for (let remaining = delta; remaining > 1e-8;) { const step = Math.min(remaining, 1 / 60); this.moveTrains(step); remaining -= step; }
+    if (time - this.motionHud > 200) { this.onMotion?.(); this.motionHud = time; }
     if (time - this.routeTime > 250) {
       const previous = this.parked.map(train => train.supported).join(',');
       for (const parked of this.parked) {
-        try { const poses = consistPoses(this.network, parked.train.items.map(item => item.definition), parked.position); parked.visuals.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, parked.train.items[i].facing))); parked.supported = true; }
-        catch { parked.supported = false; }
+        try { const poses = consistPoses(this.network, parked.train.items.map(item => item.definition), parked.position, parked.route?.sample); parked.visuals.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, parked.train.items[i].facing))); parked.supported = true; parked.route?.trim(parked.position, consistLayout(parked.train.items.map(i => i.definition)).length + 3000); }
+        catch { parked.supported = false; parked.train.speed = 0; parked.train.running = false; }
       }
       this.routeTime = time;
       if (previous !== this.parked.map(train => train.supported).join(',')) this.onChange?.();
@@ -304,6 +341,53 @@ export class TrainEditor {
     if (this.enabled && this.placing && this.pointer) {
       const signature = [...this.camera.position, this.camera.rotation.x, this.camera.rotation.y, this.world.origin.x, this.world.origin.y, this.network.segments.size].join(',');
       if (signature !== this.signature) this.pointerMove(this.pointer); this.signature = signature;
+    }
+  }
+  private moveTrains(dt: number) {
+    for (const parked of this.parked) {
+      const train = parked.train;
+      if (!train.running && Math.abs(train.speed) < 0.001) continue;
+      const definitions = train.items.map(i => i.definition), { length, offsets } = consistLayout(definitions), direction = train.travelDirection;
+      try {
+        const route = this.routeFor(parked), performance = trainPerformance(definitions, this.physicsMode);
+        const grade = definitions.reduce((sum, def, i) => sum + def.physics.massKg * route.sample(parked.position, offsets[i]).tangent.y * direction, 0) / performance.mass;
+        const braking = brakingDeceleration(grade, this.physicsMode), lookahead = Math.max(100, train.speed ** 2 / (2 * braking) + 50);
+        const clearance = Math.max(0, route.clearance(parked.position, direction * (length / 2 + lookahead)) - length / 2 - 2);
+        let free = clearance;
+        // Check the leading end's corridor for occupied vehicles, including crossings.
+        const others = this.parked.filter(p => p !== parked).flatMap(p => p.visuals);
+        if (others.length) for (let d = 0; d < clearance; d += 4) {
+          const p = route.sample(parked.position, direction * (length / 2 + d)).point;
+          if (others.some(v => {
+            const delta = p.clone().sub(v.group.position.clone().add(v.body.position)).applyQuaternion(v.body.quaternion.clone().invert());
+            return Math.abs(delta.x) < (v.definition.width + definitions[0].width) / 2 && Math.abs(delta.y) < v.definition.height && Math.abs(delta.z) < v.definition.length / 2 + 5;
+          })) { free = Math.max(0, d - 5); break; }
+        }
+        let limit = Math.sqrt(2 * braking * free);
+        // Scan the entire occupied length and the braking approach, so rear cars also respect curves.
+        const scan = Math.min(lookahead, clearance);
+        for (let d = -length / 2; d <= length / 2 + scan; d += 5) {
+          const location = route.sample(parked.position, direction * d).position;
+          const curveLimit = curveSpeedLimit(route.turnRadius(location), this.physicsMode);
+          limit = Math.min(limit, Math.sqrt(curveLimit ** 2 + 2 * braking * Math.max(0, d - length / 2)));
+        }
+        const next = physicsStep(definitions, train.speed, train.running, grade, this.physicsMode, dt, limit);
+        if (free < 0.05 && Math.abs(train.speed) < 0.1) {
+          train.speed = 0;
+          if (train.running && clearance < 0.05) train.travelDirection = -direction as Side;
+          continue;
+        }
+        const position = route.sample(parked.position, direction * Math.min(next.distance, free)).position;
+        const poses = consistPoses(this.network, definitions, position, route.sample);
+        const oldPoses = consistPoses(this.network, definitions, parked.position, route.sample);
+        parked.visuals.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(poses[i].pose, train.items[i].facing)));
+        if (parked.visuals.some(v => others.some(other => vehiclesOverlap(v, other)))) {
+          parked.visuals.forEach((visual, i) => applyVehiclePose(visual, this.itemPose(oldPoses[i].pose, train.items[i].facing))); train.speed = 0;
+        } else { parked.position = position; train.speed = next.distance > free && free < 0.1 ? 0 : next.speed * direction; parked.supported = true; }
+      } catch (error) {
+        train.speed = 0; train.running = false; parked.supported = false;
+        this.onWarning?.(`Train stopped: ${(error as Error).message}`); this.onMotion?.();
+      }
     }
   }
   dispose() {

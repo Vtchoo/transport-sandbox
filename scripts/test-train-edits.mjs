@@ -38,6 +38,19 @@ test('stopped trains append in place in either direction, preserving existing ca
     before.forEach((position, i) => assert.ok(position.distanceTo(editor.parked[0].visuals[i].group.position) < 1e-6));
   });
 });
+test('camera focus follows the first vehicle in either travel direction and ignores rear additions', () => {
+  for (const facing of [1,-1]) fixture(({editor,park})=>{
+    const train=park([VEHICLES[0],VEHICLES[1]],20,facing);train.travelDirection=-1;
+    editor.world.origin.set(10000,-20000);
+    const first=editor.parked[0].visuals[0],expected=first.group.position.clone().add(first.body.position);
+    const focus=editor.trainFocus(train.id,true);
+    assert.ok(focus.center.distanceTo(expected)<1e-6);assert.equal(focus.length,VEHICLES[0].length);
+    const local=editor.trainFocus(train.id).center;
+    assert.ok(local.distanceTo(expected.clone().sub(new THREE.Vector3(10000,0,-20000)))<1e-6);
+    assert.equal(editor.addVehicle('atsf-pleasure-dome',train.id),true);
+    const after=editor.trainFocus(train.id,true);assert.ok(after.center.distanceTo(focus.center)<1e-6);assert.equal(after.length,focus.length);
+  });
+});
 
 test('moving trains reject additions without lifting, changing consist or creating undo entries', () => fixture(({ editor, park, warnings }) => {
   const train = park([VEHICLES[0]]); train.speed = -2;
@@ -47,6 +60,24 @@ test('moving trains reject additions without lifting, changing consist or creati
   assert.equal(editor.canUndo, false); assert.deepEqual(warnings, ['Train must be stopped first.']);
   assert.ok(before.distanceTo(editor.parked[0].visuals[0].group.position) < 1e-6);
 }));
+test('removing a stopped train preserves its consist and undo restores its route and rail poses', () => fixture(({ editor, park, warnings }) => {
+  const train=park([VEHICLES[0],VEHICLES[1]],25,-1),other=park([VEHICLES[0]],130);
+  train.travelDirection=-1;const parked=editor.parked[0],route=editor.routeFor(parked);route.sample(parked.position,10);
+  const routeState=route.snapshot(),items=train.items.map(item=>({...item})),positions=parked.visuals.map(v=>v.group.position.clone());
+  assert.equal(editor.removeFromTrack(train.id),true);
+  assert.equal(train.placed,false);assert.equal(train.running,false);assert.equal(train.speed,0);assert.equal(train.travelDirection,1);
+  assert.deepEqual(train.items,items);assert.equal(editor.parked.length,1);assert.equal(editor.parked[0].train.id,other.id);assert.equal(editor.trainFocus(train.id),undefined);assert.deepEqual(warnings,[]);
+  editor.undo();const restored=editor.parked.find(p=>p.train.id===train.id);
+  assert.equal(restored.train.placed,true);assert.equal(restored.train.travelDirection,-1);assert.deepEqual(restored.train.items,items);assert.deepEqual(restored.route.snapshot(),routeState);
+  positions.forEach((p,i)=>assert.ok(p.distanceTo(restored.visuals[i].group.position)<1e-6));
+}));
+test('pickup rejects started, moving and braking trains without changing visuals or undo history', () => {
+  for(const [running,speed] of [[true,0],[true,5],[false,-2],[false,2]]) fixture(({editor,park,warnings})=>{
+    const train=park([VEHICLES[0]]);train.running=running;train.speed=speed;const parked=editor.parked[0];
+    assert.equal(editor.removeFromTrack(train.id),false);assert.equal(editor.parked[0],parked);assert.equal(train.placed,true);assert.equal(train.running,running);assert.equal(train.speed,speed);assert.equal(editor.canUndo,false);assert.deepEqual(warnings,['Train must be stopped first.']);
+    assert.equal(editor.removeFromTrack(999),false);
+  });
+});
 
 test('insufficient track lifts the edited consist, with a warning, and undo restores its original pose', () => fixture(({ editor, park, warnings }) => {
   const train = park([VEHICLES[0]], -18), before = editor.parked[0].visuals[0].group.position.clone();

@@ -7,10 +7,12 @@ import { vehicleThumbnail } from './thumbnail';
 import type { TrainEditor } from './editor';
 import type { WindowManager } from '../ui/windows';
 import { icon } from '../ui/icons';
+import { trainPerformance } from './physics';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
 const ITEM = 'application/x-railway-train-item', VEHICLE = 'application/x-railway-vehicle';
 interface TrainView { element: HTMLElement; tab: TrainTab; selected?: number; status: string }
+interface TrainFollow { readonly current: number | undefined; toggle(id: number): void }
 export class TrainWindows {
   readonly views = new Map<number, TrainView>();
   private abort = new AbortController();
@@ -26,7 +28,7 @@ export class TrainWindows {
     $('catalog-viewport').hidden = !id;
     $('catalog-preview-name').textContent = id ? vehicleDefinition(id).name : 'Hover a vehicle to preview it';
   }
-  constructor(readonly editor: TrainEditor, readonly manager: WindowManager) {
+  constructor(readonly editor: TrainEditor, readonly manager: WindowManager, private follow?: TrainFollow) {
     manager.register({ id: 'catalog', element: $('vehicle-catalog-panel'), titlebar: $('vehicle-catalog-panel').querySelector('.track-panel-heading')!, title: 'Vehicle catalog', closeButton: $('vehicle-catalog-close'), bounds: { x: 24, y: 85, width: 350, height: 590 }, minWidth: 280, minHeight: 440, onClose: () => {} });
     manager.register({ id: 'fleet', element: $('train-list-panel'), titlebar: $('train-list-panel').querySelector('.track-panel-heading')!, title: 'Trains', closeButton: $('train-list-close'), bounds: { x: 50, y: 110, width: 330, height: 390 }, minWidth: 270, minHeight: 200, onClose: () => {} });
     document.querySelectorAll<HTMLButtonElement>('[data-vehicle]').forEach(button => {
@@ -48,6 +50,7 @@ export class TrainWindows {
       }
     };
     editor.onMessage = (id, text) => { const view = id === undefined ? undefined : this.views.get(id); if (view) { view.status = text; this.ui(view, 'train-status').textContent = text; } };
+    editor.onMotion = () => this.refreshMotion();
     editor.onClose = () => { const active = this.manager.activeId; if (active?.startsWith('train:')) manager.close(active); };
     this.refresh();
   }
@@ -95,7 +98,7 @@ export class TrainWindows {
     const element = document.createElement('section'); element.id = `train-window-${train.id}`; element.dataset.trainId = String(train.id); element.className = 'train-window';
     element.innerHTML = `<div class="track-panel-heading"><h2></h2><button type="button" data-close>Close</button></div>
       <div class="train-tabs" role="tablist" aria-label="Train tabs"><button type="button" role="tab" data-tab="viewport">Train viewport</button><button type="button" role="tab" data-tab="edit">Edit train</button></div>
-      <div data-ui="train-overview" role="tabpanel"><canvas class="train-viewport" aria-label="Train viewport"></canvas><p data-ui="train-location"></p><p data-ui="train-overview-specs"></p><p data-ui="train-support" hidden>Supporting track changed. The train remains at its last valid location.</p></div>
+      <div data-ui="train-overview" role="tabpanel"><canvas class="train-viewport" aria-label="Train viewport"></canvas><button type="button" class="train-run" data-ui="train-run">Start train</button><div class="train-tools"><button type="button" data-ui="train-follow">Follow train</button><button type="button" data-ui="train-pickup">Remove from track</button></div><p data-ui="train-location"></p><p data-ui="train-overview-specs"></p><p data-ui="train-support" hidden>Supporting track changed. The train remains at its last valid location.</p></div>
       <div data-ui="train-editor" role="tabpanel" class="train-editor-tab">
         <p data-ui="train-specs"></p><div class="consist-direction"><span>← FRONT</span><span>REAR →</span></div>
         <ol data-ui="train-consist" aria-label="Train consist from front to rear"></ol><p data-ui="train-empty">Add vehicles from the catalog.</p>
@@ -120,6 +123,10 @@ export class TrainWindows {
     action('train-remove', () => this.editor.editConsist('Remove vehicle', () => this.editor.builder.remove(train.id, view.selected!)));
     for (const [name, direction] of [['train-move-front', -1], ['train-move-rear', 1]] as const) action(name, () => { const current = this.train(train.id)!, from = current.items.findIndex(item => item.id === view.selected); this.editor.editConsist('Reorder vehicle', () => this.editor.builder.moveItem(train.id, view.selected!, train.id, from + (direction < 0 ? -1 : 2))); });
     action('train-place', () => { this.manager.focus(`train:${train.id}`); this.editor.startPlacement(); });
+    action('train-run', () => this.editor.toggleRunning(train.id));
+    action('train-pickup', () => this.editor.removeFromTrack(train.id));
+    this.ui(view, 'train-pickup').prepend(icon('pickup'));
+    action('train-follow', () => { this.follow?.toggle(train.id); this.refreshMotion(); });
     action('train-reverse', () => this.editor.reversePreview());
     action('train-catalog', () => this.manager.open('catalog'));
     action('train-undo', () => this.editor.undo());
@@ -171,6 +178,24 @@ export class TrainWindows {
     ui<HTMLButtonElement>('train-place').disabled = train.placed || !train.items.length || (this.editor.builder.selected?.id === train.id && this.editor.isPlacing);
     ui<HTMLButtonElement>('train-reverse').disabled = this.editor.builder.selected?.id !== train.id || !this.editor.isPlacing;
     ui<HTMLButtonElement>('train-undo').disabled = !this.editor.canUndo; ui('train-status').textContent = view.status;
+    this.renderMotion(train, view);
+  }
+  private renderMotion(train: TrainConsist, view: TrainView) {
+    const pickup = this.ui<HTMLButtonElement>(view, 'train-pickup'); pickup.disabled = !train.placed; pickup.title = 'Remove the stopped train from its rails for repositioning';
+    const follow = this.ui<HTMLButtonElement>(view, 'train-follow'), following = this.follow?.current === train.id;
+    follow.disabled = !train.placed || !this.follow; follow.textContent = following ? 'Stop following' : 'Follow train'; follow.prepend(icon('follow')); follow.setAttribute('aria-pressed', String(following));
+    const button = this.ui<HTMLButtonElement>(view, 'train-run');
+    button.textContent = train.running ? 'Stop train' : 'Start train'; button.prepend(icon(train.running ? 'stop' : 'play'));
+    button.disabled = !train.placed; button.setAttribute('aria-pressed', String(train.running));
+    this.ui(view, 'train-location').textContent = !train.placed ? 'In construction · not placed' : `${train.running ? 'Started' : Math.abs(train.speed) > 0.001 ? 'Braking to stop' : 'Stopped'} · ${(Math.abs(train.speed) * 3.6).toFixed(1)} km/h${train.travelDirection === -1 ? ' · reversing' : ''}`;
+    const p = trainPerformance(train.items.map(i => i.definition), this.editor.physicsMode);
+    this.ui(view, 'train-overview-specs').textContent = `${train.items.length} vehicles · ${consistLayout(train.items.map(i => i.definition)).length.toFixed(2)} m · ${(p.mass / 1000).toFixed(1)} t\n${this.editor.physicsMode === 'ho' ? 'HO' : 'Realistic'} physics · limit ${(p.maxSpeed * 3.6).toFixed(0)} km/h`;
+  }
+  private refreshMotion() {
+    for (const [id, view] of this.views) { const train = this.train(id); if (train) this.renderMotion(train, view); }
+    for (const button of $('train-fleet').querySelectorAll<HTMLButtonElement>('[data-open-train]')) {
+      const train = this.train(Number(button.dataset.openTrain)); if (train) button.textContent = `${train.name} · ${train.items.length} vehicles · ${train.placed ? train.running ? 'started' : Math.abs(train.speed) > 0.001 ? 'braking' : 'stopped' : 'construction'}`;
+    }
   }
   private refreshCatalog() {
     if (this.disposed) return;
@@ -196,10 +221,11 @@ export class TrainWindows {
         const button = document.createElement('button'); button.type = 'button'; button.dataset.openTrain = String(train.id); button.textContent = `${train.name} · ${train.items.length} vehicles · ${train.placed ? 'parked' : 'construction'}`; button.addEventListener('click', () => this.openTrain(train.id, 'viewport')); fleet.append(button);
       }
       this.refreshCatalog();
+      this.refreshMotion();
     } finally { this.refreshing = false; }
   }
   dispose() {
-    this.disposed = true; this.abort.abort(); this.editor.onChange = undefined; this.editor.onMessage = undefined; this.editor.onClose = undefined;
+    this.disposed = true; this.abort.abort(); this.editor.onChange = undefined; this.editor.onMessage = undefined; this.editor.onClose = undefined; this.editor.onMotion = undefined;
     for (const [id, view] of this.views) { this.manager.unregister(`train:${id}`); view.element.remove(); } this.views.clear();
     this.manager.unregister('catalog'); this.manager.unregister('fleet');
   }

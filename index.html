@@ -15,20 +15,31 @@
         <div class="eyebrow"><span></span> A WORLD WORTH CROSSING</div>
         <h1>Beyond the<br /><em>next mountain.</em></h1>
         <p>Mountain ranges, river valleys, an open horizon.<br />The beginning of your railway world.</p>
+        <button id="new-game-open" class="primary" type="button">New game <span aria-hidden="true">↗</span></button>
+        <span class="menu-note">Same seed. Same settings. Same world.</span>
+      </main>
+      <dialog id="new-game" aria-labelledby="new-game-title">
+        <div class="settings-heading"><h2 id="new-game-title">New game</h2><button id="new-game-close" type="button" aria-label="Close new game">✕</button></div>
         <form id="world-settings" onsubmit="return false">
+          <fieldset class="setup-choice"><legend>Game setup</legend>
+            <label><input type="radio" name="setup" value="recommended" checked /> Recommended setup</label>
+            <p>Natural terrain, a reproducible world, and responsive HO train behavior.</p>
+            <label><input type="radio" name="setup" value="advanced" /> Advanced setup</label>
+          </fieldset>
+          <fieldset id="advanced-setup" hidden disabled><legend>World and train behavior</legend>
           <label for="seed">WORLD SEED</label>
           <div class="seed-row"><input id="seed" type="text" maxlength="100" spellcheck="false" autocomplete="off" /><button id="random-seed" type="button" aria-label="Generate a random seed" title="Random seed">↻</button></div>
-          <details><summary>Terrain settings</summary>
             <label for="mountains">MOUNTAIN RELIEF <output id="mountain-value" for="mountains"></output></label>
             <input id="mountains" type="range" min="400" max="3000" step="100" value="1800" />
             <label for="scale">LANDFORM SCALE</label>
             <select id="scale"><option value="0.5">Compact · 0.5×</option><option value="1" selected>Natural · 1×</option><option value="2">Expansive · 2×</option></select>
-          </details>
+            <label for="physics-mode">TRAIN PHYSICS</label>
+            <select id="physics-mode"><option value="ho">HO · responsive miniature behavior</option><option value="realistic">Realistic · full-scale inertia</option></select>
+            <p class="setup-note">World units remain metres in both modes. HO accelerates and brakes faster, with proportionally compressed top speeds.</p>
+          </fieldset>
           <button id="start" class="primary" type="button">Start game <span aria-hidden="true">↗</span></button>
         </form>
-        <span class="menu-note">Same seed. Same settings. Same world.</span>
-        <button class="settings-open menu-settings" type="button">Settings</button>
-      </main>
+      </dialog>
       <section id="game" hidden aria-label="World controls">
         <aside id="debug-overlay" hidden aria-label="World debug information">
           <span class="debug-heading">RAILWAY WORLD · DEBUG · F3 TO HIDE</span>
