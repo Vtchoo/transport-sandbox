@@ -152,6 +152,21 @@ export class TrackNetwork {
     this.segments.delete(edge.id); this.segments.set(first.id, first); this.segments.set(second.id, second);
     return { node, first, second };
   }
+  splitAndConnect(edge: TrackSegment, t: number, endpoint: TrackNode, side: Side) {
+    if (this.nodes.get(endpoint.id) !== endpoint) throw new Error('Choose an existing end node.');
+    const nextNode = this.nextNode, nextSegment = this.nextSegment, endpointAxis = endpoint.axis.clone();
+    const split = this.split(edge, t);
+    try {
+      const segment = this.connect(split.node, endpoint, edge.gauge, side);
+      return { ...split, segment };
+    } catch (error) {
+      // A rejected branch must leave the original segment completely intact.
+      this.nodes.delete(split.node.id); this.segments.delete(split.first.id); this.segments.delete(split.second.id);
+      this.segments.set(edge.id, edge); endpoint.axis.copy(endpointAxis);
+      this.nextNode = nextNode; this.nextSegment = nextSegment;
+      throw error;
+    }
+  }
   moveHandle(edge: TrackSegment, nodeId: number, position: THREE.Vector3) {
     const node = this.nodes.get(nodeId)!;
     const offset = position.clone().sub(node.position);

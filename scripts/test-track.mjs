@@ -16,6 +16,33 @@ const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.t
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
 
+test('splitting and branching commit together or restore the original segment after failure', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 10, 0), 1435), b = network.addNode(p(100, 20, 20), 1435);
+  const edge = network.connect(a, b, 1435), curve = network.curve(edge);
+  const narrow = network.addNode(p(60, 10, 80), 1000);
+  const nodes = [...network.nodes.values()], nodeIds = nodes.map(node => node.id), axis = narrow.axis.clone();
+  for (const endpoint of [narrow, a, b]) {
+    assert.throws(() => network.splitAndConnect(edge, 0.4, endpoint, 1));
+    assert.deepEqual([...network.nodes.keys()], nodeIds);
+    assert.deepEqual([...network.segments.values()], [edge]);
+    assert.ok(narrow.axis.equals(axis));
+    assert.ok(network.curve(edge).getPoint(0.4).distanceTo(curve.getPoint(0.4)) < 1e-8);
+  }
+  const endpoint = network.addNode(p(60, 30, 80), 1435);
+  const { node, first, second, segment } = network.splitAndConnect(edge, 0.4, endpoint, -1);
+  assert.equal(network.segments.has(edge.id), false);
+  assert.equal(network.incident(node.id).length, 3);
+  assert.equal(segment.a, node.id); assert.equal(segment.b, endpoint.id); assert.equal(segment.aSide, -1);
+  assert.equal(segment.gauge, 1435);
+  for (let i = 0; i <= 20; i++) {
+    const t = i / 20;
+    assert.ok(network.curve(first).getPoint(t).distanceTo(curve.getPoint(t * 0.4)) < 1e-8);
+    assert.ok(network.curve(second).getPoint(t).distanceTo(curve.getPoint(0.4 + t * 0.6)) < 1e-8);
+  }
+  assert.ok(Math.abs(network.curve(segment).getTangent(0).dot(node.axis)) > 0.999999);
+});
+
 test('merging preserves outer handles and neighboring curves for every segment orientation', () => {
   for (const reverseA of [false, true]) for (const reverseB of [false, true]) {
     const network = new TrackNetwork();
@@ -272,31 +299,56 @@ test('editor hover actions support confirmation, continuous parallel placement, 
     hoverNode(a); editor.hoverSegment({ clientX: 415, clientY: 400 });
     assert.equal(element('track-direction').hidden, false);
     assert.equal(element('track-straighten').hidden, false);
-    // Splitting uses the hovered location rather than the segment midpoint.
-    editor.hoverSplit({ clientX: 420, clientY: 400 });
-    assert.equal(element('track-split').hidden, false);
-    const splitClick = () => element('track-split').dispatchEvent(new Event('click'));
+    // A preview starts a provisional branch; only completing it splits the track.
+    editor.selected = undefined; editor.refreshGizmos();
+    const splitClick = () => editor.pointerDown({ button: 0, clientX: 415, clientY: 400 });
+    editor.hoverSplit({ clientX: 415, clientY: 400 });
+    assert.equal(editor.splitMarker.visible, true);
     const nodeCount = editor.network.nodes.size, segmentCount = editor.network.segments.size;
+    const priorEarthworks = earthworks;
     splitClick(); assert.equal(editor.network.nodes.size, nodeCount);
-    editor.escape(); assert.equal(element('track-split').hidden, true);
-    editor.hoverSplit({ clientX: 420, clientY: 400 });
+    assert.equal(editor.network.segments.size, segmentCount);
+    assert.equal(earthworks, priorEarthworks);
+    assert.ok(editor.pendingSplit); assert.equal(editor.splitMarker.visible, true);
+    editor.escape(); assert.equal(editor.splitMarker.visible, false);
+    assert.equal(editor.network.nodes.size, nodeCount); assert.equal(editor.network.segments.size, segmentCount);
+    // Closing the tool or changing gauge also discards only the pending branch.
+    splitClick(); editor.setEnabled(false); editor.setEnabled(true);
+    assert.equal(editor.pendingSplit, undefined); assert.equal(editor.network.segments.size, segmentCount);
+    splitClick(); element('track-gauge').value = '1000'; element('track-gauge').dispatchEvent(new Event('change'));
+    assert.equal(editor.pendingSplit, undefined); assert.equal(editor.network.segments.size, segmentCount);
+    assert.equal(editor.network.nodes.size, nodeCount); assert.equal(earthworks, priorEarthworks);
+    editor.hoverSplit({ clientX: 415, clientY: 400 });
     const splitTarget = editor.splitTarget;
-    assert.ok(Math.abs(splitTarget.point.x - 20) < 0.1);
+    assert.ok(Math.abs(splitTarget.point.x - 15) < 0.1);
     splitClick();
-    // Approaching the floating button retains the chosen point and confirmation.
-    editor.hoverSplit({ clientX: 420, clientY: 420 });
-    assert.equal(editor.splitTarget, splitTarget); assert.equal(editor.confirmSplit, true);
-    editor.leave(element('track-split')); splitClick();
-    assert.equal(editor.network.nodes.size, nodeCount + 1);
-    assert.equal(editor.network.segments.size, segmentCount + 1);
+    assert.equal(editor.placeSecond(narrow.position, narrow), false);
+    assert.equal(editor.network.segments.has(splitTarget.edge), true);
+    assert.equal(editor.network.nodes.size, nodeCount);
+    assert.ok(editor.pendingSplit);
+    editor.leave(null); assert.equal(editor.splitMarker.visible, true);
+    editor.terrainPoint = () => p(80, 15, 60);
+    editor.pointerMove({ clientX: 480, clientY: 500 });
+    assert.ok(editor.ghost); assert.equal(editor.network.segments.has(splitTarget.edge), true);
+    editor.pointerDown({ button: 0, clientX: 480, clientY: 500 });
+    assert.equal(editor.network.nodes.size, nodeCount + 2);
+    assert.equal(editor.network.segments.size, segmentCount + 2);
     assert.equal(editor.network.segments.has(splitTarget.edge), false);
-    assert.ok(editor.network.nodes.get(editor.selected).position.distanceTo(splitTarget.point) < 1e-8);
-    assert.equal(element('track-split').hidden, true);
+    const splitNode = [...editor.network.nodes.values()].find(node => node.position.distanceTo(splitTarget.point) < 1e-8);
+    assert.ok(splitNode); assert.equal(editor.network.incident(splitNode.id).length, 3);
+    const branchEndpoint = editor.network.nodes.get(editor.selected);
+    assert.ok(branchEndpoint.position.equals(p(80, 15, 60)));
+    assert.equal(editor.start.node, branchEndpoint);
+    assert.equal(editor.pendingSplit, undefined); assert.equal(editor.splitMarker.visible, false);
+    const branch = editor.network.incident(branchEndpoint.id)[0];
+    editor.escape();
     editor.camera.position.y = 2000;
-    editor.hoverSplit({ clientX: 420, clientY: 400 });
-    assert.equal(element('track-split').hidden, true);
+    editor.hoverSplit({ clientX: 415, clientY: 400 });
+    assert.equal(editor.splitMarker.visible, false);
     editor.camera.position.y = 0;
-    const mergeNode = editor.network.nodes.get(editor.selected);
+    // Removing the branch leaves the split node eligible for the merge tests.
+    editor.network.segments.delete(branch.id); editor.changed(); editor.rebuild();
+    const mergeNode = splitNode;
     const survivor = editor.network.addParallel(mergeNode, 1), parallelGroup = editor.network.parallelGroup(mergeNode);
     const survivorPosition = survivor.position.clone();
     hoverNode(a); assert.equal(element('track-merge').hidden, true);
