@@ -16,6 +16,109 @@ const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.t
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
 
+test('merging preserves outer handles and neighboring curves for every segment orientation', () => {
+  for (const reverseA of [false, true]) for (const reverseB of [false, true]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(-100, 10, 0), 1000), middle = network.addNode(p(0, 30, 40), 1000), b = network.addNode(p(100, 60, 10), 1000);
+    const other = network.addNode(p(-200, 5, 20), 1000);
+    const neighbor = network.connect(a, other, 1000);
+    const first = reverseA ? network.connect(middle, a, 1000) : network.connect(a, middle, 1000);
+    const second = reverseB ? network.connect(b, middle, 1000) : network.connect(middle, b, 1000);
+    network.moveHandle(first, a.id, p(-70, 40, 15)); network.moveHandle(second, b.id, p(70, 25, -15));
+    const handles = [network.handle(first, a.id), network.handle(second, b.id)];
+    const positions = [a.position.clone(), b.position.clone()], axes = [a.axis.clone(), b.axis.clone()];
+    const neighborCurve = network.curve(neighbor);
+    assert.equal(network.canMerge(middle.id), true);
+    const merged = network.merge(middle.id);
+    assert.equal(merged.gauge, 1000); assert.equal(merged.a, a.id); assert.equal(merged.b, b.id);
+    assert.ok(network.handle(merged, a.id).distanceTo(handles[0]) < 1e-8);
+    assert.ok(network.handle(merged, b.id).distanceTo(handles[1]) < 1e-8);
+    assert.ok(a.position.equals(positions[0]) && b.position.equals(positions[1]));
+    assert.ok(a.axis.equals(axes[0]) && b.axis.equals(axes[1]));
+    assert.equal(network.nodes.has(middle.id), false);
+    assert.equal(network.segments.has(first.id), false); assert.equal(network.segments.has(second.id), false);
+    for (let i = 0; i <= 20; i++) assert.ok(network.curve(neighbor).getPoint(i / 20).distanceTo(neighborCurve.getPoint(i / 20)) < 1e-8);
+  }
+});
+
+test('merging detaches parallel members and preserves the remaining group, including a single survivor', () => {
+  for (const removeAnchor of [false, true]) for (const size of [2, 3]) {
+    const network = new TrackNetwork(), anchor = network.addNode(p(0, 10, 0), 1435);
+    const members = [anchor, network.addParallel(anchor, 1)];
+    if (size === 3) members.push(network.addParallel(anchor, -1));
+    const middle = removeAnchor ? anchor : members[1];
+    const group = network.parallelGroup(middle), remaining = members.filter(node => node !== middle);
+    const positions = remaining.map(node => node.position.clone());
+    const a = network.addNode(p(-100, 10, 0), 1435), b = network.addNode(p(100, 10, 0), 1435);
+    network.connect(a, middle, 1435); network.connect(middle, b, 1435);
+    network.merge(middle.id);
+    assert.equal(group.offsets.has(middle.id), false);
+    assert.equal(group.offsets.size, size - 1);
+    remaining.forEach((node, i) => {
+      assert.equal(network.parallelGroup(node), group); assert.ok(node.position.equals(positions[i]));
+    });
+    assert.ok(remaining.some(node => node.id === group.anchor));
+    assert.equal(group.offsets.get(group.anchor), 0);
+    network.addParallel(remaining[0], 1);
+    assert.equal(group.offsets.size, size);
+  }
+});
+
+test('invalid merges are rejected without removing nodes or tracks', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(-100, 0, 0), 1435), middle = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(100, 0, 0), 1435);
+  const first = network.connect(a, middle, 1435);
+  assert.equal(network.canMerge(middle.id), false); assert.throws(() => network.merge(middle.id));
+  const second = network.connect(middle, b, 1435), duplicate = network.connect(a, b, 1435);
+  assert.equal(network.canMerge(middle.id), false); assert.throws(() => network.merge(middle.id));
+  network.segments.delete(duplicate.id);
+  const branch = network.addNode(p(0, 0, 100), 1435), third = network.connect(middle, branch, 1435);
+  assert.equal(network.canMerge(middle.id), false); assert.throws(() => network.merge(middle.id));
+  network.segments.delete(third.id);
+  second.gauge = 1000;
+  assert.equal(network.canMerge(middle.id), false); assert.throws(() => network.merge(middle.id));
+  assert.equal(network.segments.get(first.id), first); assert.equal(network.segments.get(second.id), second);
+  assert.equal(network.nodes.has(middle.id), true);
+});
+
+test('splitting preserves the complete 3D curve, gauge, endpoint directions and neighboring tracks', () => {
+  for (const t of [0.17, 0.5, 0.83]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(100, 20, 0), 1000), b = network.addNode(p(0, 40, 100), 1000);
+    const other = network.addNode(p(200, 10, 0), 1000);
+    const neighbor = network.connect(a, other, 1000);
+    const edge = network.connect(a, b, 1000);
+    network.moveHandle(edge, a.id, p(80, 65, 20));
+    network.moveHandle(edge, b.id, p(-50, 10, 100));
+    const curve = network.curve(edge), neighborCurve = network.curve(neighbor);
+    const axes = [a.axis.clone(), b.axis.clone()];
+    const { node, first, second } = network.split(edge, t);
+    assert.equal(node.gauge, 1000); assert.equal(first.gauge, 1000); assert.equal(second.gauge, 1000);
+    assert.equal(network.segments.has(edge.id), false);
+    assert.equal(network.incident(node.id).length, 2);
+    assert.ok(a.axis.equals(axes[0]) && b.axis.equals(axes[1]));
+    for (let i = 0; i <= 50; i++) {
+      const u = i / 50;
+      assert.ok(network.curve(first).getPoint(u).distanceTo(curve.getPoint(u * t)) < 1e-8);
+      assert.ok(network.curve(second).getPoint(u).distanceTo(curve.getPoint(t + u * (1 - t))) < 1e-8);
+      assert.ok(network.curve(neighbor).getPoint(u).distanceTo(neighborCurve.getPoint(u)) < 1e-8);
+    }
+    assert.ok(network.curve(first).getTangent(1).dot(network.curve(second).getTangent(0)) > 0.999999);
+    network.moveNode(node, node.position.clone().add(p(0, 5, 0)));
+    assert.ok(network.curve(first).v3.equals(node.position));
+    assert.ok(network.curve(second).v0.equals(node.position));
+  }
+});
+
+test('invalid split locations leave the network unchanged', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(100, 0, 0), 1435);
+  const edge = network.connect(a, b, 1435);
+  for (const t of [0, 1, -1, NaN, 0.001, 0.999]) assert.throws(() => network.split(edge, t));
+  assert.equal(network.nodes.size, 2); assert.equal(network.segments.size, 1);
+  assert.equal(network.segments.get(edge.id), edge);
+});
+
 test('sleeper LOD reduces draw counts by proximity without moving sleepers or rebuilding rails', () => {
   const curve = new THREE.CubicBezierCurve3(p(0, 0, 0), p(10, 0, 0), p(20, 0, 0), p(30, 0, 0));
   const track = makeTrack(curve, 1435);
@@ -60,7 +163,7 @@ test('long tracks retain nearby sleepers while distant batches disappear, includ
   } finally { disposeTrack(track); }
 });
 
-test('hover deletion targets the correct node or segment, requires confirmation and supports Escape', () => {
+test('editor hover actions support confirmation, continuous parallel placement, gauge checks and distance limits', () => {
   const elements = new Map();
   const saved = new Map(['document', 'Option', 'innerWidth', 'innerHeight'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   const element = id => {
@@ -131,6 +234,94 @@ test('hover deletion targets the correct node or segment, requires confirmation 
     hoverNode(a); deleteNode(); editor.leave(null);
     assert.equal(element('track-delete').hidden, true);
     assert.equal(editor.confirmDelete, undefined);
+    editor.start = { node: a, side: 1 };
+    hoverNode(b);
+    element('track-parallel-right').dispatchEvent(new Event('click'));
+    const parallel = editor.start.node;
+    assert.notEqual(parallel.id, a.id);
+    assert.equal(parallel.parallelGroup, b.parallelGroup);
+    assert.equal(editor.network.incident(parallel.id).length, 1);
+    assert.equal(editor.network.incident(a.id).length, 1);
+    const incoming = editor.network.incident(parallel.id)[0];
+    assert.equal(editor.start.side, -incoming.bSide);
+    // Continue from the new parallel node into another new parallel node.
+    hoverNode(a);
+    element('track-parallel-left').dispatchEvent(new Event('click'));
+    const next = editor.start.node;
+    assert.notEqual(next.id, parallel.id);
+    assert.equal(editor.network.incident(parallel.id).length, 2);
+    assert.equal(editor.network.incident(next.id).length, 1);
+    const narrow = editor.network.addNode(p(300, 0, 0), 1000);
+    const before = [editor.network.nodes.size, editor.network.segments.size, editor.network.parallelGroups.size];
+    hoverNode(narrow);
+    element('track-parallel-right').dispatchEvent(new Event('click'));
+    assert.deepEqual([editor.network.nodes.size, editor.network.segments.size, editor.network.parallelGroups.size], before);
+    assert.equal(editor.start.node, next);
+    assert.equal(narrow.parallelGroup, undefined);
+    // Out-of-range actions hide even when the pointer has not moved.
+    editor.escape(); hoverNode(a);
+    editor.hoverSegment({ clientX: 415, clientY: 400 });
+    assert.equal(element('track-straighten').hidden, false);
+    editor.camera.position.y = 2000;
+    editor.positionDirectionButton(); editor.positionStraightenButton();
+    for (const id of ['track-direction', 'track-delete', 'track-parallel-left', 'track-parallel-right', 'track-straighten', 'track-delete-segment']) assert.equal(element(id).hidden, true);
+    hoverNode(a); editor.hoverSegment({ clientX: 415, clientY: 400 });
+    assert.equal(element('track-direction').hidden, true);
+    assert.equal(element('track-straighten').hidden, true);
+    editor.camera.position.set(-1000000, 0, 0); editor.world.origin.x = 1000000;
+    hoverNode(a); editor.hoverSegment({ clientX: 415, clientY: 400 });
+    assert.equal(element('track-direction').hidden, false);
+    assert.equal(element('track-straighten').hidden, false);
+    // Splitting uses the hovered location rather than the segment midpoint.
+    editor.hoverSplit({ clientX: 420, clientY: 400 });
+    assert.equal(element('track-split').hidden, false);
+    const splitClick = () => element('track-split').dispatchEvent(new Event('click'));
+    const nodeCount = editor.network.nodes.size, segmentCount = editor.network.segments.size;
+    splitClick(); assert.equal(editor.network.nodes.size, nodeCount);
+    editor.escape(); assert.equal(element('track-split').hidden, true);
+    editor.hoverSplit({ clientX: 420, clientY: 400 });
+    const splitTarget = editor.splitTarget;
+    assert.ok(Math.abs(splitTarget.point.x - 20) < 0.1);
+    splitClick();
+    // Approaching the floating button retains the chosen point and confirmation.
+    editor.hoverSplit({ clientX: 420, clientY: 420 });
+    assert.equal(editor.splitTarget, splitTarget); assert.equal(editor.confirmSplit, true);
+    editor.leave(element('track-split')); splitClick();
+    assert.equal(editor.network.nodes.size, nodeCount + 1);
+    assert.equal(editor.network.segments.size, segmentCount + 1);
+    assert.equal(editor.network.segments.has(splitTarget.edge), false);
+    assert.ok(editor.network.nodes.get(editor.selected).position.distanceTo(splitTarget.point) < 1e-8);
+    assert.equal(element('track-split').hidden, true);
+    editor.camera.position.y = 2000;
+    editor.hoverSplit({ clientX: 420, clientY: 400 });
+    assert.equal(element('track-split').hidden, true);
+    editor.camera.position.y = 0;
+    const mergeNode = editor.network.nodes.get(editor.selected);
+    const survivor = editor.network.addParallel(mergeNode, 1), parallelGroup = editor.network.parallelGroup(mergeNode);
+    const survivorPosition = survivor.position.clone();
+    hoverNode(a); assert.equal(element('track-merge').hidden, true);
+    hoverNode(mergeNode); assert.equal(element('track-merge').hidden, false);
+    const mergeClick = () => element('track-merge').dispatchEvent(new Event('click'));
+    const beforeMerge = [editor.network.nodes.size, editor.network.segments.size];
+    mergeClick(); assert.equal(editor.confirmMerge, mergeNode.id);
+    editor.escape(); assert.equal(editor.network.nodes.size, beforeMerge[0]);
+    mergeClick(); hoverNode(a); assert.equal(editor.confirmMerge, undefined);
+    hoverNode(mergeNode); mergeClick();
+    editor.camera.position.y = 2000; editor.positionDirectionButton();
+    assert.equal(element('track-merge').hidden, true); assert.equal(editor.confirmMerge, undefined);
+    editor.camera.position.y = 0; hoverNode(mergeNode);
+    mergeClick(); editor.leave(element('track-merge'));
+    assert.equal(editor.confirmMerge, mergeNode.id);
+    editor.start = { node: mergeNode, side: 1 };
+    mergeClick();
+    assert.equal(editor.network.nodes.size, beforeMerge[0] - 1);
+    assert.equal(editor.network.segments.size, beforeMerge[1] - 1);
+    assert.equal(editor.start, undefined);
+    assert.equal(editor.network.nodes.has(mergeNode.id), false);
+    assert.equal(editor.network.parallelGroup(survivor), parallelGroup);
+    assert.ok(survivor.position.equals(survivorPosition));
+    assert.equal(element('track-merge').hidden, true);
+    assert.equal(earthworks.length, editor.network.segments.size);
   } finally {
     editor?.dispose();
     for (const [key, descriptor] of saved) {

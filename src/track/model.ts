@@ -30,14 +30,14 @@ export class TrackNetwork {
     return node;
   }
   incident(node: number) { return [...this.segments.values()].filter(edge => edge.a === node || edge.b === node); }
-  deleteNode(id: number) {
+  deleteNode(id: number, keepParallelGroup = false) {
     const node = this.nodes.get(id);
     if (!node) return;
     for (const edge of this.incident(id)) this.segments.delete(edge.id);
     const group = this.parallelGroup(node);
     if (group) {
       group.offsets.delete(id);
-      if (group.offsets.size < 2) {
+      if (group.offsets.size === 0 || group.offsets.size < 2 && !keepParallelGroup) {
         for (const member of group.offsets.keys()) this.nodes.get(member)!.parallelGroup = undefined;
         this.parallelGroups.delete(group.id);
       } else if (group.anchor === id) {
@@ -47,6 +47,32 @@ export class TrackNetwork {
       }
     }
     this.nodes.delete(id);
+  }
+  private mergeParts(id: number) {
+    const node = this.nodes.get(id), edges = this.incident(id);
+    if (!node || edges.length !== 2) return;
+    const [first, second] = edges;
+    const a = first.a === id ? first.b : first.a, b = second.a === id ? second.b : second.a;
+    if (a === b || first.gauge !== second.gauge || first.gauge !== node.gauge) return;
+    if (this.nodes.get(a)!.position.distanceTo(this.nodes.get(b)!.position) < 1) return;
+    if ([...this.segments.values()].some(edge => edge.a === a && edge.b === b || edge.a === b && edge.b === a)) return;
+    return { first, second, a, b };
+  }
+  canMerge(id: number) { return this.mergeParts(id) !== undefined; }
+  merge(id: number) {
+    const parts = this.mergeParts(id);
+    if (!parts) throw new Error('Merge requires exactly two compatible tracks with distinct endpoints that are not already connected.');
+    const { first, second, a, b } = parts;
+    const edge: TrackSegment = {
+      id: this.nextSegment++, a, b, gauge: first.gauge,
+      aSide: first.a === a ? first.aSide : first.bSide,
+      aLength: first.a === a ? first.aLength : first.bLength,
+      bSide: second.a === b ? second.aSide : second.bSide,
+      bLength: second.a === b ? second.aLength : second.bLength,
+    };
+    // Retain the remaining parallel members, rebasing the anchor if necessary.
+    this.deleteNode(id, true); this.segments.set(edge.id, edge);
+    return edge;
   }
   directionLocked(node: TrackNode) { return node.parallelGroup !== undefined || this.incident(node.id).length > 0; }
   defaultSpacing(gauge: number) { return gauge / 1000 + 2.6; }
@@ -110,6 +136,21 @@ export class TrackNetwork {
   }
   curve(edge: TrackSegment) {
     return new THREE.CubicBezierCurve3(this.nodes.get(edge.a)!.position, this.handle(edge, edge.a), this.handle(edge, edge.b), this.nodes.get(edge.b)!.position);
+  }
+  split(edge: TrackSegment, t: number) {
+    if (this.segments.get(edge.id) !== edge || !Number.isFinite(t) || t <= 0 || t >= 1) throw new Error('Choose a point inside an existing segment.');
+    const curve = this.curve(edge);
+    // De Casteljau subdivision preserves both cubic curves exactly.
+    const q0 = curve.v0.clone().lerp(curve.v1, t), q1 = curve.v1.clone().lerp(curve.v2, t), q2 = curve.v2.clone().lerp(curve.v3, t);
+    const r0 = q0.clone().lerp(q1, t), r1 = q1.clone().lerp(q2, t);
+    const position = r0.clone().lerp(r1, t), direction = r1.clone().sub(r0);
+    if (position.distanceTo(curve.v0) < 1 || position.distanceTo(curve.v3) < 1) throw new Error('Split at least 1 m from either endpoint.');
+    if (direction.lengthSq() < 1e-12) throw new Error('Cannot split at a point with no track direction.');
+    const node = this.addNode(position, edge.gauge); node.axis.copy(direction).normalize();
+    const first: TrackSegment = { ...edge, id: this.nextSegment++, b: node.id, bSide: -1, aLength: edge.aLength * t, bLength: position.distanceTo(r0) };
+    const second: TrackSegment = { ...edge, id: this.nextSegment++, a: node.id, aSide: 1, aLength: position.distanceTo(r1), bLength: edge.bLength * (1 - t) };
+    this.segments.delete(edge.id); this.segments.set(first.id, first); this.segments.set(second.id, second);
+    return { node, first, second };
   }
   moveHandle(edge: TrackSegment, nodeId: number, position: THREE.Vector3) {
     const node = this.nodes.get(nodeId)!;
