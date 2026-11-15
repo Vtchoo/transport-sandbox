@@ -648,21 +648,40 @@ test('parallel creation inherits gauge, chooses free slots, and preserves a dire
   assert.ok(right.axis.equals(axis) && a.axis.equals(axis));
 });
 
-test('direction edits rotate parallel neighbours around the edited node with independent handle lengths', () => {
+test('handle edits rotate parallel neighbours around the edited node and synchronize matching lengths', () => {
   const network = new TrackNetwork();
   const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(100, 0, 0), 1435);
   const ab = network.connect(a, b, 1435), pa = network.addParallel(a, 1), pb = network.addParallel(b, 1);
-  const parallel = network.connect(pa, pb, 1435), originalLength = parallel.aLength;
+  const parallel = network.connect(pa, pb, 1435);
   const fixed = a.position.clone(), spacing = a.position.distanceTo(pa.position);
   network.moveHandle(ab, a.id, p(30, 12, 20));
   assert.ok(a.position.equals(fixed)); assert.ok(pa.axis.distanceTo(a.axis) < 1e-8);
   assert.ok(Math.abs(pa.position.distanceTo(a.position) - spacing) < 1e-8);
   assert.ok(Math.abs(pa.position.clone().sub(a.position).dot(a.axis)) < 1e-8);
-  assert.equal(parallel.aLength, originalLength);
+  assert.equal(parallel.aLength, ab.aLength);
   const pivot = pa.position.clone();
   network.moveHandle(parallel, pa.id, pa.position.clone().add(p(20, 4, -10)));
   assert.ok(pa.position.distanceTo(pivot) < 1e-8);
   assert.ok(pa.axis.distanceTo(a.axis) < 1e-8);
+  assert.equal(ab.aLength, parallel.aLength);
+});
+test('parallel resize matches sides regardless of segment ordering and preserves opposite handles', () => {
+  const n=new TrackNetwork(),a=n.addNode(p(0,0,0),1435),b=n.addNode(p(100,0,0),1435),ab=n.connect(a,b,1435);
+  const pa=n.addParallel(a,1),pb=n.addParallel(b,1),reversed=n.connect(pb,pa,1435);
+  const back=n.addNode(pa.position.clone().add(p(-100,0,0)),1435),opposite=n.connect(pa,back,1435);
+  const branchEnd=n.addNode(p(100,0,40),1435),branch=n.connect(a,branchEnd,1435);
+  const oppositeLength=opposite.aLength,branchLength=branch.aLength,farLength=reversed.aLength;
+  assert.equal(reversed.bSide,ab.aSide);assert.notEqual(opposite.aSide,ab.aSide);
+  n.moveHandle(ab,a.id,a.position.clone().add(p(30,6,20)));
+  assert.equal(reversed.bLength,ab.aLength);assert.equal(reversed.aLength,farLength);
+  assert.equal(opposite.aLength,oppositeLength);assert.equal(branch.aLength,branchLength);
+  n.moveHandle(reversed,pa.id,pa.position.clone().add(p(20,4,-10)));
+  assert.equal(ab.aLength,reversed.bLength);assert.equal(branch.aLength,reversed.bLength);
+  assert.equal(opposite.aLength,oppositeLength);
+  // Pure direction edits leave intentionally different lengths alone.
+  reversed.bLength=12;const length=ab.aLength;
+  n.moveHandle(ab,a.id,a.position.clone().addScaledVector(p(1,0,0),length));
+  assert.equal(reversed.bLength,12);
 });
 
 test('parallel spacing is independently adjustable while node movement translates the group', () => {

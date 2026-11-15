@@ -176,9 +176,21 @@ export class TrackNetwork {
     const offset = position.clone().sub(node.position);
     const length = offset.length();
     if (length < 0.25) return;
+    const previousLength = nodeId === edge.a ? edge.aLength : edge.bLength;
     const side = nodeId === edge.a ? edge.aSide : edge.bSide;
     this.setDirection(node, offset.clone().normalize().multiplyScalar(side));
     if (nodeId === edge.a) edge.aLength = length; else edge.bLength = length;
+    const group = this.parallelGroup(node);
+    if (group && Math.abs(length - previousLength) > 1e-6) {
+      for (const member of group.offsets.keys()) {
+        if (member === nodeId) continue;
+        for (const connected of this.incident(member)) {
+          const atStart = connected.a === member;
+          if ((atStart ? connected.aSide : connected.bSide) !== side) continue;
+          if (atStart) connected.aLength = length; else connected.bLength = length;
+        }
+      }
+    }
   }
   straighten(edge: TrackSegment) {
     const a = this.nodes.get(edge.a)!, b = this.nodes.get(edge.b)!;

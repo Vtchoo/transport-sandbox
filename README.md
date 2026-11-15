@@ -48,7 +48,7 @@ The bottom-center action menu starts with **Build track**. The build window sele
 - During active placement, **Ⅱ+** connects the current track to the newly created parallel node and continues the chain from it. Gauge mismatches are rejected without creating a node.
 - Node and segment action buttons appear only within 600 m of the camera. Moving farther away hides the buttons and cancels their pending confirmations; returning nearby enables them again on hover.
 - Parallel nodes share 3D direction. Editing any member's tangent keeps that node fixed and repositions its partners on a horizontal lateral line at their stored offsets. Moving a member node translates its entire group. Drag a purple spacing handle laterally to change only that member's offset; this handle remains horizontal even with Shift. Parallel nodes remain after Escape, ready to connect or edit. Straightening a track updates its endpoint groups too; a segment directly joining members of the same group cannot be straightened while preserving their lateral alignment.
-- Drag a gold/white node to reposition it. Selecting a node reveals cyan handles for every incident segment. Dragging a handle changes the shared 3D tangent direction while preserving the other handles' lengths. This gives geometric tangent continuity (G1) across connected tracks.
+- Drag a gold/white node to reposition it. Selecting a node reveals cyan handles for every incident segment. Dragging a handle changes the shared 3D tangent direction. Resizing it also sets same-side handle lengths at the other nodes in its parallel group to the dragged length; opposite-side handles stay independent. Other handles at the edited node retain their own lengths. Pure direction changes preserve existing lengths. This gives geometric tangent continuity (G1) across connected tracks.
 - During node or handle drags, only affected segments render just the rails, including tracks attached to moving parallel nodes. Unaffected track meshes retain their sleepers and ballast without being rebuilt. Full detail returns when the drag ends, including on release without movement or interruption.
 - Hover near a node and click the red **×** beside its add-track button, then **✓** to confirm deletion. Its connected segments are removed and their terrain earthworks are updated; neighboring nodes and other parallel nodes remain. **Esc** cancels confirmation.
 - Hover near a segment’s midpoint and click **Delete track** twice to remove only that segment, keeping both endpoint nodes and updating its earthworks. **Esc** cancels confirmation.
@@ -110,8 +110,11 @@ This is an independent implementation with [TerraForged](https://github.com/Terr
 - `track/editor.ts`: screen-space picking, constrained dragging, directional start buttons, preview and terrain updates.
 - `track/render.ts`: rail and ballast sweeps with upright frames and instanced sleepers.
 - `track/earthworks.ts`: spatially indexed formation heights and cut/fill slope extents.
-- `train/catalog.ts`: vehicle dimensions, explicit supported gauges and gauge-specific bogie definitions.
-- `train/render.ts`: procedural vehicle bodies, liveries, bogies, wheelsets and GPU resource cleanup.
+- `train/locomotives/f7a.ts`, `train/locomotives/ge809.ts`: locomotive definitions, dimensions, physics, supported gauges and body models.
+- `train/cars/coach.ts`, `train/cars/pleasure-dome.ts`: passenger car definitions and body models.
+- `train/catalog.ts`: ordered vehicle registry, gauge-specific bogie definitions and compatibility lookups; shared interfaces live in `train/types.ts`.
+- `train/render.ts`: vehicle assembly, body-builder registry, preview tinting and GPU resource cleanup.
+- `train/model-parts.ts`, `train/cars/passenger-body.ts`, `train/bogies.ts`: shared mesh/material helpers, passenger shell details and bogie models.
 - `train/placement.ts`: direction-aware connected-track fitting, independent bogie poses and placement overlap checks.
 - `train/consist.ts`: draft trains, ordered vehicle items, gauge intersections, front/rear merging and whole-train placement offsets.
 - `train/editor.ts`: consist editing, translucent placement, attachment, simulation integration and start/stop controls.

@@ -1,4 +1,17 @@
 import * as THREE from 'three';
+import type { VehicleDefinition } from '../types';
+
+export const GE809: VehicleDefinition = {
+  id: 'ge-809',
+  name: 'GE 809 · Wide-cab demonstrator',
+  kind: 'locomotive',
+  length: 20.2184, bodyLength: 19.2,
+  width: 3.0861, height: 4.6863,
+  bogieCenters: 11.9888,
+  bogiesByGauge: { 1435: 'ge-fb2-1435' },
+  physics: { massKg: 127006, powerW: 2908230, tractiveEffortN: 304704, maxSpeedMps: 31.2928 },
+};
+
 
 /** GE's experimental wide-cab 809. Metres; railhead Y=0, short hood toward +Z.
  * Class envelope and photo-derived details, not a dimensioned factory replica.
