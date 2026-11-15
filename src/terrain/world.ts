@@ -3,8 +3,10 @@ import { CHUNK_SIZE, TerrainGenerator } from './generator';
 import type { ChunkData, TerrainSettings } from './generator';
 import { wantedTiles, VIEW_RADIUS } from './lod';
 import type { Tile } from './lod';
+import { EarthworkField, prepareEarthPaths } from '../track/earthworks';
+import type { EarthPath } from '../track/earthworks';
 
-interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; segments: number; x: number; z: number }
+interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; segments: number; x: number; z: number; dirty?: boolean }
 interface WorkerSlot { worker: Worker; job?: { id: number; key: string } }
 export class TerrainWorld {
   readonly group = new THREE.Group();
@@ -18,6 +20,8 @@ export class TerrainWorld {
   private serial = 0;
   private cell = '';
   private disposed = false;
+  private earthPaths: EarthPath[] = [];
+  private revision = 0;
   private detailOrigin = { value: new THREE.Vector2() };
   error = '';
   constructor(readonly settings: TerrainSettings) {
@@ -60,6 +64,18 @@ export class TerrainWorld {
     } catch { this.error = 'This browser could not start terrain workers. Try a current desktop browser.'; }
   }
   private key(x: number, z: number) { return `${x},${z}`; }
+  setEarthworks(paths: EarthPath[]) {
+    const previous = this.generator.earthworks;
+    this.earthPaths = prepareEarthPaths(paths, (x, z) => this.generator.baseHeight(x, z), this.settings.mountainHeight);
+    this.generator.earthworks = paths.length ? new EarthworkField(this.earthPaths) : undefined;
+    this.revision++;
+    const natural = (x: number, z: number) => this.generator.baseHeight(x, z);
+    for (const chunk of this.chunks.values()) {
+      const x = chunk.x * CHUNK_SIZE, z = chunk.z * CHUNK_SIZE;
+      if (previous?.affectsBounds(x, z, CHUNK_SIZE, natural) || this.generator.earthworks?.affectsBounds(x, z, CHUNK_SIZE, natural)) chunk.dirty = true;
+    }
+    this.pump();
+  }
   update(worldX: number, worldZ: number, altitude: number) {
     if (this.disposed) return;
     const cx = Math.floor(worldX / CHUNK_SIZE), cz = Math.floor(worldZ / CHUNK_SIZE);
@@ -86,11 +102,12 @@ export class TerrainWorld {
     for (const slot of this.workers) {
       if (slot.job) continue;
       for (const [key, tile] of this.wanted) {
-        if (busy.has(key) || this.chunks.get(key)?.segments === tile.segments) continue;
+        const chunk = this.chunks.get(key);
+        if (busy.has(key) || chunk?.segments === tile.segments && !chunk.dirty) continue;
         const id = ++this.serial;
         slot.job = { id, key };
         busy.add(key);
-        slot.worker.postMessage({ id, x: tile.x, z: tile.z, segments: tile.segments, settings: this.settings });
+        slot.worker.postMessage({ id, x: tile.x, z: tile.z, segments: tile.segments, settings: this.settings, earthPaths: this.earthPaths, revision: this.revision });
         break;
       }
     }
@@ -99,7 +116,7 @@ export class TerrainWorld {
     if (this.disposed || slot.job?.id !== data.id) return;
     const key = slot.job.key;
     slot.job = undefined;
-    if (this.wanted.get(key)?.segments === data.segments) {
+    if (this.wanted.get(key)?.segments === data.segments && data.revision === this.revision) {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
       geometry.setAttribute('normal', new THREE.BufferAttribute(data.normals, 3));
@@ -116,19 +133,21 @@ export class TerrainWorld {
     this.pump();
   }
   get stats() {
-    let triangles = 0, nearby = 0;
+    let triangles = 0, nearby = 0, earthworksPending = 0;
     for (const [key, chunk] of this.chunks) {
       triangles += chunk.mesh.geometry.index!.count / 3;
+      if (chunk.dirty) earthworksPending++;
       const target = this.wanted.get(key);
       if (target && target.ring <= 1 && chunk.segments === target.segments) nearby++;
     }
-    return { chunks: this.chunks.size, total: this.wanted.size, triangles, nearby, radius: VIEW_RADIUS * CHUNK_SIZE };
+    return { chunks: this.chunks.size, total: this.wanted.size, triangles, nearby, earthworksPending, radius: VIEW_RADIUS * CHUNK_SIZE };
   }
   hasTerrainAt(x: number, z: number) {
     return this.chunks.has(this.key(Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)));
   }
   /** Height of the actual rendered triangles, for safe free-camera ground clearance. */
   groundHeight(x: number, z: number) {
+    if (this.generator.earthworks) return this.generator.height(x, z);
     const chunk = this.chunks.get(this.key(Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)));
     const step = CHUNK_SIZE / (chunk?.segments ?? 128);
     const gx = Math.floor(x / step) * step, gz = Math.floor(z / step) * step;

@@ -1,3 +1,4 @@
+import type { EarthworkField, EarthPath } from '../track/earthworks';
 /** Version the settings alongside the seed: both define a reproducible world. Units are metres. */
 export const GENERATOR_VERSION = 1;
 export const CHUNK_SIZE = 512;
@@ -24,6 +25,7 @@ export function smooth(a: number, b: number, x: number) {
 
 /** Stateless gradient noise: chunk order, LOD, and worker scheduling never affect the result. */
 export class TerrainGenerator {
+  earthworks?: EarthworkField;
   readonly settings: TerrainSettings;
   readonly seed: number;
   constructor(settings: TerrainSettings) {
@@ -62,6 +64,10 @@ export class TerrainGenerator {
     return result / total;
   }
   height(worldX: number, worldZ: number): number {
+    const natural = this.baseHeight(worldX, worldZ);
+    return this.earthworks?.height(worldX, worldZ, natural) ?? natural;
+  }
+  baseHeight(worldX: number, worldZ: number): number {
     const x = worldX / this.settings.horizontalScale, z = worldZ / this.settings.horizontalScale;
     const wx = x + this.fbm(x / 4200, z / 4200, 11, 2) * 950;
     const wz = z + this.fbm(x / 4200, z / 4200, 29, 2) * 950;
@@ -106,12 +112,15 @@ export class TerrainGenerator {
 
 export interface ChunkRequest {
   id: number; x: number; z: number; segments: number; settings: TerrainSettings;
+  earthPaths?: EarthPath[]; revision?: number;
 }
 export interface ChunkData {
   id: number; x: number; z: number; segments: number;
+  revision?: number;
   positions: Float32Array; normals: Float32Array; colors: Float32Array; indices: Uint32Array;
 }
 export function buildChunk(generator: TerrainGenerator, request: ChunkRequest): ChunkData {
+  if (generator.earthworks?.affectsBounds(request.x * CHUNK_SIZE, request.z * CHUNK_SIZE, CHUNK_SIZE, (x, z) => generator.baseHeight(x, z))) return buildEarthworkChunk(generator, request);
   const { x, z, segments, id } = request;
   const width = segments + 1, surfaceCount = width * width;
   const vertexCount = surfaceCount + width * 4;
@@ -159,5 +168,70 @@ export function buildChunk(generator: TerrainGenerator, request: ChunkRequest): 
       if (i < segments) { indices.set([source, edge[i + 1], target, edge[i + 1], target + 1, target], cursor); cursor += 6; }
     });
   });
-  return { id, x, z, segments, positions, normals, colors, indices };
+  return { id, x, z, segments, revision: request.revision, positions, normals, colors, indices };
+}
+
+/** Refine only the changed terrain, down to 1 m. Edge fans stitch unequal cells without holes. */
+function buildEarthworkChunk(generator: TerrainGenerator, request: ChunkRequest): ChunkData {
+  const ox = request.x * CHUNK_SIZE, oz = request.z * CHUNK_SIZE;
+  const natural = (x: number, z: number) => generator.baseHeight(x, z);
+  interface Cell { x: number; z: number; size: number }
+  const leaves: Cell[] = [];
+  const horizontal = new Map<number, Set<number>>(), vertical = new Map<number, Set<number>>();
+  const addCorner = (x: number, z: number) => {
+    if (!horizontal.has(z)) horizontal.set(z, new Set());
+    if (!vertical.has(x)) vertical.set(x, new Set());
+    horizontal.get(z)!.add(x); vertical.get(x)!.add(z);
+  };
+  const subdivide = (x: number, z: number, size: number) => {
+    if (size > 1 && generator.earthworks!.affectsBounds(ox + x, oz + z, size, natural)) {
+      const half = size / 2;
+      subdivide(x, z, half); subdivide(x + half, z, half); subdivide(x, z + half, half); subdivide(x + half, z + half, half);
+    } else {
+      leaves.push({ x, z, size });
+      addCorner(x, z); addCorner(x + size, z); addCorner(x, z + size); addCorner(x + size, z + size);
+    }
+  };
+  const step = CHUNK_SIZE / request.segments;
+  for (let z = 0; z < CHUNK_SIZE; z += step) for (let x = 0; x < CHUNK_SIZE; x += step) subdivide(x, z, step);
+  const rows = new Map([...horizontal].map(([key, values]) => [key, [...values].sort((a, b) => a - b)]));
+  const columns = new Map([...vertical].map(([key, values]) => [key, [...values].sort((a, b) => a - b)]));
+  const positions: number[] = [], normals: number[] = [], colors: number[] = [], indices: number[] = [];
+  const vertices = new Map<string, number>();
+  const vertex = (x: number, z: number) => {
+    const key = `${x},${z}`;
+    const previous = vertices.get(key); if (previous !== undefined) return previous;
+    const wx = ox + x, wz = oz + z, h = generator.height(wx, wz);
+    const dx = (generator.height(wx + 1, wz) - generator.height(wx - 1, wz)) / 2;
+    const dz = (generator.height(wx, wz + 1) - generator.height(wx, wz - 1)) / 2;
+    const length = Math.hypot(dx, 1, dz);
+    const index = positions.length / 3;
+    positions.push(x, h, z); normals.push(-dx / length, 1 / length, -dz / length);
+    colors.push(...(Math.abs(h - natural(wx, wz)) > 0.2 ? [0.26, 0.19, 0.12] : generator.color(wx, wz, h, Math.hypot(dx, dz))));
+    vertices.set(key, index); return index;
+  };
+  const between = (values: number[], min: number, max: number) => values.filter(value => value >= min && value < max);
+  for (const { x, z, size } of leaves) {
+    // Clockwise in XZ gives upward-facing triangles.
+    const boundary = [
+      ...between(columns.get(x)!, z, z + size).map(v => vertex(x, v)),
+      ...between(rows.get(z + size)!, x, x + size).map(v => vertex(v, z + size)),
+      ...columns.get(x + size)!.filter(v => v > z && v <= z + size).reverse().map(v => vertex(x + size, v)),
+      ...rows.get(z)!.filter(v => v > x && v <= x + size).reverse().map(v => vertex(v, z)),
+    ];
+    const center = vertex(x + size / 2, z + size / 2);
+    for (let i = 0; i < boundary.length; i++) indices.push(center, boundary[i], boundary[(i + 1) % boundary.length]);
+  }
+  const edges = [rows.get(0)!.map(x => vertex(x, 0)), columns.get(CHUNK_SIZE)!.map(z => vertex(CHUNK_SIZE, z)), rows.get(CHUNK_SIZE)!.slice().reverse().map(x => vertex(x, CHUNK_SIZE)), columns.get(0)!.slice().reverse().map(z => vertex(0, z))];
+  for (const edge of edges) {
+    const bottom = edge.map(index => {
+      const next = positions.length / 3;
+      positions.push(positions[index * 3], positions[index * 3 + 1] - 180, positions[index * 3 + 2]);
+      normals.push(...normals.slice(index * 3, index * 3 + 3)); colors.push(...colors.slice(index * 3, index * 3 + 3));
+      return next;
+    });
+    for (let i = 0; i < edge.length - 1; i++) indices.push(edge[i], edge[i + 1], bottom[i], edge[i + 1], bottom[i + 1], bottom[i]);
+  }
+  return { id: request.id, x: request.x, z: request.z, segments: request.segments, revision: request.revision,
+    positions: new Float32Array(positions), normals: new Float32Array(normals), colors: new Float32Array(colors), indices: new Uint32Array(indices) };
 }

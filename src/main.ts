@@ -5,6 +5,7 @@ import { DEFAULT_SETTINGS, GENERATOR_VERSION } from './terrain/generator';
 import type { TerrainSettings } from './terrain/generator';
 import { CameraRig } from './camera';
 import type { CameraMode } from './camera';
+import { TrackEditor } from './track/editor';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const canvas = $<HTMLCanvasElement>('#world');
@@ -63,6 +64,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(12000, 24, 16), new THREE.Sh
 }));
 scene.add(sky);
 let world: TerrainWorld | undefined;
+let trackEditor: TrackEditor | undefined;
 let playing = false, ready = false;
 let dragging: 'pan' | 'orbit' | null = null;
 let dragPointer: number | null = null;
@@ -85,7 +87,7 @@ function endDrag() {
   dragPointer = null;
   if (pointer !== null && canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
 }
-function clearInput() { keys.clear(); endDrag(); }
+function clearInput() { keys.clear(); endDrag(); trackEditor?.endDrag(); }
 function locked() { return document.pointerLockElement === canvas; }
 function cameraUI() {
   const overlook = rig.mode === 'overlook';
@@ -115,6 +117,7 @@ $('#camera-toggle').addEventListener('click', toggleCamera);
 document.querySelectorAll<HTMLElement>('.settings-open').forEach(button => button.addEventListener('click', () => {
   settingsReturnFocus = button;
   clearInput();
+  trackEditor?.suspend();
   if (locked()) document.exitPointerLock();
   $('#settings-root').hidden = false;
   $('#gameplay-settings').hidden = true;
@@ -143,6 +146,7 @@ function menuView() {
   debugOverlay.hidden = true;
   clearInput();
   if (locked()) document.exitPointerLock();
+  trackEditor?.dispose(); trackEditor = undefined;
   if (world) { scene.remove(world.group); world.dispose(); world = undefined; }
   menu.hidden = false; game.hidden = true; loading.hidden = true; crosshair.hidden = true;
   document.body.classList.remove('playing');
@@ -168,6 +172,8 @@ start.addEventListener('click', () => {
   playing = true; ready = false;
   world = new TerrainWorld(settings);
   scene.add(world.group);
+  trackEditor = new TrackEditor(scene, camera, canvas, world);
+  $<HTMLButtonElement>('#build-track').disabled = true;
   rig.reset(600, 900, ground);
   world.update(rig.position.x, rig.position.z, rig.position.y);
   $('#world-name').textContent = settings.seed;
@@ -176,6 +182,12 @@ start.addEventListener('click', () => {
   cameraUI();
 });
 $('#back').addEventListener('click', menuView);
+$('#build-track').addEventListener('click', () => {
+  if (!playing || !ready || !trackEditor) return;
+  clearInput();
+  if (locked()) document.exitPointerLock();
+  trackEditor.setEnabled(!trackEditor.enabled);
+});
 $('#random-seed').addEventListener('click', () => {
   const values = crypto.getRandomValues(new Uint32Array(2));
   seedInput.value = `${values[0].toString(36)}-${values[1].toString(36)}`;
@@ -185,7 +197,7 @@ $('#share').addEventListener('click', async () => {
   catch { $('#share').textContent = 'Copy the URL to share'; }
 });
 async function captureMouse() {
-  if (!playing || !ready || settingsDialog.open || rig.mode !== 'free') return;
+  if (!playing || !ready || settingsDialog.open || rig.mode !== 'free' || trackEditor?.enabled) return;
   try { await canvas.requestPointerLock(); }
   catch { $('#capture').textContent = 'Drag the landscape to look around'; }
 }
@@ -193,8 +205,10 @@ $('#capture').addEventListener('click', captureMouse);
 canvas.addEventListener('click', () => { if (!dragging) void captureMouse(); });
 canvas.addEventListener('pointerdown', (event) => {
   if (!playing || !ready || settingsDialog.open || locked()) return;
+  canvas.focus({ preventScroll: true });
+  if (trackEditor?.pointerDown(event)) { event.preventDefault(); keys.clear(); return; }
   if (dragPointer !== null || ![0, 1, 2].includes(event.button)) return;
-  if (rig.mode === 'free' && event.button !== 0) return;
+  if (rig.mode === 'free' && event.button !== (trackEditor?.enabled ? 2 : 0)) return;
   event.preventDefault();
   dragging = rig.mode === 'free' || event.button === 1 ? 'orbit' : 'pan';
   dragPointer = event.pointerId;
@@ -204,6 +218,7 @@ canvas.addEventListener('pointerdown', (event) => {
   canvas.setPointerCapture(event.pointerId);
 });
 canvas.addEventListener('pointermove', event => {
+  if (playing && ready && !settingsDialog.open && !dragging && trackEditor?.pointerMove(event)) { event.preventDefault(); return; }
   if (!dragging || event.pointerId !== dragPointer || locked()) return;
   if (!(event.buttons & dragButton) || !playing || !ready || settingsDialog.open) { endDrag(); return; }
   event.preventDefault();
@@ -213,9 +228,10 @@ canvas.addEventListener('pointermove', event => {
   if (dragging === 'pan' && rig.mode === 'overlook') rig.pan(dx, dy, ground);
   else rig.look(dx, dy, ground);
 });
-canvas.addEventListener('pointerup', event => { if (event.pointerId === dragPointer && !(event.buttons & dragButton)) endDrag(); });
-canvas.addEventListener('pointercancel', event => { if (event.pointerId === dragPointer) endDrag(); });
-canvas.addEventListener('lostpointercapture', event => { if (event.pointerId === dragPointer) endDrag(); });
+canvas.addEventListener('pointerup', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer && !(event.buttons & dragButton)) endDrag(); });
+canvas.addEventListener('pointercancel', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer) endDrag(); });
+canvas.addEventListener('lostpointercapture', event => { trackEditor?.pointerUp(event); if (event.pointerId === dragPointer) endDrag(); });
+canvas.addEventListener('pointerleave', event => trackEditor?.leave(event.relatedTarget));
 canvas.addEventListener('auxclick', event => { if (event.button === 1) event.preventDefault(); });
 canvas.addEventListener('contextmenu', event => event.preventDefault());
 window.addEventListener('mousemove', event => {
@@ -229,7 +245,7 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('pointerlockerror', () => { $('#capture').textContent = 'Drag the landscape to look around'; });
 window.addEventListener('keydown', event => {
   if (!playing || settingsDialog.open || (event.target instanceof HTMLElement && /INPUT|SELECT|TEXTAREA/.test(event.target.tagName))) return;
-  if (event.code === 'Escape') { clearInput(); return; }
+  if (event.code === 'Escape') { trackEditor?.escape(); clearInput(); return; }
   if (event.code === 'F3') {
     event.preventDefault();
     if (!event.repeat) debugOverlay.hidden = !debugOverlay.hidden;
@@ -270,12 +286,13 @@ renderer.setAnimationLoop(time => {
     $('#loading-message').textContent = world.error;
   } else if (!ready) {
     $<HTMLProgressElement>('#load-progress').value = stats.nearby / 9;
-    if (stats.nearby >= 9) { ready = true; loading.hidden = true; }
+    if (stats.nearby >= 9) { ready = true; loading.hidden = true; $<HTMLButtonElement>('#build-track').disabled = false; }
   }
-  if (ready && !settingsDialog.open) rig.update(keys, delta, ground, (x, z) => world!.hasTerrainAt(x, z));
+  if (ready && !settingsDialog.open && !trackEditor?.isDragging) rig.update(keys, delta, ground, (x, z) => world!.hasTerrainAt(x, z));
   world.update(rig.position.x, rig.position.z, rig.position.y);
   camera.position.set(rig.position.x - world.origin.x, rig.position.y, rig.position.z - world.origin.y);
   camera.rotation.set(rig.pitch, rig.yaw, 0);
+  trackEditor?.update(time);
   sky.position.copy(camera.position);
   renderer.render(scene, camera);
   hudTime += delta;
@@ -287,6 +304,7 @@ renderer.setAnimationLoop(time => {
       : `${Math.round(rig.speed)} m/s${keys.has('ShiftLeft') || keys.has('ShiftRight') ? ' × 5' : ''}`;
     $('#streaming').textContent = `${stats.chunks} / ${stats.total} chunks · ${(stats.triangles / 1000000).toFixed(2)}M triangles · ${fps} fps`;
     $('#range').textContent = `${(stats.radius / 1000).toFixed(1)} km radius · generator v${GENERATOR_VERSION}`;
+    $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }
 });
-window.addEventListener('pagehide', () => { world?.dispose(); renderer.dispose(); });
+window.addEventListener('pagehide', () => { trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
