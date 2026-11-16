@@ -104,6 +104,10 @@ Seeded forests mix broadleaf trees and conifers, with clearings, smaller patches
 
 This is an independent implementation with [TerraForged](https://github.com/TerraForged/TerraForged) and [Tectonic](https://github.com/Apollounknowndev/tectonic) as visual and architectural references. No source or assets from either project are copied. It is not a port or an equivalent of either generator. Hydraulic erosion, watershed drainage, tributary networks, caves, vegetation, and physically simulated tectonics are not implemented. Increment `GENERATOR_VERSION` and update the regression test when intentionally changing landforms. Existing links assume the current generator; historical generator versions are not bundled.
 
+## SketchUp vehicle authoring
+
+The [vehicle authoring guide](docs/models/sketchup-reference.md) covers full-scale axes, component pivots, proposed custom-color material slots, GLB export and delivery checks. It links dedicated guides for diesel, steam and electric locomotives, passenger and freight cars, and reusable bogies. Imported-model loading and selectable paint are future integration work; the game currently uses procedural vehicle models.
+
 ## Streaming and rendering
 
 - `generator.ts`: seeded sampling and mesh construction with typed arrays.

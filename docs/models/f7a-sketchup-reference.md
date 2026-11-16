@@ -2,6 +2,8 @@
 
 Work at **1:1 scale in metres**. These are F7A dimensions, not the longer FP7.
 
+For shared component names, selectable paint materials, reusable bogies and export checks, read the [SketchUp authoring guide](sketchup-reference.md), [diesel guide](diesel-sketchup-reference.md) and [bogie guide](bogie-sketchup-reference.md). The dimensions below are specific to the F7A; the new guides establish conventions for future imported models.
+
 ## Prototype dimensions
 
 The original [EMD F7 operating manual, General Data](https://users.fini.net/~bersano/english-anglais/EMD-F7.pdf) specifies the following. [Another scan of the same manual](https://lctm.info/Secciones/Trenes/LocoMes/GRR_F7/_media/f7-om.pdf) is available.
