@@ -5,8 +5,10 @@ import { wantedTiles, VIEW_RADIUS } from './lod';
 import type { Tile } from './lod';
 import { EarthworkField, prepareEarthPaths } from '../track/earthworks';
 import type { EarthPath } from '../track/earthworks';
+import { Trees } from './trees';
+import type { TreeChunk } from './trees';
 
-interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; segments: number; x: number; z: number; dirty?: boolean }
+interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; trees: TreeChunk; segments: number; x: number; z: number; dirty?: boolean }
 interface WorkerSlot { worker: Worker; job?: { id: number; key: string } }
 export class TerrainWorld {
   readonly group = new THREE.Group();
@@ -23,6 +25,8 @@ export class TerrainWorld {
   private earthPaths: EarthPath[] = [];
   private revision = 0;
   private detailOrigin = { value: new THREE.Vector2() };
+  private trees = new Trees();
+  private cameraPosition = new THREE.Vector3();
   error = '';
   constructor(readonly settings: TerrainSettings) {
     this.generator = new TerrainGenerator(settings);
@@ -79,18 +83,22 @@ export class TerrainWorld {
   update(worldX: number, worldZ: number, altitude: number) {
     if (this.disposed) return;
     const cx = Math.floor(worldX / CHUNK_SIZE), cz = Math.floor(worldZ / CHUNK_SIZE);
+    this.cameraPosition.set(worldX, altitude, worldZ);
     // Floating origin keeps GPU coordinates small as the world grows.
     this.origin.set(cx * CHUNK_SIZE, cz * CHUNK_SIZE);
     this.detailOrigin.value.copy(this.origin);
     this.water.position.x = worldX - this.origin.x;
     this.water.position.z = worldZ - this.origin.y;
-    for (const chunk of this.chunks.values()) chunk.mesh.position.set(chunk.x * CHUNK_SIZE - this.origin.x, 0, chunk.z * CHUNK_SIZE - this.origin.y);
+    for (const chunk of this.chunks.values()) {
+      chunk.mesh.position.set(chunk.x * CHUNK_SIZE - this.origin.x, 0, chunk.z * CHUNK_SIZE - this.origin.y);
+      this.updateTrees(chunk);
+    }
     const cell = `${this.key(cx, cz)},${Math.floor(altitude / 256)}`;
     if (cell !== this.cell) {
       this.cell = cell;
       this.wanted = new Map(wantedTiles(worldX, worldZ, altitude, (x, z) => this.generator.height(x, z)).map(tile => [this.key(tile.x, tile.z), tile]));
       for (const [key, chunk] of this.chunks) {
-        if (!this.wanted.has(key)) { this.group.remove(chunk.mesh); chunk.mesh.geometry.dispose(); this.chunks.delete(key); }
+        if (!this.wanted.has(key)) { this.releaseChunk(chunk); this.chunks.delete(key); }
       }
     }
     this.pump();
@@ -127,20 +135,36 @@ export class TerrainWorld {
       const mesh = new THREE.Mesh(geometry, this.material);
       mesh.position.set(data.x * CHUNK_SIZE - this.origin.x, 0, data.z * CHUNK_SIZE - this.origin.y);
       this.group.add(mesh);
-      if (previous) { this.group.remove(previous.mesh); previous.mesh.geometry.dispose(); }
-      this.chunks.set(key, { mesh, segments: data.segments, x: data.x, z: data.z });
+      if (previous) this.releaseChunk(previous);
+      const trees = this.trees.create(data.trees ?? new Float32Array());
+      mesh.add(trees.group);
+      const chunk = { mesh, trees, segments: data.segments, x: data.x, z: data.z };
+      this.updateTrees(chunk);
+      this.chunks.set(key, chunk);
     }
     this.pump();
   }
+  private updateTrees(chunk: Chunk) {
+    const centerY = chunk.mesh.geometry.boundingSphere?.center.y ?? 0;
+    const distance = Math.hypot(chunk.x * CHUNK_SIZE + CHUNK_SIZE / 2 - this.cameraPosition.x,
+      centerY - this.cameraPosition.y, chunk.z * CHUNK_SIZE + CHUNK_SIZE / 2 - this.cameraPosition.z);
+    this.trees.update(chunk.trees, distance);
+  }
+  private releaseChunk(chunk: Chunk) {
+    this.trees.release(chunk.trees);
+    this.group.remove(chunk.mesh);
+    chunk.mesh.geometry.dispose();
+  }
   get stats() {
-    let triangles = 0, nearby = 0, earthworksPending = 0;
+    let triangles = 0, nearby = 0, earthworksPending = 0, trees = 0;
     for (const [key, chunk] of this.chunks) {
       triangles += chunk.mesh.geometry.index!.count / 3;
+      trees += chunk.trees.count;
       if (chunk.dirty) earthworksPending++;
       const target = this.wanted.get(key);
       if (target && target.ring <= 1 && chunk.segments === target.segments) nearby++;
     }
-    return { chunks: this.chunks.size, total: this.wanted.size, triangles, nearby, earthworksPending, radius: VIEW_RADIUS * CHUNK_SIZE };
+    return { chunks: this.chunks.size, total: this.wanted.size, triangles, nearby, earthworksPending, trees, radius: VIEW_RADIUS * CHUNK_SIZE };
   }
   hasTerrainAt(x: number, z: number) {
     return this.chunks.has(this.key(Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)));
@@ -159,7 +183,8 @@ export class TerrainWorld {
   dispose() {
     this.disposed = true;
     this.workers.forEach(slot => slot.worker.terminate());
-    this.chunks.forEach(chunk => chunk.mesh.geometry.dispose());
+    this.chunks.forEach(chunk => this.releaseChunk(chunk));
+    this.trees.dispose();
     this.chunks.clear();
     this.wanted.clear();
     this.group.clear();

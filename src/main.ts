@@ -394,7 +394,7 @@ renderer.setAnimationLoop(time => {
     $('#altitude').textContent = `${Math.round(camera.position.y).toLocaleString()} m ASL`;
     $('#speed').textContent = rig.mode === 'overlook' ? `${Math.round(rig.distance).toLocaleString()} m zoom distance`
       : `${Math.round(rig.speed)} m/s${keys.has('ShiftLeft') || keys.has('ShiftRight') ? ' × 5' : ''}`;
-    $('#streaming').textContent = `${stats.chunks} / ${stats.total} chunks · ${(stats.triangles / 1000000).toFixed(2)}M triangles · ${fps} fps`;
+    $('#streaming').textContent = `${stats.chunks} / ${stats.total} chunks · ${(stats.triangles / 1000000).toFixed(2)}M terrain triangles · ${stats.trees.toLocaleString()} trees · ${fps} fps`;
     $('#range').textContent = `${(stats.radius / 1000).toFixed(1)} km radius · generator v${GENERATOR_VERSION}`;
     $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }

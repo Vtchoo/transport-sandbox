@@ -96,6 +96,8 @@ Seed, mountain relief, landform scale, and generator version define a world. Set
 
 `src/terrain/generator.ts` combines domain-warped gradient noise, continental elevation, connected ridge belts, foothills, fine relief, and an analytic meandering river corridor with a floodplain. Slope, moisture noise, elevation, and sea level control meadow, rock, sediment, and snow colors. The river and ocean share a flat sea-level water surface.
 
+Seeded forests mix broadleaf trees and conifers, with clearings, smaller patches, and a gradual mountain treeline. Trees avoid water, steep slopes, and railway cuts, ballast and embankments. Removing or moving tracks restores the original vegetation as terrain tiles regenerate. Tree positions follow the world seed independently of chunk order and terrain LOD. Nearby trees use instanced trunks and clustered crowns; distant crowns simplify and trunks disappear. Vegetation streams only with nearby detailed terrain tiles, and unloads with them. Tree counts appear in the **F3** debug overlay.
+
 This is an independent implementation with [TerraForged](https://github.com/TerraForged/TerraForged) and [Tectonic](https://github.com/Apollounknowndev/tectonic) as visual and architectural references. No source or assets from either project are copied. It is not a port or an equivalent of either generator. Hydraulic erosion, watershed drainage, tributary networks, caves, vegetation, and physically simulated tectonics are not implemented. Increment `GENERATOR_VERSION` and update the regression test when intentionally changing landforms. Existing links assume the current generator; historical generator versions are not bundled.
 
 ## Streaming and rendering
