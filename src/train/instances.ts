@@ -5,7 +5,8 @@ import type { VehicleVisual } from "./render";
 
 const CELL_SIZE = 512;
 interface Part {
-  kind: "body" | "bogie";
+  kind: "body" | "bogie" | "moving";
+  movingIndex?: number;
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
 }
@@ -44,15 +45,21 @@ export class VehicleInstances {
 
   private makeTemplate(visual: VehicleVisual): Template {
     const parts: Part[] = [];
-    for (const [kind, component] of [
-      ["body", visual.body],
-      ["bogie", visual.bogies[0]],
-    ] as const) {
+    const moving = new Set(visual.motion?.parts ?? []);
+    const components: { kind: Part['kind']; component: THREE.Group; movingIndex?: number }[] = [
+      { kind: 'body', component: visual.body }, { kind: 'bogie', component: visual.bogies[0] },
+      ...(visual.motion?.parts.map((component, movingIndex) => ({ kind: 'moving' as const, component, movingIndex })) ?? []),
+    ];
+    for (const { kind, component, movingIndex } of components) {
       component.updateWorldMatrix(true, true);
       const inverse = component.matrixWorld.clone().invert();
       const groups = new Map<THREE.Material, THREE.BufferGeometry[]>();
       component.traverse((object) => {
         if (!(object instanceof THREE.Mesh)) return;
+        // Moving geometry belongs to its own template, never baked into the static body.
+        if (kind === 'body') for (let parent = object.parent; parent && parent !== component; parent = parent.parent) {
+          if (moving.has(parent as THREE.Group)) return;
+        }
         if (Array.isArray(object.material))
           throw new Error(
             "Vehicle batching requires one material per source mesh.",
@@ -106,13 +113,18 @@ export class VehicleInstances {
           mapped = material as THREE.MeshBasicMaterial;
         // Templates own their resources, so deleting the source car cannot invalidate surviving instances.
         if (mapped.map) mapped.map = mapped.map.clone();
-        parts.push({ kind, geometry, material });
+        parts.push({ kind, movingIndex, geometry, material });
       }
     }
     return { parts };
   }
 
-  sync(visuals: readonly VehicleVisual[]) {
+  sync(vehicles: readonly VehicleVisual[]) {
+    const leaves = (visual: VehicleVisual): VehicleVisual[] => visual.sections ? visual.sections.flatMap(leaves) : [visual];
+    const visuals = vehicles.flatMap(leaves);
+    this.group.updateWorldMatrix(true, false);
+    const toLocal = this.group.matrixWorld.clone().invert();
+    const position = new THREE.Vector3();
     const retained = new Set(visuals.map((visual) => visual.group));
     for (const [group, visible] of this.hidden)
       if (!retained.has(group)) {
@@ -137,8 +149,10 @@ export class VehicleInstances {
         template = this.makeTemplate(visual);
         this.templates.set(model, template);
       }
-      const x = Math.floor(visual.group.position.x / CELL_SIZE),
-        z = Math.floor(visual.group.position.z / CELL_SIZE);
+      visual.group.updateWorldMatrix(true, true);
+      position.setFromMatrixPosition(visual.group.matrixWorld).applyMatrix4(toLocal);
+      const x = Math.floor(position.x / CELL_SIZE),
+        z = Math.floor(position.z / CELL_SIZE);
       const key = `${model}:${x}:${z}`;
       let cell = cells.get(key);
       if (!cell) {
@@ -168,7 +182,7 @@ export class VehicleInstances {
           // Instance translations stay small even millions of metres from world zero.
           mesh.position.set(cell.x * CELL_SIZE, 0, cell.z * CELL_SIZE);
           mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-          mesh.name = `${key}:${part.kind}`;
+          mesh.name = `${key}:${part.kind}${part.kind === 'moving' ? ':' + part.movingIndex : ''}`;
           this.group.add(mesh);
           return mesh;
         });
@@ -183,7 +197,7 @@ export class VehicleInstances {
         for (const visual of cell.visuals)
           for (const component of part.kind === "body"
             ? [visual.body]
-            : visual.bogies) {
+            : part.kind === 'moving' ? [visual.motion!.parts[part.movingIndex!]] : visual.bogies) {
             this.matrix.multiplyMatrices(this.inverse, component.matrixWorld);
             mesh.setMatrixAt(count++, this.matrix);
           }

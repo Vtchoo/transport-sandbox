@@ -38,6 +38,27 @@ test('stopped trains append in place in either direction, preserving existing ca
     before.forEach((position, i) => assert.ok(position.distanceTo(editor.parked[0].visuals[i].group.position) < 1e-6));
   });
 });
+
+test('a locomotive and tender remain one editable item through reversal, movement, pickup and undo', () => fixture(({editor,park})=>{
+ const loco=VEHICLES.find(def=>def.id==='drgw-consolidation'), coach=VEHICLES.find(def=>def.id==='drgw-wood-coach');
+ const train=park([loco,coach]);
+ const centers=()=>editor.parked[0].visuals[0].sections.map(section=>section.group.getWorldPosition(new THREE.Vector3()));
+ const before=centers();
+ assert.equal(train.items.length,2);assert.equal(editor.parked[0].visuals[0].sections.length,2);
+ assert.equal(editor.addVehicle('drgw-wood-baggage',train.id),true);
+ centers().forEach((point,i)=>assert.ok(point.distanceTo(before[i])<1e-6));
+ editor.undo();assert.equal(editor.builder.selected.items.length,2);
+ centers().forEach((point,i)=>assert.ok(point.distanceTo(before[i])<1e-6));
+ assert.equal(editor.removeFromTrack(train.id),true);editor.undo();
+ centers().forEach((point,i)=>assert.ok(point.distanceTo(before[i])<1e-6));
+ const restored=editor.builder.selected;
+ assert.equal(editor.editConsist('Flip',()=>editor.builder.flip(restored.items[0].id)),true);
+ const reversed=editor.parked[0].visuals[0];assert.ok(reversed.sections[0].group.position.x<reversed.sections[1].group.position.x);
+ editor.physicsMode='ho';editor.toggleRunning(restored.id);
+ for(let i=0;i<180;i++)editor.update(i*16.67);
+ assert.ok(restored.speed>0&&editor.parked[0].supported);
+ assert.ok(centers().every(point=>point.toArray().every(Number.isFinite)));
+}));
 test('camera focus follows the first vehicle in either travel direction and ignores rear additions', () => {
   for (const facing of [1,-1]) fixture(({editor,park})=>{
     const train=park([VEHICLES[0],VEHICLES[1]],20,facing);train.travelDirection=-1;
@@ -50,6 +71,48 @@ test('camera focus follows the first vehicle in either travel direction and igno
     assert.equal(editor.addVehicle('atsf-pleasure-dome',train.id),true);
     const after=editor.trainFocus(train.id,true);assert.ok(after.center.distanceTo(focus.center)<1e-6);assert.equal(after.length,focus.length);
   });
+});
+
+test('steam wheel phase follows accepted travel in either direction, freezes at rest and survives pickup undo', () => {
+ for(const facing of [1,-1]) for(const direction of [1,-1]) fixture(({editor,park})=>{
+  const train=park([VEHICLES.find(def=>def.id==='drgw-consolidation')]);
+  train.items[0].facing=facing;train.travelDirection=direction;editor.physicsMode='ho';
+  const wheel=()=>editor.parked[0].visuals[0].sections[0].motion.parts.find(part=>part.name==='driver-wheel'&&part.position.x>0);
+  const start=editor.parked[0].visuals[0].group.position.x;
+  editor.toggleRunning(train.id);for(let i=0;i<40;i++)editor.update(i*50);
+  const distance=editor.parked[0].visuals[0].group.position.x-start;
+  assert.ok(Math.abs(distance)>1);
+  assert.ok(Math.abs(Math.sin(wheel().rotation.x-distance*facing/.65))<1e-6);
+  editor.toggleRunning(train.id);for(let i=40;i<100;i++)editor.update(i*50);
+  assert.equal(Math.abs(train.speed),0);
+  const stopped=wheel().quaternion.clone();
+  for(let i=100;i<110;i++)editor.update(i*50);
+  assert.ok(wheel().quaternion.angleTo(stopped)<1e-7);
+  editor.removeFromTrack(train.id);editor.undo();
+  assert.ok(wheel().quaternion.angleTo(stopped)<1e-7);
+  const resumed=editor.builder.selected;editor.toggleRunning(resumed.id);
+  editor.update(5550);assert.ok(wheel().quaternion.angleTo(stopped)>0);
+ });
+});
+
+test('only a working placed steam locomotive emits; stopping or picking it up lets the plume dissipate', () => {
+ for(const mode of ['realistic','ho']) fixture(({editor,park})=>{
+  const train=park([VEHICLES.find(def=>def.id==='drgw-consolidation')]);editor.physicsMode=mode;
+  for(let i=0;i<20;i++)editor.update(i*50);
+  assert.equal(editor.smoke.count,0);
+  editor.toggleRunning(train.id);
+  for(let i=20;i<60;i++)editor.update(i*50);
+  assert.ok(editor.smoke.count>0&&editor.parked[0].effort>0);
+  editor.toggleRunning(train.id);
+  for(let i=60;i<200;i++)editor.update(i*50);
+  assert.equal(train.speed,0);assert.equal(editor.smoke.count,0);
+  editor.toggleRunning(train.id);for(let i=200;i<220;i++)editor.update(i*50);
+  assert.ok(editor.smoke.count>0);
+  editor.toggleRunning(train.id);for(let i=220;i<300;i++)editor.update(i*50);
+  assert.equal(editor.removeFromTrack(train.id),true);
+  for(let i=300;i<420;i++)editor.update(i*50);
+  assert.equal(editor.smoke.count,0);
+ });
 });
 
 test('moving trains reject additions without lifting, changing consist or creating undo entries', () => fixture(({ editor, park, warnings }) => {

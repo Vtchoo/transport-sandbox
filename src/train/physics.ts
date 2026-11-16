@@ -19,7 +19,16 @@ export function trainPerformance(definitions: readonly VehicleDefinition[], mode
 /** SI forces. Grade is mass-weighted sin(slope), positive uphill in the direction of travel. */
 export function physicsStep(definitions: readonly VehicleDefinition[], speed: number, powered: boolean, grade: number, mode: PhysicsMode, dt: number, speedLimit = Infinity) {
   const p = trainPerformance(definitions, mode), v = Math.abs(speed);
-  if (!p.mass || dt <= 0) return { speed: v, distance: 0 };
+  if (!p.mass || dt <= 0) return { speed: v, distance: 0, effort: 0 };
+  const resistance = p.mass * GRAVITY * 0.0015 + p.mass * LINEAR_RESISTANCE_SI * v + 4 * v ** 2;
+  const gravity = p.mass * GRAVITY * grade;
+  // Exhaust uses delivered positive traction, including the load held at governed speed.
+  const effort = (next: number, pulling: boolean) => {
+    if (!pulling || !p.traction || !p.power) return 0;
+    const force = (next - v) / dt / p.response * p.mass * 1.06 + resistance + gravity;
+    const nominal = Math.min(p.traction, p.power / Math.max(v, .5));
+    return Math.max(0, Math.min(1, force / nominal));
+  };
   if (mode === 'ho') {
     // Ideal regulated motors compensate for grade/resistance without a power or adhesion ceiling.
     // Nominal locomotive traction only sets the finite response rate; heavier consists respond slower.
@@ -28,11 +37,9 @@ export function physicsStep(definitions: readonly VehicleDefinition[], speed: nu
     const braking = brakingDeceleration(grade, mode);
     let next = v + Math.max(-braking * dt, Math.min(acceleration * dt, target - v));
     if (target === 0 && next < 0.001) next = 0;
-    return { speed: next, distance: (v + next) / 2 * dt };
+    return { speed: next, distance: (v + next) / 2 * dt, effort: effort(next, target > .001 && v <= target + .001) };
   }
   const equivalentSpeed = v;
-  const resistance = p.mass * GRAVITY * 0.0015 + p.mass * LINEAR_RESISTANCE_SI * equivalentSpeed + 4 * equivalentSpeed ** 2;
-  const gravity = p.mass * GRAVITY * grade;
   const limit = Math.min(p.maxSpeed, speedLimit), braking = !powered || v > limit;
   const drive = braking ? -p.brakeForce : Math.min(p.traction, p.power / Math.max(equivalentSpeed, 0.5));
   const acceleration = (drive - resistance - gravity) / (p.mass * 1.06) * p.response;
@@ -40,7 +47,7 @@ export function physicsStep(definitions: readonly VehicleDefinition[], speed: nu
   // Speed governor holds the target with service brakes, including downhill sections.
   if (powered && v <= limit && next > limit) next = limit;
   if (!powered && next < 0.001) next = 0;
-  return { speed: next, distance: (v + next) / 2 * dt };
+  return { speed: next, distance: (v + next) / 2 * dt, effort: effort(next, powered && limit > .001 && !braking) };
 }
 /** Conservative net service braking deceleration, allowing for downhill gravity. */
 export function brakingDeceleration(grade: number, mode: PhysicsMode) { return mode === 'ho' ? 0.65 / 1.06 * 9 : Math.max(0.05, (0.65 + GRAVITY * grade) / 1.06); }

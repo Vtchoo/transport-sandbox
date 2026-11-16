@@ -13,7 +13,95 @@ const { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPosit
 const { sampleTrack, vehiclePose, applyVehiclePose, vehiclesOverlap } = await load('src/train/placement.ts');
 const { TrackNetwork } = await load('src/track/model.ts');
 const { catalogDestination, catalogAllows } = await load('src/train/catalog-routing.ts');
+const { advanceVehicle } = await load('src/train/motion.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('steam crank pins stay attached to coupling rods and connecting rods constrain the crosshead throughout a revolution', () => {
+  for (const gauge of [914, 1435]) {
+    const visual = makeVehicle(VEHICLES.find(def => def.id === 'drgw-consolidation'), gauge);
+    try {
+      const engine = visual.sections[0], wheels = engine.motion.parts.filter(part => part.name === 'driver-wheel');
+      const rods = engine.motion.parts.filter(part => part.name === 'coupling-rod');
+      const connecting = engine.motion.parts.filter(part => part.name === 'connecting-rod');
+      const crossheads = engine.motion.parts.filter(part => part.name === 'crosshead');
+      for (let frame = 0; frame < 64; frame++) {
+        advanceVehicle(visual, Math.PI * 2 * .65 / 64);
+        visual.group.updateMatrixWorld(true);
+        for (let side = 0; side < 2; side++) {
+          const rod = rods[side];
+          for (let axle = 0; axle < 4; axle++) {
+            const pin = wheels[axle * 2 + side].getObjectByName('crank-pin').getWorldPosition(p(0, 0, 0));
+            const bearing = rod.localToWorld(p(0, 0, [-2.2, -.85, .5, 1.85][axle] + .175));
+            assert.ok(pin.distanceTo(bearing) < 1e-8);
+          }
+          const start = connecting[side].localToWorld(p(0, 0, -.5)), end = connecting[side].localToWorld(p(0, 0, .5));
+          const crosshead = crossheads[side].getWorldPosition(p(0, 0, 0));
+          assert.ok(end.distanceTo(crosshead) < 1e-8);
+          assert.ok(Math.abs(start.distanceTo(end) - 2.1) < 1e-8);
+          assert.ok(Math.abs(crossheads[side].position.y - .85) < 1e-8);
+        }
+        assert.ok(Math.abs(Math.cos(wheels[0].rotation.x - wheels[1].rotation.x)) < 1e-8);
+      }
+      const before = engine.motion.parts.map(part => ({ position: part.position.clone(), quaternion: part.quaternion.clone() }));
+      advanceVehicle(visual, 1.3); advanceVehicle(visual, -1.3);
+      engine.motion.parts.forEach((part, i) => {
+        assert.ok(part.position.distanceTo(before[i].position) < 1e-8);
+        assert.ok(part.quaternion.angleTo(before[i].quaternion) < 1e-7);
+      });
+    } finally { disposeVehicle(visual); }
+  }
+});
+
+test('Rio Grande equipment fits both gauges, with a permanent tender and true 2-8-0 wheels', () => {
+  const definitions = VEHICLES.filter(def => def.id.startsWith('drgw-'));
+  assert.equal(definitions.length, 3);
+  assert.equal(definitions[0].sections.length, 2);
+  assert.equal(definitions[0].physics.massKg, 93200);
+  for (const gauge of [914, 1435]) for (const def of definitions) {
+    const visual = makeVehicle(def, gauge);
+    try {
+      const engine = visual.sections?.[0], tender = visual.sections?.[1];
+      if (engine) {
+        const drivers = engine.body.children.filter(object => object.name === 'driver-wheel');
+        assert.equal(drivers.length, 8);
+        assert.equal(engine.body.children.filter(object => object.name === 'leading-wheel').length, 2);
+        assert.ok(Math.abs(Math.abs(drivers[0].position.x - drivers[1].position.x) - .12 - gauge / 1000) < 1e-8);
+        assert.equal(tender.definition.physics.powerW, 0);
+      }
+      for (const section of visual.sections ?? [visual]) {
+        assert.equal(vehicleBogie(section.definition, gauge).gauge, gauge);
+        if (section.definition.runningGear === 'steam') continue;
+        for (const bogie of section.bogies) {
+          const wheels = bogie.children.filter(object => object.name === 'wheel');
+          assert.equal(wheels.length, 4);
+          const xs = wheels.map(wheel => wheel.position.x);
+          assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - .12 - gauge / 1000) < 1e-8);
+        }
+      }
+      assert.throws(() => makeVehicle(def, 1000), /unavailable/);
+    } finally { disposeVehicle(visual); }
+  }
+});
+
+test('engine and tender articulate independently, including reversed placement on a curved grade', () => {
+  const def = VEHICLES.find(def => def.id === 'drgw-consolidation');
+  for (const gauge of [914, 1435]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(-45, 0, 0), gauge), b = network.addNode(p(45, 6, 0), gauge);
+    const edge = network.connect(a, b, gauge); a.axis.set(1, .06, 1).normalize(); b.axis.set(1, .06, -1).normalize(); edge.aLength = edge.bLength = 40;
+    const visual = makeVehicle(def, gauge), pose = vehiclePose(network, def, { edge: edge.id, u: .5, facing: 1 });
+    try {
+      for (const facing of [1, -1]) {
+        applyVehiclePose(visual, facing === 1 ? pose : { ...pose, reversed: true, front: pose.rear, rear: pose.front, frontDirection: pose.rearDirection.clone().negate(), rearDirection: pose.frontDirection.clone().negate() });
+        const expected = pose.sections(facing);
+        visual.group.updateMatrixWorld(true);
+        visual.sections.forEach((section, i) => assert.ok(section.group.getWorldPosition(p(0, 0, 0)).distanceTo(expected[i].center) < 1e-6));
+        assert.ok(visual.sections[0].body.quaternion.angleTo(visual.sections[1].body.quaternion) > .05);
+        for (const section of visual.sections) for (const bogie of section.bogies) assert.ok(bogie.position.toArray().every(Number.isFinite));
+      }
+    } finally { disposeVehicle(visual); }
+  }
+});
 
 test('catalog targets only the frontmost editable train tab, with no fallback to a lower editor', () => {
   const builder = new TrainBuilder(), train = builder.create(); builder.add(VEHICLES[0]);
@@ -155,11 +243,11 @@ test('previews are translucent while newly created parked visuals remain opaque'
   } finally { disposeVehicle(preview); disposeVehicle(placed); }
 });
 
-test('four separate vehicle definitions declare explicit gauge and bogie compatibility', () => {
-  assert.equal(VEHICLES.length, 4); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 4);
-  assert.deepEqual(VEHICLES.map(v => v.kind), ['locomotive', 'coach', 'dome', 'locomotive']);
+test('separate vehicle definitions declare explicit gauge and bogie compatibility', () => {
+  assert.equal(VEHICLES.length, 7); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 7);
+  assert.deepEqual(VEHICLES.slice(0, 4).map(v => v.kind), ['locomotive', 'coach', 'dome', 'locomotive']);
   for (const def of VEHICLES) {
-    assert.deepEqual(Object.keys(def.bogiesByGauge), ['1435']);
+    assert.deepEqual(Object.keys(def.bogiesByGauge), def.id.startsWith('drgw-') ? ['914', '1435'] : ['1435']);
     assert.equal(vehicleBogie(def, 1435).gauge, 1435);
     assert.throws(() => vehicleBogie(def, 1000), /unavailable/);
     assert.throws(() => makeVehicle(def, 1600), /unavailable/);
@@ -193,8 +281,8 @@ test('vehicle meshes use metre dimensions, correctly gauged wheels and distinct 
       assert.ok(Math.abs(size.x - def.width) < 0.15, `${def.id}: width ${size.x}`);
       assert.ok(Math.abs(bounds.max.y - def.height) < 0.12, `${def.id}: height ${bounds.max.y}`);
       assert.ok(bounds.min.y >= -0.04);
-      for (const bogie of visual.bogies) {
-        assert.equal(bogie.userData.bogieId, def.bogiesByGauge[1435]);
+      for (const section of visual.sections ?? [visual]) for (const bogie of section.definition.runningGear === 'steam' ? [] : section.bogies) {
+        assert.equal(bogie.userData.bogieId, section.definition.bogiesByGauge[1435]);
         const wheels = bogie.children.filter(object => object.name === 'wheel');
         assert.equal(wheels.length, 4);
         const negative = wheels.find(wheel => wheel.position.x < 0), positive = wheels.find(wheel => wheel.position.x > 0);

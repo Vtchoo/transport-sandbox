@@ -8,7 +8,11 @@ import type { VehicleVisual } from './render';
 export interface TrackPosition { edge: number; u: number; facing: Side; routeIndex?: number }
 export interface TrackSample { point: THREE.Vector3; tangent: THREE.Vector3; position: TrackPosition }
 export type TrackSampler = (position: TrackPosition, distance: number) => TrackSample;
-export interface VehiclePose { center: THREE.Vector3; front: THREE.Vector3; rear: THREE.Vector3; frontDirection: THREE.Vector3; rearDirection: THREE.Vector3 }
+export interface VehiclePose {
+  center: THREE.Vector3; front: THREE.Vector3; rear: THREE.Vector3; frontDirection: THREE.Vector3; rearDirection: THREE.Vector3;
+  sections?: (facing: Side) => VehiclePose[];
+  reversed?: boolean;
+}
 
 /** Walk along compatible opposite-side connections; a turnout needs an explicit route. */
 export function sampleTrack(network: TrackNetwork, position: TrackPosition, distance: number, route?: TrackSampler): TrackSample {
@@ -45,8 +49,13 @@ export function vehiclePose(network: TrackNetwork, definition: VehicleDefinition
   const center = sampleTrack(network, position, 0, route).point;
   const front = sampleTrack(network, position, definition.bogieCenters / 2, route);
   const rear = sampleTrack(network, position, -definition.bogieCenters / 2, route);
-  if (front.point.distanceTo(rear.point) < definition.bogieCenters * 0.94) throw new Error('This curve is too tight for the vehicle’s bogie spacing.');
-  return { center, front: front.point, rear: rear.point, frontDirection: front.tangent, rearDirection: rear.tangent };
+  if (!definition.sections && front.point.distanceTo(rear.point) < definition.bogieCenters * 0.94) throw new Error('This curve is too tight for the vehicle’s bogie spacing.');
+  const sections = definition.sections ? (facing: Side) => definition.sections!.map(section => {
+    const at = sampleTrack(network, position, section.offset * facing, route).position;
+    return vehiclePose(network, section.definition, { ...at, facing: at.facing * facing as Side }, route);
+  }) : undefined;
+  sections?.(1); // Validate each rigid section rather than treating the pair as one long body.
+  return { center, front: front.point, rear: rear.point, frontDirection: front.tangent, rearDirection: rear.tangent, sections };
 }
 
 function orientation(direction: THREE.Vector3) {
@@ -60,14 +69,28 @@ export function applyVehiclePose(visual: VehicleVisual, pose: VehiclePose) {
   for (const [i, point, direction] of [[0, pose.front, pose.frontDirection], [1, pose.rear, pose.rearDirection]] as const) {
     visual.bogies[i].position.copy(point).sub(pose.center); visual.bogies[i].quaternion.copy(orientation(direction));
   }
+  if (visual.sections) {
+    const direction = pose.front.clone().sub(pose.rear).normalize();
+    const poses = pose.sections?.(pose.reversed ? -1 : 1);
+    visual.sections.forEach((section, i) => {
+      const spec = visual.definition.sections![i];
+      const center = pose.center.clone().addScaledVector(direction, spec.offset);
+      applyVehiclePose(section, poses?.[i] ?? {
+        center, front: center.clone().addScaledVector(direction, spec.definition.bogieCenters / 2),
+        rear: center.clone().addScaledVector(direction, -spec.definition.bogieCenters / 2), frontDirection: direction, rearDirection: direction,
+      });
+      section.group.position.sub(pose.center);
+    });
+  }
 }
 
 /** Horizontal oriented footprints avoid rejecting trains on neighboring parallel tracks. */
-export function vehiclesOverlap(a: VehicleVisual, b: VehicleVisual, margin = 0.08) {
-  const ca = a.group.position.clone().add(a.body.position), cb = b.group.position.clone().add(b.body.position);
+export function vehiclesOverlap(a: VehicleVisual, b: VehicleVisual, margin = 0.08): boolean {
+  if (a.sections || b.sections) return (a.sections ?? [a]).some(first => (b.sections ?? [b]).some(second => vehiclesOverlap(first, second, margin)));
+  const ca = a.body.getWorldPosition(new THREE.Vector3()), cb = b.body.getWorldPosition(new THREE.Vector3());
   if (Math.abs(ca.y - cb.y) > Math.max(a.definition.height, b.definition.height)) return false;
   const axes = (visual: VehicleVisual) => {
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(visual.body.quaternion); forward.y = 0; forward.normalize();
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(visual.body.getWorldQuaternion(new THREE.Quaternion())); forward.y = 0; forward.normalize();
     return [new THREE.Vector3(forward.z, 0, -forward.x), forward];
   };
   const aa = axes(a), bb = axes(b), delta = cb.sub(ca);

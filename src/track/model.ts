@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export const GAUGES = [
+  { mm: 914, label: 'Three-foot narrow — 914 mm' },
   { mm: 1435, label: 'Standard — 1,435 mm' },
   { mm: 1000, label: 'Metre — 1,000 mm' },
   { mm: 1067, label: 'Cape — 1,067 mm' },

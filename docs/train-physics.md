@@ -12,8 +12,13 @@ Catalog inputs use kilograms, watts, newtons and metres per second. These are no
 | GE 809 adaptation | 127,006 kg | 3,900 hp | 304,704 N | 70 mph |
 | Streamlined coach | 56,800 kg | None | None | 102 mph |
 | Pleasure Dome | 75,000 kg | None | None | 102 mph |
+| Rio Grande 2-8-0 + tender adaptation | 93,200 kg combined | 700 kW (estimate) | 142,608 N (prototype proxy) | 45 km/h (estimate) |
+| Rio Grande wooden baggage car | 20,000 kg (estimate) | None | None | 45 km/h |
+| Rio Grande wooden passenger coach | 24,000 kg (estimate) | None | None | 45 km/h |
 
 Sources and scope:
+
+- The Rio Grande set supports 914 and 1,435 mm track. Its mass/traction proxy comes from Frateschi's underlying Brazilian Baldwin prototype; geometry and performance assumptions are documented in [the model reference](models/rio-grande-reference.md). Tender mass is included in the single catalog item's mass, not counted twice.
 
 - [EMD F7A/F7B manufacturer specification scan](https://static1.squarespace.com/static/624efffd8ef1885fd8ab5ca1/t/67f0fb0fc36f4c2cecfc6b0c/1758061382489/EMD-SPEC-LOCO-F7A-F7B-1948.pdf): 1,500 hp and approximately 230,000 lb loaded. [EMD's F7 traction/gearing table](https://heritagerail.org/wp-content/uploads/2022/09/EMD-TABLE-7-SERIES-SHORT-TIME-RATINGS.pdf) lists gearing-dependent limits through 102 mph. We select the passenger-speed envelope; the starting-force cap is a simplified adhesion estimate rather than a complete traction-motor curve for that gearing.
 - [GE Series-8 handbook GEJ-6368, General Data](https://www.scribd.com/document/283488434/d8-hdbk): B39-8 class, 3,900 hp, 274,000–280,000 lb, starting force around 68,500–70,000 lbf, with 83:20 gearing giving 70 mph. We use a conservative 68,500 lbf cap and 280,000 lb mass. These are B39-8 class proxies for the experimental wide-cab No. 809 visual; the rebuilt prototype's exact operating configuration is not verified.

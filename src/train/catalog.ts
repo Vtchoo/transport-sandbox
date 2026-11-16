@@ -4,13 +4,20 @@ import { F7A } from './locomotives/f7a';
 import { COACH } from './cars/coach';
 import { PLEASURE_DOME } from './cars/pleasure-dome';
 import { GE809 } from './locomotives/ge809';
+import { RIO_GRANDE_CONSOLIDATION } from './locomotives/rio-grande-consolidation';
+import { RIO_GRANDE_COACH } from './cars/rio-grande-coach';
+import { RIO_GRANDE_BAGGAGE } from './cars/rio-grande-baggage';
 
 export const BOGIES: Readonly<Record<string, BogieDefinition>> = {
+  'steam-drivers-914': { id: 'steam-drivers-914', name: '2-8-0 driving frame · 914 mm', gauge: 914, wheelbase: 4.05, wheelRadius: .65, frameWidth: 1.35, powered: true },
+  'steam-drivers-1435': { id: 'steam-drivers-1435', name: '2-8-0 driving frame · standard gauge', gauge: 1435, wheelbase: 4.05, wheelRadius: .65, frameWidth: 1.87, powered: true },
+  'archbar-914': { id: 'archbar-914', name: 'Arch-bar truck · 914 mm', gauge: 914, wheelbase: 1.65, wheelRadius: .365, frameWidth: 1.43, powered: false, frameStyle: 'archbar' },
+  'archbar-1435': { id: 'archbar-1435', name: 'Arch-bar truck · standard gauge', gauge: 1435, wheelbase: 1.65, wheelRadius: .365, frameWidth: 1.95, powered: false, frameStyle: 'archbar' },
   'ge-fb2-1435': { id: 'ge-fb2-1435', name: 'GE FB-2 · standard gauge', gauge: 1435, wheelbase: 2.7432, wheelRadius: 0.508, frameWidth: 2.65, powered: true, frameStyle: 'fb2' },
   'blomberg-b-1435': { id: 'blomberg-b-1435', name: 'Blomberg B · standard gauge', gauge: 1435, wheelbase: 2.7432, wheelRadius: 0.508, frameWidth: 2.55, powered: true },
   'passenger-2axle-1435': { id: 'passenger-2axle-1435', name: 'Passenger two-axle · standard gauge', gauge: 1435, wheelbase: 2.5908, wheelRadius: 0.4572, frameWidth: 2.45, powered: false },
 };
-export const VEHICLES: readonly VehicleDefinition[] = [F7A, COACH, PLEASURE_DOME, GE809];
+export const VEHICLES: readonly VehicleDefinition[] = [F7A, COACH, PLEASURE_DOME, GE809, RIO_GRANDE_CONSOLIDATION, RIO_GRANDE_BAGGAGE, RIO_GRANDE_COACH];
 export function vehicleDefinition(id: string) {
   const definition = VEHICLES.find(item => item.id === id);
   if (!definition) throw new Error('Unknown vehicle model.');

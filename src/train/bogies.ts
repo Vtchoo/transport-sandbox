@@ -18,6 +18,18 @@ export function makeBogie(spec: BogieDefinition, parts: VehicleModelParts) {
   }
   box(bogie, spec.frameWidth, 0.22, 0.4, 0, 0.85, 0, black);
   for (const side of [-1, 1]) {
+    if (spec.frameStyle === 'archbar') {
+      const x = side * spec.frameWidth / 2;
+      box(bogie, .11, .09, spec.wheelbase + .5, x, .72, 0, black);
+      box(bogie, .11, .09, spec.wheelbase + .5, x, .39, 0, black);
+      for (const end of [-1, 1]) {
+        box(bogie, .22, .22, .3, x, .43, end * spec.wheelbase / 2, black);
+        const brace = box(bogie, .1, .065, .95, x, .55, end * .46, roof);
+        brace.rotation.x = end * .32;
+      }
+      for (const z of [-.18, .18]) for (let coil = 0; coil < 4; coil++) cylinder(bogie, .09, .025, x, .49 + coil * .055, z, black);
+      continue;
+    }
     if (spec.frameStyle === 'fb2') {
       // FB-2: deep angular casting, outboard axle boxes and twin spring packs.
       box(bogie, 0.2, 0.37, spec.wheelbase + 0.6, side * spec.frameWidth / 2, 0.78, 0, roof);

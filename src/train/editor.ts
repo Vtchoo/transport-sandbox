@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { Side, TrackNetwork } from "../track/model";
 import { vehicleDefinition } from "./catalog";
-import { makeVehicle, disposeVehicle, tintVehicle } from "./render";
+import { makeVehicle, disposeVehicle, tintVehicle, vehicleTransforms } from "./render";
 import type { VehicleVisual } from "./render";
 import { applyVehiclePose, vehiclesOverlap, sampleTrack } from "./placement";
 import type { TrackPosition } from "./placement";
@@ -28,6 +28,8 @@ import {
 import type { PhysicsMode } from "./physics";
 import { hashSeed } from "../terrain/generator";
 import { VehicleInstances } from "./instances";
+import { TrainSmoke } from "./smoke";
+import { advanceVehicle } from "./motion";
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id)! as T;
@@ -38,6 +40,7 @@ interface ParkedTrain {
   position: TrackPosition;
   supported: boolean;
   route?: TrainRoute;
+  effort?: number;
 }
 interface AppendTarget {
   parked: ParkedTrain;
@@ -61,6 +64,7 @@ interface EditorSnapshot {
 export class TrainEditor {
   readonly group = new THREE.Group();
   private instances = new VehicleInstances();
+  private smoke = new TrainSmoke();
   readonly builder = new TrainBuilder();
   onClose?: () => void;
   onChange?: (action?: string) => void;
@@ -93,6 +97,7 @@ export class TrainEditor {
   ) {
     this.group.add(this.instances.group);
     scene.add(this.group);
+    scene.add(this.smoke.points);
   }
   get enabled() {
     return this.visible;
@@ -401,7 +406,7 @@ export class TrainEditor {
         route: parked.route?.snapshot(),
         visuals: parked.visuals.map((visual) => ({
           gauge: visual.gauge,
-          transforms: [visual.group, visual.body, ...visual.bogies].map(
+          transforms: vehicleTransforms(visual).map(
             (object) => ({
               position: object.position.toArray(),
               quaternion: object.quaternion.toArray(),
@@ -425,7 +430,7 @@ export class TrainEditor {
       )!;
       const visuals = train.items.map((item, i) => {
         const visual = makeVehicle(item.definition, saved.visuals[i].gauge);
-        [visual.group, visual.body, ...visual.bogies].forEach((object, j) => {
+        vehicleTransforms(visual).forEach((object, j) => {
           const transform = saved.visuals[i].transforms[j];
           object.position.fromArray(transform.position);
           object.quaternion.fromArray(transform.quaternion);
@@ -749,6 +754,8 @@ export class TrainEditor {
     return facing === 1
       ? pose
       : {
+          ...pose,
+          reversed: true,
           center: pose.center,
           front: pose.rear,
           rear: pose.front,
@@ -887,9 +894,13 @@ export class TrainEditor {
       this.signature = signature;
     }
     this.instances.sync(this.parked.flatMap((train) => train.visuals));
+    this.smoke.update(delta, this.parked.flatMap(parked => parked.visuals.map(visual => ({
+      visual, effort: parked.train.running && parked.supported ? parked.effort ?? 0 : 0,
+    }))), this.world.origin, this.camera);
   }
   private moveTrains(dt: number) {
     for (const parked of this.parked) {
+      parked.effort = 0;
       const train = parked.train;
       if (!train.running && Math.abs(train.speed) < 0.001) continue;
       const definitions = train.items.map((i) => i.definition),
@@ -1016,7 +1027,9 @@ export class TrainEditor {
           );
           train.speed = 0;
         } else {
+          parked.visuals.forEach((visual, i) => advanceVehicle(visual, direction * Math.min(next.distance, free) * train.items[i].facing));
           parked.position = position;
+          parked.effort = next.effort;
           train.speed =
             next.distance > free && free < 0.1 ? 0 : next.speed * direction;
           parked.supported = true;
@@ -1031,6 +1044,7 @@ export class TrainEditor {
     }
   }
   dispose() {
+    this.smoke.dispose();
     this.instances.dispose();
     this.setEnabled(false);
     this.scene.remove(this.group);
