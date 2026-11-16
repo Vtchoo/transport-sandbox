@@ -7,6 +7,7 @@ export const PLEASURE_DOME: VehicleDefinition = {
   id: 'atsf-pleasure-dome',
   name: 'Santa Fe · Pleasure Dome lounge',
   kind: 'dome',
+  thumbnailSvg: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 184 72\"><path d=\"M10 52V23q0-9 12-9h138q12 0 12 9v29Z\" fill=\"#bdc9ca\"/><path d=\"M61 15V9q0-5 6-5h50q6 0 6 5v6Z\" fill=\"#5d8d9b\" stroke=\"#d8e2da\" stroke-width=\"2\"/><path d=\"M17 26h148v11H17Z\" fill=\"#254755\" stroke=\"#b6c8ca\" stroke-width=\"3\" stroke-dasharray=\"12 3\"/><path d=\"M13 43h156m-156 4h156\" stroke=\"#869e9f\" stroke-width=\"2\"/><path d=\"M9 53h164\" stroke=\"#223637\" stroke-width=\"4\"/><g fill=\"#233335\" stroke=\"#8fa3a2\" stroke-width=\"2\"><circle cx=\"34\" cy=\"58\" r=\"7\"/><circle cx=\"50\" cy=\"58\" r=\"7\"/><circle cx=\"134\" cy=\"58\" r=\"7\"/><circle cx=\"150\" cy=\"58\" r=\"7\"/></g></svg>",
   length: 25.7048, bodyLength: 24.4,
   width: 3.048, height: 4.72,
   bogieCenters: 18.288,

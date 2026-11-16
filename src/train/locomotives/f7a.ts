@@ -6,6 +6,7 @@ export const F7A: VehicleDefinition = {
   id: 'atsf-f7a',
   name: 'Santa Fe F7A · Warbonnet',
   kind: 'locomotive',
+  thumbnailSvg: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 184 72\"><path d=\"M10 52V38q1-19 20-23h135q7 0 7 9v28Z\" fill=\"#c5cdcd\"/><path d=\"M10 52V38q1-19 20-23h27L41 52Z\" fill=\"#b8323b\"/><path d=\"M17 30q3-9 13-10h9v11Z\" fill=\"#203c49\"/><path d=\"M11 43h160\" stroke=\"#e7bb52\" stroke-width=\"3\"/><g fill=\"#34484c\"><circle cx=\"69\" cy=\"32\" r=\"5\"/><circle cx=\"104\" cy=\"32\" r=\"5\"/><circle cx=\"139\" cy=\"32\" r=\"5\"/></g><path d=\"M9 53h164\" stroke=\"#223637\" stroke-width=\"4\"/><g fill=\"#233335\" stroke=\"#8fa3a2\" stroke-width=\"2\"><circle cx=\"34\" cy=\"58\" r=\"7\"/><circle cx=\"50\" cy=\"58\" r=\"7\"/><circle cx=\"134\" cy=\"58\" r=\"7\"/><circle cx=\"150\" cy=\"58\" r=\"7\"/></g></svg>",
   length: 15.4432, bodyLength: 14.4,
   width: 2.9972, height: 4.5,
   bogieCenters: 9.144,

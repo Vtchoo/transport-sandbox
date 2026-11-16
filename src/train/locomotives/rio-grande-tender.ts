@@ -7,6 +7,7 @@ export const RIO_GRANDE_TENDER: VehicleDefinition = {
   id: "drgw-consolidation-tender",
   name: "Rio Grande · Coal tender",
   kind: "coach",
+  thumbnailSvg: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 184 72\"><path d=\"M12 52V22h160v30Z\" fill=\"#e6b62f\"/><path d=\"M9 23v-6h166v6Z M21 14V9h142v5Z\" fill=\"#30372f\"/><path d=\"M23 15h138\" stroke=\"#85927c\" stroke-width=\"2\"/><path d=\"M18 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M30 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M42 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M54 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M66 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M78 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M90 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M102 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M114 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M126 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M138 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M150 28h8v12h-8Z\" fill=\"#203d44\"/><path d=\"M14 45h156\" stroke=\"#b28829\" stroke-width=\"2\"/><path d=\"M13 51h161\" stroke=\"#30372f\" stroke-width=\"4\"/><g fill=\"#28332d\" stroke=\"#718071\" stroke-width=\"1.5\"><circle cx=\"31\" cy=\"58\" r=\"6\"/><circle cx=\"46\" cy=\"58\" r=\"6\"/><circle cx=\"138\" cy=\"58\" r=\"6\"/><circle cx=\"153\" cy=\"58\" r=\"6\"/></g></svg>",
   length: 6.8,
   bodyLength: 6.1,
   width: 2.7,

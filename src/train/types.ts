@@ -4,6 +4,8 @@ export interface BogieDefinition {
 }
 export interface VehicleDefinition {
   id: string; name: string; kind: 'locomotive' | 'coach' | 'dome';
+  /** Side-view SVG owned by the vehicle model, used in catalog and consist lists. */
+  thumbnailSvg: string;
   length: number; bodyLength: number; width: number; height: number; bogieCenters: number;
   bogiesByGauge: Readonly<Record<number, string>>;
   runningGear?: 'steam';
