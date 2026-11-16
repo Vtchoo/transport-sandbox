@@ -106,6 +106,8 @@ This is an independent implementation with [TerraForged](https://github.com/Terr
 
 ## SketchUp vehicle authoring
 
+The catalog includes separate **TGV Sud-Est power car** and **TGV Sud-Est passenger coach** models in original orange livery, for 1,435 mm track. Assemble two power cars and eight coaches for a classic formation; select and flip the rear power car so its cab faces outward. Coaches can be added individually and cannot drive without a power car. These procedural models approximate the prototype: each coach uses independent two-bogie support instead of shared Jacobs bogies. Pantographs are static; overhead wiring is not required.
+
 The [vehicle authoring guide](docs/models/sketchup-reference.md) covers full-scale axes, component pivots, proposed custom-color material slots, GLB export and delivery checks. It links dedicated guides for diesel, steam and electric locomotives, passenger and freight cars, and reusable bogies. Imported-model loading and selectable paint are future integration work; the game currently uses procedural vehicle models.
 
 ## Streaming and rendering

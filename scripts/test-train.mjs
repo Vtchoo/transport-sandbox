@@ -244,7 +244,7 @@ test('previews are translucent while newly created parked visuals remain opaque'
 });
 
 test('separate vehicle definitions declare explicit gauge and bogie compatibility', () => {
-  assert.equal(VEHICLES.length, 7); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 7);
+  assert.equal(VEHICLES.length, 9); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 9);
   assert.deepEqual(VEHICLES.slice(0, 4).map(v => v.kind), ['locomotive', 'coach', 'dome', 'locomotive']);
   for (const def of VEHICLES) {
     assert.deepEqual(Object.keys(def.bogiesByGauge), def.id.startsWith('drgw-') ? ['914', '1435'] : ['1435']);
@@ -259,6 +259,28 @@ test('separate vehicle definitions declare explicit gauge and bogie compatibilit
   assert.notEqual(VEHICLES[3].bogiesByGauge[1435], VEHICLES[0].bogiesByGauge[1435]);
   assert.notEqual(VEHICLES[0].bogiesByGauge[1435], VEHICLES[1].bogiesByGauge[1435]);
   assert.throws(() => vehicleBogie({ ...VEHICLES[0], bogiesByGauge: { 1000: 'blomberg-b-1435' } }, 1000), /unavailable/);
+});
+
+test('TGV power and passenger cars are separate flippable catalog items with different traction and details', () => {
+  const power = VEHICLES.find(d => d.id === 'tgv-sud-est-power');
+  const coach = VEHICLES.find(d => d.id === 'tgv-sud-est-coach');
+  assert.ok(!power.sections && !coach.sections);
+  assert.equal(vehicleBogie(power, 1435).powered, true);
+  assert.equal(vehicleBogie(coach, 1435).powered, false);
+  assert.equal(coach.physics.powerW, 0);
+  assert.equal(2 * power.physics.powerW, 6450000);
+  assert.equal(2 * power.physics.massKg + 8 * coach.physics.massKg, 385000);
+  for (const definition of [power, coach]) assert.throws(() => vehicleBogie(definition, 914), /unavailable/);
+  const engine = makeVehicle(power, 1435), passenger = makeVehicle(coach, 1435);
+  try {
+    assert.equal(engine.body.children.filter(o => o.name === 'windshield').length, 2);
+    assert.ok(engine.body.getObjectByName('pantograph'));
+    assert.equal(passenger.body.children.filter(o => o.name === 'gangway').length, 2);
+    const builder = new TrainBuilder(), train = builder.create();
+    builder.add(power); builder.add(coach); const rear = builder.add(power);
+    builder.flip(rear.id); assert.equal(rear.facing, -1);
+    assert.equal(train.items.length, 3);
+  } finally { disposeVehicle(engine); disposeVehicle(passenger); }
 });
 
 test('GE 809 has an independent wide cab with three front panes and FB-2 trucks', () => {

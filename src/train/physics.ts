@@ -1,4 +1,6 @@
 import type { VehicleDefinition } from './catalog';
+import { VEHICLES } from './catalog';
+const CATALOG_MAX_SPEED = Math.max(...VEHICLES.map(d => d.physics.maxSpeedMps));
 export type PhysicsMode = 'realistic' | 'ho';
 export const GRAVITY = 9.80665;
 // Modified Davis linear term: 0.01 lbf / (US ton · mph), converted to N / (kg · m/s).
@@ -12,7 +14,7 @@ export function trainPerformance(definitions: readonly VehicleDefinition[], mode
   const realMax = Math.min(...definitions.map(d => d.physics.maxSpeedMps));
   return { mass, power: powered.reduce((sum, d) => sum + d.physics.powerW, 0) * 0.82,
     traction: powered.reduce((sum, d) => sum + Math.min(d.physics.tractiveEffortN, d.physics.massKg * GRAVITY * 0.25), 0),
-    maxSpeed: powered.length ? realMax * (mode === 'ho' ? (120 / 3.6) / 45.599 : 1) : 0,
+    maxSpeed: powered.length ? realMax * (mode === 'ho' ? (120 / 3.6) / CATALOG_MAX_SPEED : 1) : 0,
     response: mode === 'ho' ? 9 : 1,
     brakeForce: mass * 0.65 };
 }

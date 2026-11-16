@@ -25,7 +25,8 @@ test('vehicle mass, locomotive power and grades affect acceleration; unpowered c
 });
 test('HO responds faster, preserves relative model top speeds, and braking reaches zero without reversing', () => {
   assert.ok(physicsStep([f7, coach], 0, true, 0, 'ho', 0.05).speed > physicsStep([f7, coach], 0, true, 0, 'realistic', 0.05).speed * 8);
-  assert.ok(Math.abs(trainPerformance([f7], 'ho').maxSpeed * 3.6 - 120) < 0.001);
+  const fastest = VEHICLES.find(d => d.id === 'tgv-sud-est-power');
+  assert.ok(Math.abs(trainPerformance([fastest], 'ho').maxSpeed * 3.6 - 120) < 0.001);
   assert.ok(Math.abs(trainPerformance([ge], 'ho').maxSpeed / trainPerformance([f7], 'ho').maxSpeed - ge.physics.maxSpeedMps / f7.physics.maxSpeedMps) < 1e-8);
   const stop = mode => { let v=10, distance=0, seconds=0; while(v>0 && seconds<100) { const next=physicsStep([f7, coach],v,false,0,mode,0.05);v=next.speed;distance+=next.distance;seconds+=0.05; } assert.equal(v,0);return distance; };
   assert.ok(stop('ho') < stop('realistic') / 8);

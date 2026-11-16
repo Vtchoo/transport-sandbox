@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { buildTgv } from './locomotives/tgv';
 import { buildGe809 } from './locomotives/ge809';
 import { buildF7a } from './locomotives/f7a';
 import { buildCoach } from './cars/coach';
@@ -15,6 +16,8 @@ import type { VehicleModelParts } from './model-parts';
 import type { VehicleMotion } from './motion';
 
 const BODY_BUILDERS: Readonly<Record<string, (parts: VehicleModelParts, definition: VehicleDefinition, gauge: number) => void | VehicleMotion>> = {
+  'tgv-sud-est-power': buildTgv,
+  'tgv-sud-est-coach': buildTgv,
   'drgw-consolidation-engine': buildRioGrandeEngine,
   'drgw-consolidation-tender': buildRioGrandeTender,
   'drgw-wood-baggage': buildRioGrandeBaggage,
