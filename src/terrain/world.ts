@@ -25,6 +25,8 @@ export class TerrainWorld {
   private earthPaths: EarthPath[] = [];
   private revision = 0;
   private detailOrigin = { value: new THREE.Vector2() };
+  private contourEnabled = { value: 0 };
+  private contourInterval = { value: 10 };
   private trees = new Trees();
   private cameraPosition = new THREE.Vector3();
   error = '';
@@ -34,9 +36,19 @@ export class TerrainWorld {
     // Metre-scale procedural ground texture, independent of mesh tessellation.
     this.material.onBeforeCompile = (shader) => {
       shader.uniforms.terrainOrigin = this.detailOrigin;
+      shader.uniforms.contourEnabled = this.contourEnabled;
+      shader.uniforms.contourInterval = this.contourInterval;
       shader.vertexShader = 'varying vec3 vTerrainPosition;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvTerrainPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       shader.fragmentShader = `uniform vec2 terrainOrigin; varying vec3 vTerrainPosition;
+        uniform float contourEnabled; uniform float contourInterval;
+        // Screen-space antialiasing and fading prevent dense distant contours from shimmering.
+        float contourLine(float elevation, float width) {
+          float pixel = max(fwidth(elevation), 0.00001);
+          float distanceToLevel = abs(fract(elevation + 0.5) - 0.5);
+          float line = 1.0 - smoothstep(pixel * (width - 0.45), pixel * (width + 0.45), distanceToLevel);
+          return line * (1.0 - smoothstep(0.15, 0.45, pixel)) * smoothstep(0.00001, 0.0001, pixel);
+        }
         float groundNoise(vec2 p) {
           vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
           vec3 q = fract(vec3(i.xyx) * .1031); q += dot(q, q.yzx + 33.33);
@@ -50,6 +62,12 @@ export class TerrainWorld {
         vec2 p = vTerrainPosition.xz + terrainOrigin;
         float grain = groundNoise(p * 0.7) * 0.13 + groundNoise(p * 0.08) * 0.13;
         diffuseColor.rgb *= 0.87 + grain;
+        if (contourEnabled > 0.5) {
+          float elevation = vTerrainPosition.y / contourInterval;
+          float minorLine = contourLine(elevation, 0.8);
+          float majorLine = contourLine(elevation / 5.0, 1.35);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.075, 0.10, 0.065), max(minorLine * 0.65, majorLine * 0.9));
+        }
       `);
     };
     this.water = new THREE.Mesh(new THREE.PlaneGeometry(32000, 32000), new THREE.MeshStandardMaterial({
@@ -68,6 +86,12 @@ export class TerrainWorld {
     } catch { this.error = 'This browser could not start terrain workers. Try a current desktop browser.'; }
   }
   private key(x: number, z: number) { return `${x},${z}`; }
+  /** Shader-only overlay: follows rendered terrain and earthworks without rebuilding chunks. */
+  setContours(enabled: boolean, interval = 10) {
+    this.contourEnabled.value = enabled ? 1 : 0;
+    this.contourInterval.value = Number.isFinite(interval) ? Math.max(1, interval) : 10;
+    for (const chunk of this.chunks.values()) chunk.trees.group.visible = !enabled;
+  }
   setEarthworks(paths: EarthPath[]) {
     const previous = this.generator.earthworks;
     this.earthPaths = prepareEarthPaths(paths, (x, z) => this.generator.baseHeight(x, z), this.settings.mountainHeight);
@@ -137,6 +161,7 @@ export class TerrainWorld {
       this.group.add(mesh);
       if (previous) this.releaseChunk(previous);
       const trees = this.trees.create(data.trees ?? new Float32Array());
+      trees.group.visible = this.contourEnabled.value < 0.5;
       mesh.add(trees.group);
       const chunk = { mesh, trees, segments: data.segments, x: data.x, z: data.z };
       this.updateTrees(chunk);

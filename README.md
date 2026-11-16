@@ -32,6 +32,8 @@ In free camera, **WASD / arrows** move horizontally, **E / Space, Q** rise / des
 
 **Main menu** unloads the world so you can change terrain settings.
 
+Open **View → Show terrain contours** to overlay elevation lines on the landscape and railway earthworks, hiding trees for visibility. Turning contours off restores the trees. Choose a 5–100 m elevation interval; every fifth line is bold. Lines use sea-level elevations, stay aligned across terrain chunks, and fade when too dense to read at a distance. View preferences are remembered locally.
+
 **F3** toggles the debug overlay in the top left. Coordinates, altitude, camera speed/zoom, chunk counts, triangles, FPS, world seed, and generator details are hidden by default.
 
 ## Building track
