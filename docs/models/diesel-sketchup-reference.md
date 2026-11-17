@@ -1,6 +1,6 @@
 # Diesel locomotive SketchUp reference
 
-Follow the [shared authoring guide](sketchup-reference.md) for axes, scale, materials, export and delivery. This guide applies to hood units and cab units; prototype measurements come from the particular locomotive's drawings/manual, not from a generic diesel size.
+Follow the [shared authoring guide](sketchup-reference.md) for axes, scale, materials, export and delivery, and the [headlight guide](headlight-sketchup-reference.md) for lamp components and aiming. This guide applies to hood units and cab units; prototype measurements come from the particular locomotive's drawings/manual, not from a generic diesel size.
 
 ## Build order
 
