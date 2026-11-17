@@ -2,7 +2,7 @@
 
 Work at **1:1 scale in metres**. These are F7A dimensions, not the longer FP7.
 
-For shared component names, selectable paint materials, reusable bogies and export checks, read the [SketchUp authoring guide](sketchup-reference.md), [diesel guide](diesel-sketchup-reference.md) and [bogie guide](bogie-sketchup-reference.md). The dimensions below are specific to the F7A; the new guides establish conventions for future imported models.
+For shared component names, selectable paint materials, reusable bogies and export checks, read the [SketchUp authoring guide](../sketchup-reference.md), [diesel guide](../diesel-sketchup-reference.md) and [bogie guide](../bogie-sketchup-reference.md). The dimensions below are specific to the F7A; the new guides establish conventions for future imported models.
 
 ## Prototype dimensions
 
@@ -51,4 +51,4 @@ Gauge measures the inside rail faces, not the distance between wheel centers. Th
 
 The shell dimensions and centered coupler convention are **not factory body measurements**. The real body's relationship to its truck centers needs a body drawing; do not infer it from these game approximations. A more accurate replacement may require updating the catalog envelope and coupler/pivot offsets.
 
-For a future imported asset, prepare separate body/bogie components with applied scale and outward-facing normals. GLB/glTF is a useful target after conversion from SketchUp. This project currently creates procedural meshes; there is **no SketchUp/GLB import workflow implemented yet**. Keep your source `.skp` as well as the export.
+For an imported replacement, prepare separate body/bogie components with applied scale and outward-facing normals. GLB/glTF remains a useful future target. The first implemented SketchUp import path uses static solid-color COLLADA for the Dash 9; see its [import workflow](dash-9-sketchup-reference.md#current-game-import-workflow). An F7A import still needs its own asset registration/adapter. Keep your source `.skp` as well as the export.

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="720" viewBox="0 0 1060 720" role="img" aria-labelledby="title desc">
+  <title id="title">Dash 9 bogie reference box — layout datums in metres</title>
+  <desc id="desc">A datum box spans a provisional 4.0132 metre outer-axle wheelbase, 1.4350 metre track gauge, and 1.0668 metre new-wheel diameter above railhead. Axle height is 0.5334 metres. These dimensions do not describe the complete bogie frame or wheel envelope. Center axle is midway between outer axles in the selected ATSF view; traction-pin position remains unverified.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#334155"/></marker>
+    <style>
+      text { font-family: Arial, sans-serif; font-size: 16px; fill: #1e293b; }
+      .heading { font-size: 27px; font-weight: 700; }
+      .label { font-weight: 700; }
+      .muted { fill: #64748b; font-size: 14px; }
+      .outline { stroke: #334155; stroke-width: 2; stroke-linejoin: round; }
+      .extension { fill: none; stroke: #94a3b8; stroke-width: 1; }
+      .measure { fill: none; stroke: #334155; stroke-width: 1.4; marker-start: url(#arrow); marker-end: url(#arrow); }
+      .datum { fill: none; stroke: #0f766e; stroke-width: 1.5; stroke-dasharray: 7 5; }
+    </style>
+  </defs>
+  <rect width="1060" height="720" rx="12" fill="#f8fafc"/>
+  <text x="40" y="48" class="heading">DASH 9 · Bogie reference box</text>
+  <text x="40" y="78" class="muted">Standard-gauge layout · 1:1 metres · SketchUp: red X across, green Y forward, blue Z up</text>
+  <text x="40" y="104" class="muted">The box marks axle span, gauge and wheel diameter. Actual frame and wheel extents are different.</text>
+
+  <!-- 135 px/m along the length and height; gauge projects diagonally. -->
+  <path d="M160 420H701.782L837.39 342.51H295.608Z" fill="#e2e8f0" stroke="#94a3b8" stroke-dasharray="5 5"/>
+  <path d="M160 275.982H701.782V420H160Z" fill="#dbeafe" class="outline"/>
+  <path d="M160 275.982 295.608 198.492H837.39L701.782 275.982Z" fill="#eff6ff" class="outline"/>
+  <path d="M701.782 275.982 837.39 198.492V342.51L701.782 420Z" fill="#bfdbfe" class="outline"/>
+  <text x="145" y="250" class="label">FRONT AXLE PLANE</text>
+  <text x="682" y="177" class="label">REAR AXLE PLANE</text>
+
+  <path d="M160 347.991H701.782L837.39 270.501" class="datum"/>
+  <rect x="278" y="333" width="310" height="28" rx="4" fill="#f8fafc"/>
+  <text x="433" y="353" text-anchor="middle">Axle center height: Z = 0.5334 m</text>
+  <text x="174" y="409" class="muted">RAILHEAD: Z = 0</text>
+  <text x="375" y="302" class="muted">Top: Z = 1.0668 m</text>
+
+  <path d="M160 275.982H72M160 420H72" class="extension"/>
+  <path d="M86 275.982V420" class="measure"/>
+  <text transform="translate(65 348) rotate(-90)" text-anchor="middle" class="label">1.0668 m wheel diameter</text>
+
+  <path d="M701.782 275.982 736 232M837.39 198.492 872 155" class="extension"/>
+  <path d="M728.782 232.982 864.39 155.492" class="measure"/>
+  <text transform="translate(825 179) rotate(-29.745)" text-anchor="middle" class="label">1.4350 m gauge</text>
+
+  <path d="M160 420V484M701.782 420V484" class="extension"/>
+  <path d="M160 470H701.782" class="measure"/>
+  <rect x="225" y="454" width="417" height="30" rx="4" fill="#f8fafc"/>
+  <text x="434" y="475" text-anchor="middle" class="label">Outer-axle wheelbase: 4.0132 m *</text>
+
+  <circle cx="498.695" cy="381.255" r="4" fill="#0f172a"/>
+  <path d="M498.695 381.255 585 393H746" fill="none" stroke="#64748b" stroke-width="1.2"/>
+  <text x="755" y="398" class="muted">Box datum center</text>
+
+  <rect x="40" y="515" width="980" height="155" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="60" y="542" class="label">SketchUp reference block coordinates</text>
+  <text x="60" y="570">Red X: −0.7175 to +0.7175 m</text>
+  <text x="60" y="596">Green Y: −2.0066 to +2.0066 m *</text>
+  <text x="60" y="622">Blue Z: 0 to +1.0668 m</text>
+  <text x="570" y="570" class="muted">ATSF drawing axle stations: +2.0066, 0, −2.0066 m.</text>
+  <text x="570" y="596" class="muted">Swivel / traction-pin location: also unconfirmed.</text>
+  <text x="60" y="650" class="muted">* Wheelbase measured from the selected ATSF 1:18 drawing. Frame dimensions and physical pivot remain unverified.</text>
+  <text x="40" y="695" class="muted">Gauge is between inside rail faces. The frame, wheels and flanges extend beyond this datum box.</text>
+</svg>

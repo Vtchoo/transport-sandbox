@@ -5,7 +5,7 @@ import type { VehicleVisual } from "./render";
 
 const CELL_SIZE = 512;
 interface Part {
-  kind: "body" | "bogie" | "moving";
+  kind: "body" | "bogie" | "bogie-front" | "bogie-rear" | "moving";
   movingIndex?: number;
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
@@ -47,7 +47,11 @@ export class VehicleInstances {
     const parts: Part[] = [];
     const moving = new Set(visual.motion?.parts ?? []);
     const components: { kind: Part['kind']; component: THREE.Group; movingIndex?: number }[] = [
-      { kind: 'body', component: visual.body }, { kind: 'bogie', component: visual.bogies[0] },
+      { kind: 'body', component: visual.body },
+      ...(visual.separateBogies ? [
+        { kind: 'bogie-front' as const, component: visual.bogies[0] },
+        { kind: 'bogie-rear' as const, component: visual.bogies[1] },
+      ] : [{ kind: 'bogie' as const, component: visual.bogies[0] }]),
       ...(visual.motion?.parts.map((component, movingIndex) => ({ kind: 'moving' as const, component, movingIndex })) ?? []),
     ];
     for (const { kind, component, movingIndex } of components) {
@@ -197,7 +201,9 @@ export class VehicleInstances {
         for (const visual of cell.visuals)
           for (const component of part.kind === "body"
             ? [visual.body]
-            : part.kind === 'moving' ? [visual.motion!.parts[part.movingIndex!]] : visual.bogies) {
+            : part.kind === 'moving' ? [visual.motion!.parts[part.movingIndex!]]
+            : part.kind === 'bogie-front' ? [visual.bogies[0]]
+            : part.kind === 'bogie-rear' ? [visual.bogies[1]] : visual.bogies) {
             this.matrix.multiplyMatrices(this.inverse, component.matrixWorld);
             mesh.setMatrixAt(count++, this.matrix);
           }

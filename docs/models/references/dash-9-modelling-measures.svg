@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1120" viewBox="0 0 1200 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Dash 9 modelling dimensions — side, front and bogie views</title>
+  <desc id="desc">Schematic locomotive views with metre dimensions: 22.3012 coupling length, provisional 14.0970 bogie reference spacing, provisional 3.1242 cab width and 4.6990 cab-top height, 1.8034 deck height, 1.0668 new-wheel diameter and 1.435 standard gauge. Bogie outer-axle span is approximately 4.0132 in the selected ATSF drawing. Outline details are schematic; axle stations are derived from the selected ATSF drawing.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#243c54"/></marker>
+    <g id="wheel"><circle r="1" fill="#e3eaf0" stroke="#243c54" stroke-width=".055"/><circle r=".25" fill="#859bab"/><path d="M-1.2 0H1.2M0-1.2V1.2" stroke="#6a8191" stroke-width=".025"/></g>
+    <style>
+      text{font-family:Arial,sans-serif;font-size:16px;fill:#19334b}
+      .title{font-size:29px;font-weight:700}.section{font-size:20px;font-weight:700}
+      .small{font-size:13px;fill:#526a7d}.label{font-weight:700}.accent{fill:#a35e15}
+      .shape{fill:#edf3f7;stroke:#516f83;stroke-width:1.7;stroke-linejoin:round}
+      .detail{fill:none;stroke:#8ca0af;stroke-width:1.2}
+      .guide{fill:none;stroke:#639aab;stroke-width:1;stroke-dasharray:6 5}
+      .ext{fill:none;stroke:#9bafbd;stroke-width:1}
+      .dim{fill:none;stroke:#243c54;stroke-width:1.2;marker-start:url(#arrow);marker-end:url(#arrow)}
+      .unknown{fill:none;stroke:#bb8739;stroke-width:1.5;stroke-dasharray:6 5}
+    </style>
+  </defs>
+  <rect width="1200" height="1120" fill="#f8fbfd"/>
+  <text x="42" y="48" class="title">DASH 9 · Dimensions for modelling</text>
+  <text x="42" y="77">C44-9W baseline · all dimensions in metres · model at 1:1</text>
+  <text x="42" y="101" class="small">Only the dimension lines establish measurements. Cab, nose, radiator and frame contours are schematic; do not trace them.</text>
+
+  <text x="42" y="136" class="section">SIDE VIEW</text>
+  <path d="M145 176V450M1037.048 176V450" class="ext"/>
+  <path d="M145 188H1037.048" class="dim"/>
+  <rect x="417" y="173" width="349" height="29" fill="#f8fbfd"/>
+  <text x="591" y="193" text-anchor="middle" class="label">Coupling faces: 22.3012</text>
+
+  <!-- Side-view dimension datums at 40 pixels/metre; only the contour is illustrative. -->
+  <path d="M168.368 377.864V331L206 315H264L283 262.04H343L367 291H876V277H1002V377.864Z" class="shape"/>
+  <path d="M168.368 377.864H1013.68V389H168.368Z" class="shape"/>
+  <path d="M283 278H301V307H274Z M312 278H337V307H312Z" fill="#91aab9" stroke="#516f83"/>
+  <path d="M367 306H875M880 294H991M880 301H991M880 308H991" class="detail"/>
+  <path d="M420 313V370M460 313V370M500 313V370M540 313V370M580 313V370M620 313V370M660 313V370M700 313V370M740 313V370M780 313V370M820 313V370" class="detail"/>
+  <path d="M177 350H1000M190 350V377M247 350V377M370 350V377M490 350V377M610 350V377M730 350V377M850 350V377M990 350V377" class="detail"/>
+  <path d="M416 390H770V431H416Z" class="shape"/>
+  <path d="M145 400H168M1014 400H1037" stroke="#516f83" stroke-width="8"/>
+  <path d="M216 398H404V419H216Z M779 398H968V419H779Z" class="shape"/>
+  <use href="#wheel" transform="translate(228.82 428.664) scale(21.336)"/>
+  <use href="#wheel" transform="translate(389.348 428.664) scale(21.336)"/>
+  <use href="#wheel" transform="translate(792.7 428.664) scale(21.336)"/>
+  <use href="#wheel" transform="translate(953.228 428.664) scale(21.336)"/>
+  <use href="#wheel" transform="translate(309.084 428.664) scale(21.336)"/>
+  <use href="#wheel" transform="translate(872.964 428.664) scale(21.336)"/>
+
+  <path d="M133 450H1080" stroke="#344f63" stroke-width="2"/>
+  <text x="1086" y="455" class="small">railhead</text>
+  <path d="M283 262.04H86M145 450H86" class="ext"/>
+  <path d="M98 262.04V450" class="dim"/>
+  <text transform="translate(78 356) rotate(-90)" text-anchor="middle" class="label">Cab top: 4.6990 *</text>
+  <path d="M1014 377.864H1105M1080 450H1105" class="ext"/>
+  <path d="M1094 377.864V450" class="dim"/>
+  <text transform="translate(1114 414) rotate(-90)" text-anchor="middle" class="small">Deck: 1.8034</text>
+
+  <path d="M309.084 309V515M872.964 309V515" class="guide"/>
+  <path d="M309.084 497H872.964" class="dim"/>
+  <rect x="437" y="481" width="308" height="29" fill="#f8fbfd"/>
+  <text x="591" y="501" text-anchor="middle" class="label">Bogie references: 14.0970 *</text>
+  <circle cx="591.024" cy="450" r="4" fill="#ca4747"/>
+  <path d="M591.024 450V462" stroke="#ca4747"/>
+  <text x="591" y="478" text-anchor="middle" class="small">origin</text>
+  <text x="169" y="535" class="small">Front bogie: green Y = +7.0485 *</text>
+  <text x="775" y="535" class="small">Rear: green Y = −7.0485 *</text>
+
+  <path d="M40 561H1160" stroke="#d4e0e8"/>
+  <text x="42" y="593" class="section">FRONT VIEW</text>
+  <text x="580" y="593" class="section">BOGIE / WHEEL DATUMS</text>
+  <text x="580" y="617" class="small">Truck-frame contour is illustrative. Axle stations match the selected ATSF view.</text>
+
+  <!-- Front view at 45 pixels/metre. Width denotes the provisional cab envelope. -->
+  <path d="M189.7055 676V635M330.2945 676V635" class="ext"/>
+  <path d="M189.7055 645H330.2945" class="dim"/>
+  <text x="260" y="632" text-anchor="middle" class="label">Cab width: 3.1242 *</text>
+  <path d="M189.7055 798.847V697L213 668.545H307L330.2945 697V798.847Z" class="shape"/>
+  <path d="M204 699 218 682H252V727H204Z M268 682H302L316 699V727H268Z" fill="#91aab9" stroke="#516f83"/>
+  <path d="M220 798.847V744L232 737H288L300 744V798.847Z" class="shape"/>
+  <path d="M260 733V793M233 751H246M274 751H287" class="detail"/>
+  <path d="M183 798.847H337V813H183Z" class="shape"/>
+  <path d="M199 813H321L309 860H211Z" class="shape"/>
+  <path d="M172 798.847H348" class="guide"/>
+  <path d="M260 656V896" class="guide"/>
+  <path d="M218 880H228M292 880H302" stroke="#344f63" stroke-width="7"/>
+  <path d="M189.7055 668.545H127M183 880H127" class="ext"/>
+  <path d="M139 668.545V880" class="dim"/>
+  <text transform="translate(119 773) rotate(-90)" text-anchor="middle" class="small">Railhead to cab top: 4.6990 *</text>
+  <path d="M227.7125 880V930M292.2875 880V930" class="ext"/>
+  <path d="M227.7125 914H292.2875" class="dim"/>
+  <text x="260" y="943" text-anchor="middle" class="label">Gauge: 1.4350</text>
+  <text x="260" y="965" text-anchor="middle" class="small">Between inside rail faces</text>
+
+  <!-- Enlarged wheel diagram at 85 pixels/metre. -->
+  <path d="M607 736H1040V778H607Z" class="unknown"/>
+  <use href="#wheel" transform="translate(650 802.661) scale(45.339)"/>
+  <use href="#wheel" transform="translate(991.122 802.661) scale(45.339)"/>
+  <use href="#wheel" transform="translate(820.561 802.661) scale(45.339)"/>
+  <path d="M583 848H1085" stroke="#344f63" stroke-width="2"/>
+  <path d="M590 802.661H1060" class="guide"/>
+  <path d="M650 757.322H566M650 848H566" class="ext"/>
+  <path d="M577 757.322V848" class="dim"/>
+  <text transform="translate(557 802) rotate(-90)" text-anchor="middle" class="small">Ø 1.0668</text>
+  <path d="M1060 802.661H1109M1085 848H1109" class="ext"/>
+  <path d="M1098 802.661V848" class="dim"/>
+  <text x="957" y="730" class="label">Axle Z: 0.5334</text>
+  <path d="M1046 735 1098 782V796" class="ext"/>
+  <path d="M650 848V905M991.122 848V905" class="ext"/>
+  <path d="M650 889H991.122" class="dim"/>
+  <rect x="690" y="873" width="267" height="30" fill="#f8fbfd"/>
+  <text x="823" y="894" text-anchor="middle" class="label">Outer axles: 4.0132 *</text>
+  <text x="580" y="933" class="small">ATSF drawing: adjacent axle centers ≈ 2.0066 m.</text>
+  <text x="580" y="956" class="small">Bogie frame width/height and traction-pin offset: unmeasured.</text>
+
+  <rect x="40" y="988" width="1120" height="107" rx="7" fill="#edf3f7"/>
+  <text x="57" y="1013" class="small">* Provisional / variant-dependent. Axle datums follow the selected ATSF PNG; mechanical swivel positions still need verification.</text>
+  <text x="57" y="1036" class="small">Frame length reference: 21.1328. Its position relative to coupling faces is not established by this sheet.</text>
+  <text x="57" y="1059" class="small">Still needed for detailed modelling: nose length, cab depth, hood width, roof sections, radiator dimensions and coupler height.</text>
+  <text x="57" y="1082" class="small">Sources and qualifications: dash-9-sketchup-reference.md. Cab top excludes horns/antennas; cab width excludes wider fittings.</text>
+</svg>

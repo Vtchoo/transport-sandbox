@@ -21,4 +21,4 @@ Use `paint-primary` for the main customizable body, `paint-secondary` for anothe
 
 Record locomotive operating mass, rated engine power, whether the supplied power is engine or rail output, starting tractive effort, maximum speed/gearing, fuel load, powered axles and wheel diameter. The game currently uses one power value and one tractive-effort value, not a full engine/transmission map. Do not infer speed from wheel arrangement. Do not bake HO speed/acceleration adjustments into specifications or model size.
 
-For a concrete dimensional example use the [F7A reference](f7a-sketchup-reference.md). That guide separates prototype dimensions from our approximate procedural shell. A more accurate model can require catalog/placement changes rather than matching the old approximation.
+For concrete dimensional examples use the [F7A reference](references/f7a-sketchup-reference.md) and [Dash 9 reference](references/dash-9-sketchup-reference.md). They distinguish sourced dimensions, provisional datums and approximate model measurements. A more accurate model can require catalog/placement changes rather than matching an old approximation.

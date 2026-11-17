@@ -67,6 +67,22 @@ test('every model batches without changing bounds or allowing preview tint to af
   const preview=create(definition);tintVehicle(preview,false);assert.ok(instances.group.children.every(m=>m.material.opacity===1));instances.sync([]);assert.equal(car.group.visible,true);
  }
 }));
+test('imported front and rear bogies retain distinct geometry and independent transforms in batches',()=>fixture(({instances,scene,create})=>{
+ const car=create(VEHICLES.find(def=>def.id==='ge-dash9'));
+ const detail=new THREE.Mesh(new THREE.BoxGeometry(.4,.4,.4),new THREE.MeshStandardMaterial({color:0x8756ab}));
+ detail.position.set(1.3,1.4,1);car.bogies[1].add(detail);car.bogies[1].rotation.y=.4;
+ scene.updateMatrixWorld(true);const expected=detail.matrixWorld.clone();instances.sync([car]);
+ const mesh=instances.group.children.find(mesh=>mesh.material.color?.getHex()===0x8756ab);
+ assert.ok(mesh,'Rear-only geometry was discarded');assert.equal(mesh.count,1);
+ assert.ok(mesh.name.endsWith(':bogie-rear'));
+ const matrix=new THREE.Matrix4();mesh.getMatrixAt(0,matrix);
+ const actual=new THREE.Vector3().setFromMatrixPosition(matrix).applyMatrix4(mesh.matrixWorld);
+ const origin=car.bogies[1].getWorldPosition(new THREE.Vector3());
+ assert.ok(actual.distanceTo(origin)<1e-5);
+ const center=mesh.geometry.boundingBox??(mesh.geometry.computeBoundingBox(),mesh.geometry.boundingBox);
+ assert.ok(center.getCenter(new THREE.Vector3()).applyMatrix4(matrix).applyMatrix4(mesh.matrixWorld).distanceTo(new THREE.Vector3().setFromMatrixPosition(expected))<1e-5);
+}));
+
 test('mirrored details retain front-face winding when their transforms are baked into a batch',()=>fixture(({instances,create})=>{
  const car=create(VEHICLES[0]),material=new THREE.MeshBasicMaterial({color:0x123456}),detail=new THREE.Mesh(new THREE.PlaneGeometry(1,1),material);
  detail.scale.x=-1;car.body.add(detail);instances.sync([car]);

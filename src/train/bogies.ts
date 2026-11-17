@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import type { BogieDefinition } from './types';
 import type { VehicleModelParts } from './model-parts';
 
-export function makeBogie(spec: BogieDefinition, parts: VehicleModelParts) {
+export function makeWheelsets(spec: BogieDefinition, parts: VehicleModelParts) {
   const { box, cylinder, materials: { black, roof } } = parts;
   const bogie = new THREE.Group(); bogie.name = spec.id; bogie.userData.bogieId = spec.id; bogie.userData.gauge = spec.gauge;
   const tread = 0.12, wheelX = spec.gauge / 2000 + tread / 2;
-  for (const z of [-spec.wheelbase / 2, spec.wheelbase / 2]) {
+  for (const z of spec.axlePositions ?? [-spec.wheelbase / 2, spec.wheelbase / 2]) {
     const axle = cylinder(bogie, 0.08, wheelX * 2 + 0.15, 0, spec.wheelRadius, z, black); axle.rotation.z = Math.PI / 2;
     for (const side of [-1, 1]) {
       const wheel = cylinder(bogie, spec.wheelRadius, tread, side * wheelX, spec.wheelRadius, z, black); wheel.rotation.z = Math.PI / 2;
@@ -16,6 +16,12 @@ export function makeBogie(spec: BogieDefinition, parts: VehicleModelParts) {
     }
     if (spec.powered) box(bogie, 1.05, 0.35, 0.5, 0, 0.52, z - 0.25, black);
   }
+  return bogie;
+}
+
+export function makeBogie(spec: BogieDefinition, parts: VehicleModelParts) {
+  const { box, cylinder, materials: { black, roof } } = parts;
+  const bogie = makeWheelsets(spec, parts);
   box(bogie, spec.frameWidth, 0.22, 0.4, 0, 0.85, 0, black);
   for (const side of [-1, 1]) {
     if (spec.frameStyle === 'archbar') {

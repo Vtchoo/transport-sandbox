@@ -1,6 +1,8 @@
 export interface BogieDefinition {
   id: string; name: string; gauge: number; wheelbase: number; wheelRadius: number;
   frameWidth: number; powered: boolean; frameStyle?: 'fb2' | 'archbar';
+  /** Explicit longitudinal axle stations; omitted for the usual symmetric two-axle truck. */
+  axlePositions?: readonly number[];
 }
 export interface VehicleDefinition {
   id: string; name: string; kind: 'locomotive' | 'coach' | 'dome';

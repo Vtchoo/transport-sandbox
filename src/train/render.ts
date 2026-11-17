@@ -10,6 +10,7 @@ import { buildRioGrandeBaggage } from './cars/rio-grande-baggage';
 import { buildRioGrandeCoach } from './cars/rio-grande-coach';
 import { createVehicleParts } from './model-parts';
 import { makeBogie } from './bogies';
+import { makeDash9 } from './locomotives/dash9';
 import { vehicleBogie } from './catalog';
 import type { VehicleDefinition } from './types';
 import type { VehicleModelParts } from './model-parts';
@@ -32,6 +33,8 @@ export interface VehicleVisual {
   group: THREE.Group; body: THREE.Group; bogies: [THREE.Group, THREE.Group]; definition: VehicleDefinition; gauge: number;
   sections?: VehicleVisual[];
   motion?: VehicleMotion;
+  /** Imported front/rear geometry can differ and must have independent instance templates. */
+  separateBogies?: boolean;
 }
 /** Stable transform list for undo, including permanently coupled articulated sections. */
 export function vehicleTransforms(visual: VehicleVisual): THREE.Group[] {
@@ -39,6 +42,7 @@ export function vehicleTransforms(visual: VehicleVisual): THREE.Group[] {
 }
 export function makeVehicle(definition: VehicleDefinition, gauge: number): VehicleVisual {
   const bogie = vehicleBogie(definition, gauge);
+  if (definition.id === 'ge-dash9') return makeDash9(definition, gauge, bogie);
   if (definition.sections) {
     const group = new THREE.Group(), body = new THREE.Group();
     const bogies: [THREE.Group, THREE.Group] = [new THREE.Group(), new THREE.Group()];

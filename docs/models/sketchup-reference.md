@@ -8,14 +8,15 @@ Start here, then use the guide for your equipment:
 - [Passenger cars](passenger-car-sketchup-reference.md)
 - [Freight cars](freight-car-sketchup-reference.md)
 - [Bogies and wheelsets](bogie-sketchup-reference.md)
-- [F7A prototype dimensions](f7a-sketchup-reference.md)
+- [F7A prototype dimensions](references/f7a-sketchup-reference.md)
+- [Dash 9 dimensions and drawing sources](references/dash-9-sketchup-reference.md)
 - [Current Rio Grande model references](rio-grande-reference.md)
 
 ## What is implemented
 
 The game currently builds vehicles in TypeScript. It has independent body/bogie poses, explicit gauge compatibility, permanently coupled articulated sections, instancing, and a custom steam wheel/rod animation. It does **not** load `.skp` or `.glb` vehicles, interpret the names below, select custom paint colors, or automatically select model LODs yet. These documents establish an authoring convention for that integration. Naming a component does not activate a feature.
 
-Keep editable `.skp` sources. Deliver `.glb` as the preferred runtime asset, plus a measurement sheet. An imported vehicle will still need a catalog definition and a rendering adapter. We can integrate an initial exported model before you build a large fleet.
+Keep editable `.skp` sources. Deliver `.glb` as the preferred future runtime asset, plus a measurement sheet. An imported vehicle still needs a catalog definition and a rendering adapter. The first working adapter now imports **static, solid-color SketchUp COLLADA (`.dae`)** for the Dash 9; see [the re-export workflow](references/dash-9-sketchup-reference.md#current-game-import-workflow). It uses Three.js's COLLADA loader during conversion, then bundles normalized mesh data for synchronous catalog, preview and instanced rendering.
 
 ## Scale, axes, and origin
 
@@ -133,7 +134,7 @@ The current `VehicleDefinition` stores length, body length, width, height, bogie
 
 1. Save the source, then make an export copy. Remove reference photos, dimensions, people, ground, tracks and calibration meshes. Purge unused components/materials in that copy.
 2. Keep hierarchy and important names. Export only the intended vehicle assembly. Do not include a second copy of a reusable bogie beside the vehicle.
-3. Where available, use **File → Export → 3D Model → GLTF Binary File (.glb)**. SketchUp version/edition determines availability. If absent, use a compatible glTF exporter or a converter which preserves hierarchy, materials and pivots. Record the tool/version used. See [SketchUp's GLTF instructions](https://help.sketchup.com/en/sketchup/working-gltf-files).
+3. Where available, use **File → Export → 3D Model → GLTF Binary File (.glb)** for future GLB integration. For the current Dash 9 adapter, use **COLLADA File (.dae)** and run `npm run import:dash9` after exporting. Record the tool/version used. See [SketchUp's GLTF instructions](https://help.sketchup.com/en/sketchup/working-gltf-files).
 4. Prefer glTF 2.0 metallic-roughness materials, embedded textures and uncompressed geometry for the first integration. Do not introduce extension-dependent compression until the loader supports it. Three.js recommends glTF for runtime assets: [model loading guide](https://threejs.org/manual/pages/loading-3d-models.html).
 5. Reopen the GLB in a glTF viewer or conversion tool. Check metre dimensions, Y-up/+Z-forward, front/side asymmetry, outward normals, materials, textures, and component pivots. A rotated wrapper is acceptable if documented and normalized during integration. Do not rotate each child independently to fix a root-axis conversion.
 6. Inspect wheel contact at railhead, pivot spacing, coupling clearances and gauge. Rotate each bogie around its own vertical pivot: the body and opposite bogie must remain still. Rotate a wheelset about its axle: it must not orbit around the vehicle.

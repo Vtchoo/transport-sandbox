@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildSync } from 'esbuild';
 import * as THREE from 'three';
+import { readFile } from 'node:fs/promises';
+import { convertColladaVehicle } from './lib/collada-vehicle.mjs';
 const load = entry => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', external: ['three'] });
   const code = outputFiles[0].text.replaceAll('"three"', JSON.stringify(import.meta.resolve('three')));
@@ -15,6 +17,53 @@ const { TrackNetwork } = await load('src/track/model.ts');
 const { catalogDestination, catalogAllows } = await load('src/train/catalog-routing.ts');
 const { advanceVehicle } = await load('src/train/motion.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('SketchUp COLLADA import honors units, named component pivots and mirrored geometry without stale generated data', async () => {
+  const source = await readFile('public/models/locomotives/dash-9/dash9.dae', 'utf8');
+  const generated = JSON.parse(await readFile('src/train/assets/dash9.json', 'utf8'));
+  const imported = convertColladaVehicle(source);
+  assert.deepEqual(imported, generated, 'Run npm run import:dash9 after exporting the source');
+  assert.equal(imported.sourceUnitMeters, .0254);
+  assert.equal(imported.bogieCenters, 16.1544);
+  for (const [actual, expected] of imported.bounds.size.map((value, i) => [value, [3.1242, 4.699, 22.3012][i]]))
+    assert.ok(Math.abs(actual - expected) < .00001);
+  for (const meshes of Object.values(imported.parts)) for (const mesh of meshes)
+    for (let i = 0; i < mesh.positions.length; i += 9) {
+      const a = p(...mesh.positions.slice(i, i + 3)), b = p(...mesh.positions.slice(i + 3, i + 6)), c = p(...mesh.positions.slice(i + 6, i + 9));
+      const normal = p(...mesh.normals.slice(i, i + 3));
+      assert.ok(b.sub(a).cross(c.sub(a)).dot(normal) > 0, 'Baked mirror has inward winding');
+    }
+  const badPivot = source.replace('0 1 0 -318', '0 1 0 -398').replace('1 0 0 0 0 1 0 -398', '1 0 0 -28.24803 0 1 0 -398');
+  assert.throws(() => convertColladaVehicle(badPivot), /Bogie origins/);
+  assert.throws(() => convertColladaVehicle(source.replace('name="body"', 'name="missing-body"')), /exactly one body/);
+});
+
+test('imported Dash 9 keeps separate rail-level bogies, correctly gauged temporary six-axle gear and independent preview materials', () => {
+  const definition = VEHICLES.find(def => def.id === 'ge-dash9');
+  const placed = makeVehicle(definition, 1435), preview = makeVehicle(definition, 1435);
+  try {
+    assert.equal(placed.separateBogies, true);
+    assert.equal(placed.bogies[0].position.z, 8.0772);
+    assert.equal(placed.bogies[1].position.z, -8.0772);
+    assert.equal(placed.bogies[0].position.y, 0);
+    assert.ok(placed.bogies[0].getObjectByName('imported-front'));
+    assert.ok(placed.bogies[1].getObjectByName('imported-rear'));
+    const before = new THREE.Box3().setFromObject(placed.body);
+    placed.bogies[0].rotation.y = .3;
+    assert.ok(new THREE.Box3().setFromObject(placed.body).equals(before), 'Turning a bogie moved the body');
+    let lines = 0; placed.group.traverse(object => { if (object.isLine) lines++; }); assert.equal(lines, 0);
+    for (const bogie of placed.bogies) {
+      const wheels = bogie.children.filter(object => object.name === 'wheel');
+      assert.equal(wheels.length, 6);
+      assert.deepEqual([...new Set(wheels.map(wheel => wheel.position.z))], [2.032, 0, -2.032]);
+      assert.ok(wheels.every(wheel => wheel.position.y === .5334));
+    }
+    tintVehicle(preview, false);
+    placed.group.traverse(object => { if (object.isMesh) assert.equal(object.material.opacity, 1); });
+    disposeVehicle(preview);
+    assert.ok(placed.body.children[0].geometry.attributes.position.count > 0);
+  } finally { disposeVehicle(placed); disposeVehicle(preview); }
+});
 
 test('steam crank pins stay attached to coupling rods and connecting rods constrain the crosshead throughout a revolution', () => {
   for (const gauge of [914, 1435]) {
@@ -244,7 +293,7 @@ test('previews are translucent while newly created parked visuals remain opaque'
 });
 
 test('separate vehicle definitions declare explicit gauge and bogie compatibility', () => {
-  assert.equal(VEHICLES.length, 9); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 9);
+  assert.equal(VEHICLES.length, 10); assert.equal(new Set(VEHICLES.map(v => v.id)).size, 10);
   assert.deepEqual(VEHICLES.slice(0, 4).map(v => v.kind), ['locomotive', 'coach', 'dome', 'locomotive']);
   for (const def of VEHICLES) {
     assert.deepEqual(Object.keys(def.bogiesByGauge), def.id.startsWith('drgw-') ? ['914', '1435'] : ['1435']);
@@ -306,7 +355,7 @@ test('vehicle meshes use metre dimensions, correctly gauged wheels and distinct 
       for (const section of visual.sections ?? [visual]) for (const bogie of section.definition.runningGear === 'steam' ? [] : section.bogies) {
         assert.equal(bogie.userData.bogieId, section.definition.bogiesByGauge[1435]);
         const wheels = bogie.children.filter(object => object.name === 'wheel');
-        assert.equal(wheels.length, 4);
+        assert.equal(wheels.length, (BOGIES[section.definition.bogiesByGauge[1435]].axlePositions?.length ?? 2) * 2);
         const negative = wheels.find(wheel => wheel.position.x < 0), positive = wheels.find(wheel => wheel.position.x > 0);
         assert.ok(Math.abs(positive.position.x - negative.position.x - 0.12 - 1.435) < 1e-8);
       }

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="710" viewBox="0 0 1120 710" role="img" aria-labelledby="title desc">
+  <title id="title">Dash 9 SketchUp reference box — dimensions in metres</title>
+  <desc id="desc">Layout box: length 22.3012 m, provisional cab width 3.1242 m and cab-top height 4.6990 m. Drawing-derived bogie reference centers 14.0970 m apart. Railhead is the base.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#334155"/></marker>
+    <style>
+      text { font-family: Arial, sans-serif; fill: #1e293b; font-size: 16px; }
+      .heading { font-size: 27px; font-weight: 700; }
+      .muted { fill: #64748b; font-size: 14px; }
+      .measure { fill: none; stroke: #334155; stroke-width: 1.4; marker-start: url(#arrow); marker-end: url(#arrow); }
+      .extension { fill: none; stroke: #94a3b8; stroke-width: 1; }
+      .outline { stroke: #334155; stroke-width: 2; stroke-linejoin: round; }
+      .datum { fill: none; stroke: #0f766e; stroke-width: 1.5; stroke-dasharray: 7 5; }
+      .label { font-weight: 700; }
+    </style>
+  </defs>
+  <rect width="1120" height="710" rx="12" fill="#f8fafc"/>
+  <text x="45" y="50" class="heading">DASH 9 · SketchUp reference box</text>
+  <text x="45" y="78" class="muted">C44-9W baseline · 1:1 metres · railhead is Z = 0 in SketchUp</text>
+  <text x="45" y="103" class="muted">Oblique view; use the written dimensions when modelling.</text>
+
+  <!-- Length scale is 720 / 22.3012 px/m; the width projects diagonally. -->
+  <path d="M100 390H820L920.868 329.479H200.868Z" fill="#e2e8f0" stroke="#94a3b8" stroke-dasharray="5 5"/>
+  <path d="M100 238.293H820V390H100Z" fill="#dbeafe" fill-opacity="0.8" class="outline"/>
+  <path d="M100 238.293 200.868 177.772H920.868L820 238.293Z" fill="#eff6ff" class="outline"/>
+  <path d="M820 238.293 920.868 177.772V329.479L820 390Z" fill="#bfdbfe" class="outline"/>
+  <text x="115" y="219" class="label">FRONT</text>
+  <text x="830" y="158" class="label">REAR</text>
+
+  <path d="M100 331.776H820L920.868 271.255" class="datum"/>
+  <rect x="303" y="313" width="290" height="27" rx="4" fill="#f8fafc"/>
+  <text x="317" y="332">Deck above railhead: 1.8034 m</text>
+  <text x="105" y="379" class="muted">RAILHEAD / BOX BASE</text>
+
+  <path d="M100 238.293H48M100 390H48" class="extension"/>
+  <path d="M57 238.293V390" class="measure"/>
+  <text transform="translate(34 315) rotate(-90)" text-anchor="middle" class="label">4.6990 m *</text>
+  <path d="M820 238.293 846 195M920.868 177.772 947 135" class="extension"/>
+  <path d="M844 195 944.868 134.479" class="measure"/>
+  <text transform="translate(906 144) rotate(-31)" text-anchor="middle" class="label">3.1242 m *</text>
+
+  <path d="M232.437 250V438M687.563 250V438" class="datum"/>
+  <path d="M232.437 425H687.563" class="measure"/>
+  <rect x="320" y="411" width="280" height="26" rx="4" fill="#f8fafc"/>
+  <text x="460" y="430" text-anchor="middle" class="label">Bogie centers: 14.0970 m *</text>
+  <path d="M100 390V484M820 390V484" class="extension"/>
+  <path d="M100 473H820" class="measure"/>
+  <rect x="280" y="459" width="360" height="27" rx="4" fill="#f8fafc"/>
+  <text x="460" y="479" text-anchor="middle" class="label">Coupling-face length: 22.3012 m</text>
+
+  <!-- Origin and axes: red X across, green Y forward, blue Z up. -->
+  <circle cx="510.434" cy="359.74" r="4" fill="#0f172a"/>
+  <path d="M510.434 359.74 560.434 329.74" fill="none" stroke="#dc2626" stroke-width="2.4"/>
+  <path d="M552 331 560.434 329.74 557 338" fill="none" stroke="#dc2626" stroke-width="2.4"/>
+  <path d="M510.434 359.74H440.434L448 355M440.434 359.74 448 364" fill="none" stroke="#15803d" stroke-width="2.4"/>
+  <path d="M510.434 359.74V284.74L506 292M510.434 284.74 515 292" fill="none" stroke="#2563eb" stroke-width="2.4"/>
+  <text x="567" y="321" style="fill:#dc2626">+X</text>
+  <text x="414" y="355" style="fill:#15803d">+Y</text>
+  <text x="517" y="281" style="fill:#2563eb">+Z</text>
+
+  <rect x="45" y="513" width="1030" height="154" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="65" y="541" class="label">SketchUp starting layout</text>
+  <text x="65" y="568">Origin: (0, 0, 0) at centerline / railhead</text>
+  <text x="65" y="593">Front bogie datum: (0, +7.0485, 0) *</text>
+  <text x="65" y="618">Rear bogie datum: (0, −7.0485, 0) *</text>
+  <text x="625" y="568">New wheel diameter: 1.0668 m</text>
+  <text x="625" y="593">Axle height above railhead: 0.5334 m</text>
+  <text x="65" y="646" class="muted">* Provisional: width uses cab width; height uses cab top; bogie stations use the ATSF axle-center drawing. Verify physical pivots.</text>
+  <text x="45" y="692" class="muted">Layout block only: coupling length includes end space; the body is shorter. Horns / handrails may extend beyond this box.</text>
+</svg>

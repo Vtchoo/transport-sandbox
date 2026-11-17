@@ -1,6 +1,7 @@
 import type { BogieDefinition, VehicleDefinition } from './types';
 export type { BogieDefinition, VehicleDefinition } from './types';
 import { F7A } from './locomotives/f7a';
+import { DASH9 } from './locomotives/dash9';
 import { COACH } from './cars/coach';
 import { PLEASURE_DOME } from './cars/pleasure-dome';
 import { GE809 } from './locomotives/ge809';
@@ -10,6 +11,8 @@ import { RIO_GRANDE_COACH } from './cars/rio-grande-coach';
 import { RIO_GRANDE_BAGGAGE } from './cars/rio-grande-baggage';
 
 export const BOGIES: Readonly<Record<string, BogieDefinition>> = {
+  // Temporary evenly spaced axles until the authored wheelsets are available.
+  'dash9-placeholder-1435': { id: 'dash9-placeholder-1435', name: 'Dash 9 temporary three-axle wheelsets', gauge: 1435, wheelbase: 4.064, wheelRadius: .5334, frameWidth: 1.8, powered: true, axlePositions: [2.032, 0, -2.032] },
   'tgv-powered-1435': { id: 'tgv-powered-1435', name: 'TGV powered bogie', gauge: 1435, wheelbase: 3, wheelRadius: .46, frameWidth: 2.45, powered: true },
   'tgv-trailer-1435': { id: 'tgv-trailer-1435', name: 'TGV trailer bogie', gauge: 1435, wheelbase: 3, wheelRadius: .46, frameWidth: 2.45, powered: false },
   'steam-drivers-914': { id: 'steam-drivers-914', name: '2-8-0 driving frame · 914 mm', gauge: 914, wheelbase: 4.05, wheelRadius: .65, frameWidth: 1.35, powered: true },
@@ -20,7 +23,7 @@ export const BOGIES: Readonly<Record<string, BogieDefinition>> = {
   'blomberg-b-1435': { id: 'blomberg-b-1435', name: 'Blomberg B · standard gauge', gauge: 1435, wheelbase: 2.7432, wheelRadius: 0.508, frameWidth: 2.55, powered: true },
   'passenger-2axle-1435': { id: 'passenger-2axle-1435', name: 'Passenger two-axle · standard gauge', gauge: 1435, wheelbase: 2.5908, wheelRadius: 0.4572, frameWidth: 2.45, powered: false },
 };
-export const VEHICLES: readonly VehicleDefinition[] = [F7A, COACH, PLEASURE_DOME, GE809, RIO_GRANDE_CONSOLIDATION, RIO_GRANDE_BAGGAGE, RIO_GRANDE_COACH, TGV_POWER, TGV_COACH];
+export const VEHICLES: readonly VehicleDefinition[] = [F7A, COACH, PLEASURE_DOME, GE809, RIO_GRANDE_CONSOLIDATION, RIO_GRANDE_BAGGAGE, RIO_GRANDE_COACH, TGV_POWER, TGV_COACH, DASH9];
 export function vehicleDefinition(id: string) {
   const definition = VEHICLES.find(item => item.id === id);
   if (!definition) throw new Error('Unknown vehicle model.');
