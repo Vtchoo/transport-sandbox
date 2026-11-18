@@ -130,6 +130,7 @@ The [vehicle authoring guide](docs/models/sketchup-reference.md) covers full-sca
 - `train/locomotives/f7a.ts`, `train/locomotives/ge809.ts`: locomotive definitions, dimensions, physics, supported gauges and body models.
 - `train/cars/coach.ts`, `train/cars/pleasure-dome.ts`: passenger car definitions and body models.
 - `train/catalog.ts`: ordered vehicle registry, gauge-specific bogie definitions and compatibility lookups; shared interfaces live in `train/types.ts`.
+- `train/catalog-window.ts`: self-contained vehicle catalog window, generated model rows, compatibility filtering, hover/focus previews and drag events. The catalog owns and removes its DOM instead of keeping vehicle entries in `index.html`.
 - `train/render.ts`: vehicle assembly, body-builder registry, preview tinting and GPU resource cleanup.
 - `train/instances.ts`: body/bogie instancing by model, gauge, material and 512 m spatial cell. Merged templates share GPU resources across identical vehicles; body and bogie transforms remain independent. Placed trains and draft viewport previews use these batches, while placement ghosts keep independent translucent materials. Original hierarchies remain available for picking and simulation. This reduces draw calls; vehicle triangles and CPU simulation are still present.
 - `train/model-parts.ts`, `train/cars/passenger-body.ts`, `train/bogies.ts`: shared mesh/material helpers, passenger shell details and bogie models.

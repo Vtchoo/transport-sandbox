@@ -48,28 +48,6 @@
         <div class="controls"><button id="camera-toggle" title="Switch camera mode (C)">Overlook · C</button><button id="capture" hidden>Click to look around</button><button id="view-options-open" aria-controls="view-options">View</button><button class="settings-open">Settings</button><button id="share">Copy world link</button><button id="back">Main menu</button></div>
         <div class="bottom-hud"><p id="camera-hint" class="hint"></p></div>
         <nav id="actions" aria-label="Build actions"><button id="build-track" type="button" aria-pressed="false" disabled><span aria-hidden="true">╫</span> Build track</button><button id="place-train" type="button" aria-pressed="false" disabled><span aria-hidden="true">▣</span> Vehicles</button><button id="show-trains" type="button" disabled>Trains</button></nav>
-        <section id="vehicle-catalog-panel" hidden aria-labelledby="vehicle-catalog-title">
-          <div class="track-panel-heading"><h2 id="vehicle-catalog-title">Vehicle catalog</h2><button id="vehicle-catalog-close" type="button">Close</button></div>
-          <p id="catalog-context" class="catalog-context"></p>
-          <div class="catalog-scroll">          <div class="vehicle-catalog" aria-label="Vehicle models">
-            <button type="button" data-vehicle="drgw-consolidation"><strong>Rio Grande · 2-8-0 + tender</strong><span>Frateschi-inspired adaptation · 914 / 1,435 mm</span></button>
-            <button type="button" data-vehicle="drgw-wood-baggage"><strong>Rio Grande · Wooden baggage car</strong><span>Yellow sides · clerestory roof · 914 / 1,435 mm</span></button>
-            <button type="button" data-vehicle="drgw-wood-coach"><strong>Rio Grande · Wooden passenger coach</strong><span>Yellow sides · open platforms · 914 / 1,435 mm</span></button>
-            <button type="button" data-vehicle="ge-809"><strong>GE 809 · Wide cab</strong><span>Red/gray GE demonstrator · 20.22 m</span></button>
-            <button type="button" data-vehicle="ge-dash9"><strong>GE Dash 9 · SketchUp prototype</strong><span>Imported body and bogies · 22.30 m · 1,435 mm</span></button>
-            <button type="button" data-vehicle="tgv-sud-est-power"><strong>TGV Sud-Est power car</strong><span>Orange high-speed locomotive · 19.00 m · 1,435 mm</span></button>
-            <button type="button" data-vehicle="tgv-sud-est-coach"><strong>TGV Sud-Est passenger coach</strong><span>Orange passenger car · 20.28 m · 1,435 mm</span></button>
-            <button type="button" data-vehicle="atsf-f7a"><strong>F7A · Warbonnet</strong><span>EMD passenger locomotive · 15.44 m</span></button>
-            <button type="button" data-vehicle="atsf-coach"><strong>Streamlined coach</strong><span>Stainless-steel chair car · 25.91 m</span></button>
-            <button type="button" data-vehicle="atsf-pleasure-dome"><strong>Pleasure Dome</strong><span>Raised glass dome lounge · 25.70 m</span></button>
-          </div></div>
-          <p id="catalog-empty" hidden>No compatible vehicles are available.</p>
-          <div class="catalog-preview">
-            <canvas id="catalog-viewport" width="384" height="216" aria-label="Rotating vehicle preview" hidden></canvas>
-            <p id="catalog-preview-name">Hover a vehicle to preview it</p>
-          </div>
-          <p class="track-help">Edit train on the frontmost train window: append to its rear. Otherwise, click a vehicle to create a new train.</p>
-        </section>
         <section id="train-list-panel" hidden aria-labelledby="train-list-title">
           <div class="track-panel-heading"><h2 id="train-list-title">Trains</h2><button id="train-list-close" type="button">Close</button></div>
           <div id="train-fleet" class="fleet-list"></div>

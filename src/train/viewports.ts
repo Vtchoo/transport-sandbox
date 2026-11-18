@@ -180,7 +180,7 @@ export class TrainViewports {
     this.camera.lookAt(preview.center);
     this.renderCanvas(
       preview.scene,
-      document.getElementById("catalog-viewport") as HTMLCanvasElement,
+      windows.catalog.viewport,
     );
   }
   private renderCanvas(scene: THREE.Scene, canvas: HTMLCanvasElement) {

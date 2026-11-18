@@ -8,39 +8,28 @@ import type { TrainEditor } from './editor';
 import type { WindowManager } from '../ui/windows';
 import { icon } from '../ui/icons';
 import { trainPerformance } from './physics';
+import { VehicleCatalogWindow, VEHICLE_DRAG_TYPE } from './catalog-window';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
-const ITEM = 'application/x-railway-train-item', VEHICLE = 'application/x-railway-vehicle';
+const ITEM = 'application/x-railway-train-item', VEHICLE = VEHICLE_DRAG_TYPE;
 interface TrainView { element: HTMLElement; tab: TrainTab; selected?: number; status: string }
 interface TrainFollow { readonly current: number | undefined; toggle(id: number): void }
 export class TrainWindows {
   readonly views = new Map<number, TrainView>();
+  readonly catalog: VehicleCatalogWindow;
   private abort = new AbortController();
   private dragged?: { train: number; item: number };
   private vehicleDrag?: string;
   private refreshing = false;
   private disposed = false;
-  private hoveredVehicle?: string;
-  private focusedVehicle?: string;
-  get previewVehicle() { return this.hoveredVehicle ?? this.focusedVehicle; }
-  private refreshPreview() {
-    const id = this.previewVehicle;
-    $('catalog-viewport').hidden = !id;
-    $('catalog-preview-name').textContent = id ? vehicleDefinition(id).name : 'Hover a vehicle to preview it';
-  }
+  get previewVehicle() { return this.catalog.previewVehicle; }
   constructor(readonly editor: TrainEditor, readonly manager: WindowManager, private follow?: TrainFollow) {
-    manager.register({ id: 'catalog', element: $('vehicle-catalog-panel'), titlebar: $('vehicle-catalog-panel').querySelector('.track-panel-heading')!, title: 'Vehicle catalog', closeButton: $('vehicle-catalog-close'), bounds: { x: 24, y: 85, width: 350, height: 590 }, minWidth: 280, minHeight: 440, onClose: () => {} });
-    manager.register({ id: 'fleet', element: $('train-list-panel'), titlebar: $('train-list-panel').querySelector('.track-panel-heading')!, title: 'Trains', closeButton: $('train-list-close'), bounds: { x: 50, y: 110, width: 330, height: 390 }, minWidth: 270, minHeight: 200, onClose: () => {} });
-    document.querySelectorAll<HTMLButtonElement>('[data-vehicle]').forEach(button => {
-      button.querySelector('.vehicle-thumbnail')?.remove(); button.prepend(vehicleThumbnail(vehicleDefinition(button.dataset.vehicle!))); button.draggable = true;
-      button.addEventListener('click', () => this.catalogClick(button.dataset.vehicle!), { signal: this.abort.signal });
-      button.addEventListener('pointerenter', () => { this.hoveredVehicle = button.dataset.vehicle; this.refreshPreview(); }, { signal: this.abort.signal });
-      button.addEventListener('pointerleave', () => { this.hoveredVehicle = undefined; this.refreshPreview(); }, { signal: this.abort.signal });
-      button.addEventListener('focus', () => { this.focusedVehicle = button.dataset.vehicle; this.refreshPreview(); }, { signal: this.abort.signal });
-      button.addEventListener('blur', () => { this.focusedVehicle = undefined; this.refreshPreview(); }, { signal: this.abort.signal });
-      button.addEventListener('dragstart', event => { this.vehicleDrag = button.dataset.vehicle; event.dataTransfer?.setData(VEHICLE, this.vehicleDrag!); if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'; }, { signal: this.abort.signal });
-      button.addEventListener('dragend', () => this.clearDrag(), { signal: this.abort.signal });
+    this.catalog = new VehicleCatalogWindow(manager, {
+      select: id => this.catalogClick(id),
+      dragStart: id => { this.vehicleDrag = id; },
+      dragEnd: () => this.clearDrag(),
     });
+    manager.register({ id: 'fleet', element: $('train-list-panel'), titlebar: $('train-list-panel').querySelector('.track-panel-heading')!, title: 'Trains', closeButton: $('train-list-close'), bounds: { x: 50, y: 110, width: 330, height: 390 }, minWidth: 270, minHeight: 200, onClose: () => {} });
     editor.onChange = action => {
       this.refresh();
       const train = editor.builder.selected;
@@ -199,15 +188,8 @@ export class TrainWindows {
   }
   private refreshCatalog() {
     if (this.disposed) return;
-    const target = this.destination(); let count = 0;
-    document.querySelectorAll<HTMLButtonElement>('[data-vehicle]').forEach(button => { button.disabled = false; button.hidden = !catalogAllows(vehicleDefinition(button.dataset.vehicle!), target, target && this.editor.trackGauge(target.id)); if (!button.hidden) count++; });
-    $('catalog-context').textContent = target ? 'Compatible vehicles · click to append to the rear of the frontmost train editor.' : 'Click a vehicle to create a new train.';
-    $('catalog-empty').hidden = count !== 0;
-    for (const button of document.querySelectorAll<HTMLButtonElement>('[data-vehicle]')) if (button.hidden) {
-      if (button.dataset.vehicle === this.hoveredVehicle) this.hoveredVehicle = undefined;
-      if (button.dataset.vehicle === this.focusedVehicle) this.focusedVehicle = undefined;
-    }
-    this.refreshPreview();
+    const target = this.destination();
+    this.catalog.refresh(target, target && this.editor.trackGauge(target.id));
     $('place-train').setAttribute('aria-pressed', String(this.manager.isVisible('catalog')));
   }
   refresh() {
@@ -227,6 +209,6 @@ export class TrainWindows {
   dispose() {
     this.disposed = true; this.abort.abort(); this.editor.onChange = undefined; this.editor.onMessage = undefined; this.editor.onClose = undefined; this.editor.onMotion = undefined;
     for (const [id, view] of this.views) { this.manager.unregister(`train:${id}`); view.element.remove(); } this.views.clear();
-    this.manager.unregister('catalog'); this.manager.unregister('fleet');
+    this.catalog.dispose(); this.manager.unregister('fleet');
   }
 }
