@@ -58,7 +58,7 @@ try{
  if(errors.length)throw Error('Browser errors: '+JSON.stringify(errors));
  godot=spawn(process.env.GODOT_PATH??'D:/Godot/Godot_v4.7.2-stable_mono_win64_console.exe',[
   '--path','godot','--rendering-method','gl_compatibility','--resolution',width+'x'+height,'--position','-10000,-10000','--audio-driver','Dummy',
-  'tests/runner.tscn','--log-file','.godot/menu-review/capture.log','--','--suite=capture','--preset='+preset,'--state='+state
+  'tests/runner.tscn','--log-file','.godot/menu-review/capture.log','--','--suite=capture','--preset='+preset,'--state='+state,...(options.hover?['--hover='+options.hover]:[])
  ],{windowsHide:true,stdio:['ignore','pipe','pipe']});
  let logs='';godot.stdout.on('data',d=>logs+=d);godot.stderr.on('data',d=>logs+=d);
  let timer;try{await Promise.race([new Promise((resolve,reject)=>{godot.on('error',reject);godot.on('exit',code=>code===0?resolve():reject(Error(logs)));}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Godot capture timed out: '+logs)),45000);})]);}finally{clearTimeout(timer);}

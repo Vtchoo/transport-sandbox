@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 namespace TransportSandbox;
 
@@ -13,9 +14,33 @@ public partial class TrackEditor : Node
     public GameWindow Toolbar = null!;
     public WindowManager Windows = null!;
     public event Action<bool>? EnabledChanged;
-    public HBoxContainer NodeMenu = null!, SegmentMenu = null!;
+    public TrackNodeHoverMenu NodeMenu = null!;
+    public TrackSegmentHoverMenu SegmentMenu = null!;
+    private TrackEdge? _segmentAction;
+    private string _segmentConfirmation = "";
+    private readonly System.Collections.Generic.Dictionary<int, Vector3> _midpoints = new();
+    public int HoverSide = 1;
+    private int _pointerNode;
+    public bool BuildingParallel
+    {
+        get; private set;
+    }
+    private const float ActionDistance = 600;
+    private (int Source, int Side, int Target, Vector3 Point, float Angle)? _parallelGhostKey;
+    private bool _parallelGhostValid;
     public Label Status = null!;
-    public OptionButton GaugePicker = null!;
+    public OptionButton GaugePicker = null!, StationAction = null!;
+    public TrackVisual? PlatformPreview
+    {
+        get; private set;
+    }
+    public TrackHit? PlatformTarget
+    {
+        get; private set;
+    }
+    public int PlatformSide { get; private set; } = 1;
+    private (int Edge, int Side, bool Remove)? _platformPreviewKey;
+    public StationWindows Stations = null!;
     private VBoxContainer _trackOptions = null!, _stationOptions = null!;
     private Button _trackTab = null!, _stationTab = null!;
     public string Mode = "track";
@@ -45,7 +70,7 @@ public partial class TrackEditor : Node
     }
     private void BuildUI()
     {
-        Toolbar = Windows.Create("Build track", new(24, 85, 330, 460), new(280, 240));
+        Toolbar = Windows.Create("Build track", WindowPlacement.TopLeft, new Vector2(330, 460), new(0, 61), new(280, 240));
         Toolbar.Opened += () => ApplyEnabled(true);
         Toolbar.Closed += () => ApplyEnabled(false);
         Toolbar.Minimized += () => ApplyEnabled(false);
@@ -84,6 +109,20 @@ public partial class TrackEditor : Node
         stationType.AddItem("Simple platform");
         UiSkin.Selector(stationType);
         _stationOptions.AddChild(stationType);
+        UiSkin.Label(_stationOptions, "ACTION", 9, "c0cbbd");
+        StationAction = new();
+        StationAction.AddItem("Build platform");
+        StationAction.AddItem("Remove platform");
+        UiSkin.Selector(StationAction);
+        StationAction.ItemSelected += _ => ClearPlatformPreview();
+        _stationOptions.AddChild(StationAction);
+        Stations = new()
+        {
+            Network = Network,
+            Windows = Windows,
+            Renderer = Renderer
+        };
+        AddChild(Stations);
         Status = new()
         {
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
@@ -97,8 +136,38 @@ public partial class TrackEditor : Node
         Button(actions, "Grid (G)", ToggleGrid);
         NodeMenu = new();
         Interface.AddChild(NodeMenu);
+        NodeMenu.Direction.Pressed += () =>
+        {
+            if (!Network.Nodes.TryGetValue(HoverNode, out var node))
+                return;
+            if (node.Gauge != Gauge)
+            {
+                Status.Text = $"Gauge mismatch. Select {node.Gauge:N0} mm to use this node.";
+                return;
+            }
+            BeginFrom(node.Id, HoverSide);
+        };
+        NodeMenu.ContinueParallel.Pressed += () => BeginParallelFrom(HoverNode, HoverSide);
+        NodeMenu.ParallelLeft.Pressed += () => Parallel(HoverNode, -1);
+        NodeMenu.ParallelRight.Pressed += () => Parallel(HoverNode, 1);
+        NodeMenu.Delete.Pressed += () => { int id = HoverNode; Confirm("node", () => Network.DeleteNode(id)); };
+        NodeMenu.Merge.Pressed += () => { int id = HoverNode; Confirm("merge", () => Network.Merge(id)); };
+        Network.Changed += GraphChanged;
         SegmentMenu = new();
         Interface.AddChild(SegmentMenu);
+        SegmentMenu.Straighten.Pressed += () => ConfirmSegment("straight");
+        SegmentMenu.Delete.Pressed += () => ConfirmSegment("edge");
+        SegmentMenu.ConfirmSplit.Pressed += () =>
+        {
+            var pending = PendingSplit;
+            if (pending != null && Network.Edges.ContainsKey(pending.Edge.Id))
+            {
+                var node = Network.Split(pending.Edge, pending.T);
+                if (node != null)
+                    Renderer.Selected = node.Id;
+            }
+            Cancel();
+        };
     }
     public void SetEnabled(bool value)
     {
@@ -131,6 +200,8 @@ public partial class TrackEditor : Node
         _trackTab.SetPressedNoSignal(Mode == "track");
         _stationTab.SetPressedNoSignal(Mode == "station");
         Renderer.Markers.Visible = Enabled && Mode == "track";
+        NodeMenu.Hide();
+        SegmentMenu.Hide();
         Status.Text = Mode == "station" ? "Click a segment to place a platform on the mouse's side." : "Click to place the first node. Esc ends construction.";
     }
     public void ToggleGrid()
@@ -140,63 +211,165 @@ public partial class TrackEditor : Node
     }
     public void Cancel()
     {
+        ClearPlatformPreview();
         Source = 0;
+        BuildingParallel = false;
+        _parallelGhostKey = null;
         EndAngle = 0;
         PendingSplit = null;
+        _segmentAction = null;
+        _segmentConfirmation = "";
         _confirmation = "";
+        if (IsInstanceValid(SegmentMenu))
+            SegmentMenu.Hide();
+        if (IsInstanceValid(_splitMarker))
+            _splitMarker!.Hide();
         if (IsInstanceValid(Renderer.Preview))
             Renderer.Preview.Hide();
         if (IsInstanceValid(Status))
-            Status.Text = "Click to place a node. Shift: straight alignment. Z/X: end direction.";
+            Status.Text = Mode == "station" ? "Hover beside an existing track, then click to build a platform." : "Click to place a node. Shift: straight alignment. Z/X: end direction.";
     }
     public override void _Process(double delta)
     {
-        if (!Enabled || Windows.HasModal)
+        if (!Enabled || Windows.HasModal || _drag != null)
+        {
+            NodeMenu.Hide();
+            SegmentMenu.Hide();
+            if (IsInstanceValid(_splitMarker))
+                _splitMarker!.Hide();
+            ClearPlatformPreview();
+            if (Windows.HasModal)
+                Renderer.Preview.Hide();
             return;
+        }
+        if (Mode == "station")
+        {
+            NodeMenu.Hide();
+            SegmentMenu.Hide();
+            Renderer.Preview.Hide();
+            if (IsInstanceValid(_splitMarker))
+                _splitMarker!.Hide();
+            if (GetViewport().GuiGetHoveredControl() == null)
+                RefreshPlatformHover(GetViewport().GetMousePosition());
+            else
+                ClearPlatformPreview();
+            return;
+        }
         if (IsInstanceValid(_splitMarker))
-            _splitMarker!.Hide();
-        if (_drag != null)
-            return;
-        var mouse = GetViewport().GetMousePosition();
-        if (GetViewport().GuiGetHoveredControl() != null)
-        {
-            Renderer.Preview.Visible = false;
-            return;
-        }
-        int node = PickNode(mouse);
-        var hit = Renderer.Closest(Camera, mouse);
-        if (node != HoverNode)
-        {
-            HoverNode = node;
-            _confirmation = "";
-            RebuildNodeMenu();
-        }
-        if (PendingSplit != null)
-            HoverSegment = PendingSplit;
-        else if (hit?.Edge.Id != HoverSegment?.Edge.Id)
-        {
-            HoverSegment = hit;
-            _confirmation = "";
-            RebuildSegmentMenu();
-        }
-        else
-            HoverSegment = hit;
+            _splitMarker!.Visible = PendingSplit != null && !Camera.IsPositionBehind(PendingSplit.Point) && Camera.Position.DistanceTo(PendingSplit.Point) <= ActionDistance;
         UpdateMenuPositions();
+        var mouse = GetViewport().GetMousePosition();
+        if (GetViewport().GuiGetHoveredControl() is { } hovered)
+        {
+            Renderer.Preview.Hide();
+            if (hovered != NodeMenu && hovered != SegmentMenu && !NodeMenu.IsAncestorOf(hovered) && !SegmentMenu.IsAncestorOf(hovered))
+            {
+                HoverNode = 0;
+                _confirmation = "";
+                NodeMenu.Hide();
+                SegmentMenu.Hide();
+                _segmentAction = null;
+                _segmentConfirmation = "";
+            }
+            return;
+        }
+        RefreshHover(mouse);
+        int node = _pointerNode;
+        var hit = HoverSegment;
         if (Source != 0 && Network.Nodes.ContainsKey(Source))
         {
             var end = PlacementPoint();
             Network.Nodes.TryGetValue(node, out var snap);
             if (snap != null && snap.Id != Source)
                 end = snap.Position;
-            Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge);
+            if (BuildingParallel)
+            {
+                var key = (Source, SourceSide, snap?.Id ?? 0, end.Snapped(Vector3.One * .1f), EndAngle);
+                if (_parallelGhostKey != key)
+                {
+                    _parallelGhostKey = key;
+                    try
+                    {
+                        Renderer.ShowPreviews(Network.PreviewParallel(Network.Nodes[Source], SourceSide, end, snap, (end - Network.Nodes[Source].Position).Normalized().Rotated(Vector3.Up, EndAngle)).Select(p => p.Controls).ToArray(), Network.Nodes[Source].Gauge);
+                        _parallelGhostValid = true;
+                    }
+                    catch (InvalidOperationException error) { _parallelGhostValid = false; Status.Text = error.Message; }
+                }
+                Renderer.Preview.Visible = _parallelGhostValid;
+            }
+            else
+                Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge);
         }
-        else if (hit != null && Mode == "track" && node == 0)
+        else if (hit != null && Mode == "track" && node == 0 && !Camera.IsPositionBehind(hit.Point) && Camera.Position.DistanceTo(hit.Point) <= ActionDistance)
         {
             Renderer.Preview.Hide();
             ShowSplitMarker(PendingSplit?.Point ?? hit.Point);
         }
         else
             Renderer.Preview.Hide();
+    }
+    private void GraphChanged()
+    {
+        _confirmation = "";
+        _segmentConfirmation = "";
+        _midpoints.Clear();
+        ClearPlatformPreview();
+        PendingSplit = null;
+        _parallelGhostKey = null;
+        RebuildSegmentMenu();
+        UpdateMenuPositions();
+    }
+    public override void _ExitTree() => Network.Changed -= GraphChanged;
+    internal void RefreshHover(Vector2 mouse)
+    {
+        int nearest = 0;
+        float distance = 100;
+        foreach (var candidate in Network.Nodes.Values)
+        {
+            if (Camera.IsPositionBehind(candidate.Position) || Camera.Position.DistanceTo(candidate.Position) > ActionDistance)
+                continue;
+            float d = Camera.UnprojectPosition(candidate.Position).DistanceTo(mouse);
+            if (d < distance)
+            {
+                nearest = candidate.Id;
+                distance = d;
+            }
+        }
+        if (PendingSplit != null)
+            nearest = 0;
+        _pointerNode = PickNode(mouse);
+        if (nearest != HoverNode)
+        {
+            HoverNode = nearest;
+            _confirmation = "";
+        }
+        if (nearest != 0)
+        {
+            var node = Network.Nodes[nearest];
+            var center = Camera.UnprojectPosition(node.Position);
+            HoverSide = (mouse - center).Dot(TrackNodeHoverMenu.ScreenAxis(Camera, node.Position, node.Axis)) >= 0 ? 1 : -1;
+        }
+        HoverSegment = PendingSplit ?? Renderer.Closest(Camera, mouse);
+        TrackEdge? action = null;
+        float best = 60;
+        if (PendingSplit == null)
+            foreach (var edge in Network.Edges.Values)
+            {
+                var midpoint = Midpoint(edge);
+                if (Camera.IsPositionBehind(midpoint) || Camera.Position.DistanceTo(midpoint) > ActionDistance)
+                    continue;
+                float d = Camera.UnprojectPosition(midpoint).DistanceTo(mouse);
+                if (d < best)
+                {
+                    best = d;
+                    action = edge;
+                }
+            }
+        if (_segmentAction?.Id != action?.Id)
+            _segmentConfirmation = "";
+        _segmentAction = action;
+        RebuildSegmentMenu();
+        UpdateMenuPositions();
     }
     public int PickNode(Vector2 mouse)
     {
@@ -278,6 +451,21 @@ public partial class TrackEditor : Node
         }
         if (point.DistanceTo(start.Position) < 1)
             return false;
+        if (BuildingParallel)
+        {
+            try
+            {
+                Network.Nodes.TryGetValue(targetId, out var existing);
+                var result = Network.ExtendParallel(start, SourceSide, point, existing, (point - start.Position).Normalized().Rotated(Vector3.Up, EndAngle));
+                Source = result.Node.Id;
+                SourceSide = result.Side;
+                Renderer.Selected = Source;
+                EndAngle = 0;
+                Status.Text = $"{result.Edges.Length} parallel tracks built. Keep clicking to continue; Esc stops.";
+                return true;
+            }
+            catch (InvalidOperationException error) { Status.Text = error.Message; return false; }
+        }
         bool created = targetId == 0;
         var target = created ? Network.AddNode(point, start.Gauge) : Network.Nodes[targetId];
         var endDirection = (point - start.Position).Normalized().Rotated(Vector3.Up, EndAngle);
@@ -300,6 +488,8 @@ public partial class TrackEditor : Node
     {
         if (!Network.Nodes.TryGetValue(id, out var node) || !Network.CanExtend(node, side))
             return;
+        BuildingParallel = false;
+        _parallelGhostKey = null;
         Source = id;
         SourceSide = side;
         Gauge = node.Gauge;
@@ -307,12 +497,33 @@ public partial class TrackEditor : Node
         Renderer.Selected = id;
         Renderer.UpdateMarkers();
         PendingSplit = null;
+        _segmentAction = null;
+        _segmentConfirmation = "";
         _confirmation = "";
+        if (IsInstanceValid(SegmentMenu))
+            SegmentMenu.Hide();
+        if (IsInstanceValid(_splitMarker))
+            _splitMarker!.Hide();
+    }
+    public void BeginParallelFrom(int id, int side)
+    {
+        if (!Network.Nodes.TryGetValue(id, out var node) || !Network.CanExtendParallel(node, side))
+            return;
+        BeginFrom(id, side);
+        BuildingParallel = true;
+        NodeMenu.Hide();
+        Status.Text = "Building all parallel tracks. Click to place their next nodes; Esc stops.";
     }
     public override void _UnhandledInput(InputEvent input)
     {
-        if (!Enabled || Windows.HasModal)
+        if (Windows.HasModal)
             return;
+        if (!Enabled)
+        {
+            if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click && Stations.OpenAt(Camera, click.Position))
+                GetViewport().SetInputAsHandled();
+            return;
+        }
         if (input is InputEventKey { Pressed: true, Echo: false } key)
         {
             switch (key.Keycode)
@@ -336,15 +547,32 @@ public partial class TrackEditor : Node
         }
         if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouse)
             return;
+        if ((Mode != "station" || StationAction.Selected != 1) && Source == 0 && Stations.OpenAt(Camera, mouse.Position))
+        {
+            ClearPlatformPreview();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         if (Mode == "station")
         {
-            var hit = Renderer.Closest(Camera, mouse.Position, 35);
-            if (hit != null)
-            {
-                var position = Camera.GroundPoint(Generator);
-                int side = (position - hit.Point).Dot(TrackNetwork.Right(Network.Tangent(hit.Edge, hit.T))) >= 0 ? 1 : -1;
-                Status.Text = Network.AddStation(hit.Edge, side) ? $"Station {hit.Edge.Station}: platform added." : "No platform here: junction segment or side already occupied.";
-            }
+            RefreshPlatformHover(mouse.Position);
+            var hit = PlatformTarget;
+            if (hit == null)
+                Status.Text = "Choose an existing track segment.";
+            else if (StationAction.Selected == 1)
+                Status.Text = Network.RemovePlatform(hit.Edge, PlatformSide) ? "Platform removed." : "This side has no platform.";
+            else if (hit.Edge.Platforms.Contains(PlatformSide))
+                Stations.Open(hit.Edge.Station);
+            else if (Network.AddStation(hit.Edge, PlatformSide))
+                Status.Text = $"Platform added to Station {hit.Edge.Station}.";
+            else
+                Status.Text = "No platforms on junction segments. Split beyond the junction first.";
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (PendingSplit != null)
+        {
+            Cancel();
             GetViewport().SetInputAsHandled();
             return;
         }
@@ -375,7 +603,19 @@ public partial class TrackEditor : Node
         }
         GetViewport().SetInputAsHandled();
     }
-    private void StartDrag(int id, Vector3 point, Vector2 mouse, TrackEdge? edge = null) => _drag = new() { Id = id, Point = point, Mouse = mouse, Edge = edge };
+    private void StartDrag(int id, Vector3 point, Vector2 mouse, TrackEdge? edge = null)
+    {
+        NodeMenu.Hide();
+        SegmentMenu.Hide();
+        Renderer.Preview.Hide();
+        _drag = new()
+        {
+            Id = id,
+            Point = point,
+            Mouse = mouse,
+            Edge = edge
+        };
+    }
     public override void _Input(InputEvent input)
     {
         if (_drag == null)
@@ -421,33 +661,13 @@ public partial class TrackEditor : Node
             GetViewport().SetInputAsHandled();
         }
     }
-    private static void ClearButtons(HBoxContainer menu)
-    {
-        foreach (var child in menu.GetChildren())
-        {
-            menu.RemoveChild(child);
-            child.QueueFree();
-        }
-    }
-    private void RebuildNodeMenu()
-    {
-        ClearButtons(NodeMenu);
-        if (!Network.Nodes.TryGetValue(HoverNode, out var node))
-            return;
-        int id = HoverNode;
-        foreach (int side in new[] { -1, 1 })
-            if (Network.CanExtend(node, side))
-                Button(NodeMenu, side == -1 ? "+ ←" : "+ →", () => BeginFrom(id, side), "Continue track");
-        Button(NodeMenu, "∥−", () => Parallel(id, -1), "Add parallel node on the left");
-        Button(NodeMenu, "∥+", () => Parallel(id, 1), "Add parallel node on the right");
-        if (Network.CanMerge(id))
-            Button(NodeMenu, _confirmation == "merge" ? "Confirm merge" : "Merge", () => Confirm("merge", () => Network.Merge(id)));
-        Button(NodeMenu, _confirmation == "node" ? "Confirm delete" : "×", () => Confirm("node", () => Network.DeleteNode(id)), "Delete node and connected segments; click twice");
-    }
+    private void RebuildNodeMenu() => UpdateMenuPositions();
     public void Parallel(int id, int side)
     {
+        if (!Network.Nodes.TryGetValue(id, out var node))
+            return;
         int previous = Source;
-        var added = Network.AddParallel(Network.Nodes[id], side);
+        var added = Network.AddParallel(node, side);
         if (previous != 0)
             Place(added.Position, added.Id);
         else
@@ -472,39 +692,107 @@ public partial class TrackEditor : Node
         Callable.From(RebuildNodeMenu).CallDeferred();
         Callable.From(RebuildSegmentMenu).CallDeferred();
     }
-    private void RebuildSegmentMenu()
+    private Vector3 Midpoint(TrackEdge edge)
     {
-        ClearButtons(SegmentMenu);
-        if (HoverSegment == null || !Network.Edges.ContainsKey(HoverSegment.Edge.Id))
+        if (!_midpoints.TryGetValue(edge.Id, out var point))
+            _midpoints[edge.Id] = point = new TrackCurve(Network.Controls(edge)).PointAt(.5).Float();
+        return point;
+    }
+    private void ConfirmSegment(string action)
+    {
+        var edge = _segmentAction;
+        if (edge == null || !Network.Edges.ContainsKey(edge.Id))
             return;
-        var edge = HoverSegment.Edge;
-        if (PendingSplit != null)
+        if (_segmentConfirmation == action)
         {
-            Button(SegmentMenu, "Confirm split", () => { if (PendingSplit != null) { var node = Network.Split(edge, PendingSplit.T); if (node != null) Renderer.Selected = node.Id; } PendingSplit = null; HoverSegment = null; SegmentMenu.Hide(); });
-            Button(SegmentMenu, "Cancel", () => { PendingSplit = null; SegmentMenu.Hide(); });
+            if (action == "straight")
+                Network.Straighten(edge);
+            else
+            {
+                Network.Edges.Remove(edge.Id);
+                Network.NotifyChanged();
+            }
+            _segmentAction = null;
+            _segmentConfirmation = "";
+            SegmentMenu.Hide();
         }
         else
-        {
-            Button(SegmentMenu, _confirmation == "straight" ? "Confirm straight" : "Straighten", () => Confirm("straight", () => Network.Straighten(edge)));
-            Button(SegmentMenu, _confirmation == "edge" ? "Confirm delete" : "×", () => Confirm("edge", () => { Network.Edges.Remove(edge.Id); Network.NotifyChanged(); }), "Delete segment; click twice");
-        }
+            _segmentConfirmation = action;
+        RebuildSegmentMenu();
+        UpdateMenuPositions();
     }
+    private void RebuildSegmentMenu() => SegmentMenu.SetState(PendingSplit != null, _segmentConfirmation);
     private void UpdateMenuPositions()
     {
-        NodeMenu.Visible = Mode == "track" && HoverNode != 0 && Network.Nodes.ContainsKey(HoverNode);
+        NodeMenu.Visible = Enabled && !Windows.HasModal && _drag == null && PendingSplit == null && Mode == "track" &&
+            Network.Nodes.TryGetValue(HoverNode, out var hover) && !Camera.IsPositionBehind(hover.Position) && Camera.Position.DistanceTo(hover.Position) <= ActionDistance;
         if (NodeMenu.Visible)
         {
             var node = Network.Nodes[HoverNode];
-            NodeMenu.Visible = Camera.Position.DistanceTo(node.Position) < 500 && !Camera.IsPositionBehind(node.Position);
-            NodeMenu.Position = Camera.UnprojectPosition(node.Position) + new Vector2(12, -40);
+            NodeMenu.Direction.Visible = Source == 0 && Network.CanExtend(node, HoverSide);
+            NodeMenu.ContinueParallel.Visible = Source == 0 && Network.CanExtendParallel(node, HoverSide);
+            NodeMenu.Merge.Visible = Network.CanMerge(node.Id);
+            NodeMenu.SetConfirmations(_confirmation == "node", _confirmation == "merge");
+            NodeMenu.PositionButtons(Camera, node, HoverSide);
+            NodeMenu.Direction.TooltipText = $"Start track from node {node.Id} - {node.Gauge:N0} mm";
+            NodeMenu.Direction.Modulate = node.Gauge == Gauge ? Colors.White : new Color("ee9988");
         }
-        SegmentMenu.Visible = Mode == "track" && HoverSegment != null && Source == 0 && HoverNode == 0;
+        var target = PendingSplit?.Edge ?? _segmentAction;
+        SegmentMenu.Visible = Enabled && !Windows.HasModal && _drag == null && Mode == "track" && target != null && Network.Edges.ContainsKey(target.Id) && Source == 0;
         if (SegmentMenu.Visible)
         {
-            var point = HoverSegment!.Point;
-            SegmentMenu.Visible = Camera.Position.DistanceTo(point) < 500 && !Camera.IsPositionBehind(point);
-            SegmentMenu.Position = Camera.UnprojectPosition(point) + new Vector2(12, -36);
+            var point = PendingSplit?.Point ?? Midpoint(target!);
+            SegmentMenu.Visible = Camera.Position.DistanceTo(point) <= ActionDistance && !Camera.IsPositionBehind(point);
+            SegmentMenu.PositionButtons(Camera.UnprojectPosition(point), PendingSplit != null);
         }
+    }
+
+    private void ClearPlatformPreview()
+    {
+        PlatformTarget = null;
+        _platformPreviewKey = null;
+        if (IsInstanceValid(PlatformPreview))
+        {
+            PlatformPreview!.GetParent()?.RemoveChild(PlatformPreview);
+            PlatformPreview.QueueFree();
+        }
+        PlatformPreview = null;
+    }
+    internal void RefreshPlatformHover(Vector2 mouse)
+    {
+        var hit = Renderer.Closest(Camera, mouse, 45);
+        if (hit == null || Camera.Position.DistanceTo(hit.Point) > ActionDistance)
+        {
+            ClearPlatformPreview();
+            return;
+        }
+        var ray = Camera.ProjectRayOrigin(mouse);
+        var direction = Camera.ProjectRayNormal(mouse);
+        var point = new Plane(Vector3.Up, hit.Point.Y).IntersectsRay(ray, direction);
+        int side = point is { } p && (p - hit.Point).Dot(TrackNetwork.Right(Network.Tangent(hit.Edge, hit.T))) < 0 ? -1 : 1;
+        bool remove = StationAction.Selected == 1;
+        if (remove ? !hit.Edge.Platforms.Contains(side) : !Network.CanPlaceStation(hit.Edge, side))
+        {
+            ClearPlatformPreview();
+            PlatformTarget = hit;
+            PlatformSide = side;
+            Status.Text = hit.Edge.Platforms.Contains(side) ? $"Station {hit.Edge.Station}: click the platform to open its window." : "No platforms on junction segments. Split beyond the junction first.";
+            return;
+        }
+        var key = (hit.Edge.Id, side, remove);
+        if (_platformPreviewKey != key)
+        {
+            ClearPlatformPreview();
+            PlatformPreview = new(new TrackGeometry(Network.Controls(hit.Edge), hit.Edge.Gauge, new[] { side }, preview: true, platformsOnly: true), preview: true);
+            if (remove)
+                foreach (MeshInstance3D mesh in PlatformPreview.GetChildren())
+                    ((StandardMaterial3D)mesh.MaterialOverride).AlbedoColor = new Color("ef7864") { A = .45f };
+            Renderer.AddChild(PlatformPreview);
+            _platformPreviewKey = key;
+        }
+        PlatformTarget = hit;
+        PlatformSide = side;
+        Status.Text = remove ? "Click to remove this platform." : $"Build full-segment platform - {PlatformPreview!.Geometry.Curve.Length:F1} m. Move across the track to change sides.";
     }
     private void ShowSplitMarker(Vector3 point)
     {

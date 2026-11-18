@@ -85,6 +85,7 @@ public sealed class TrackCurve
         return (index + (target - _lengths[index]) / (_lengths[index + 1] - _lengths[index])) / 512;
     }
     public TrackVector PointAt(double u) => Point(Map(u));
+    public TrackVector Tangent(double t) => (Point(Math.Min(1, t + .0001)) - Point(Math.Max(0, t - .0001))).Unit();
     public TrackFrame FrameAt(double u)
     {
         double t = Map(u);
@@ -147,16 +148,16 @@ public sealed class TrackGeometry
         get;
     }
     public Vector3 SleeperSize => new(Gauge / 1000f + .85f, .18f, .24f);
-    public TrackGeometry(Vector3[] controls, int gauge, IEnumerable<int>? platforms = null, bool preview = false, bool railsOnly = false)
+    public TrackGeometry(Vector3[] controls, int gauge, IEnumerable<int>? platforms = null, bool preview = false, bool railsOnly = false, bool platformsOnly = false)
     {
         Curve = new(controls);
         Gauge = gauge;
         Anchor = controls[0];
         var surfaces = new List<TrackSurface>();
         int steps = Math.Max(2, (int)Math.Ceiling(Curve.Length / 1.5));
-        if (!railsOnly)
+        if (!railsOnly && !platformsOnly)
             surfaces.Add(Sweep("Ballast", steps, new[] { (-2.0, -.65), (-1.36, -.33), (1.36, -.33), (2.0, -.65) }));
-        foreach (int sign in new[] { -1, 1 })
+        foreach (int sign in platformsOnly ? Array.Empty<int>() : new[] { -1, 1 })
         {
             double offset = sign * (gauge / 2000.0 + .035);
             surfaces.Add(Sweep(sign < 0 ? "RailLeft" : "RailRight", steps, new[] { (offset - .035, 0.0), (offset + .035, 0.0), (offset + .035, -.15), (offset - .035, -.15) }));
@@ -170,7 +171,7 @@ public sealed class TrackGeometry
         }
         Surfaces = surfaces;
         var sleepers = new List<SleeperBatch>();
-        if (!preview && !railsOnly)
+        if (!preview && !railsOnly && !platformsOnly)
         {
             int count = Math.Max(1, (int)Math.Floor(Curve.Length / .65));
             for (int start = 0; start < count; start += 64)
@@ -209,14 +210,14 @@ public sealed class TrackGeometry
             }
         }
         for (int i = 0; i < steps; i++)
-        for (int j = 0; j < width; j++)
-        {
-            int a = i * width + j, b = i * width + (j + 1) % width, c = a + width, d = b + width;
-            sourceIndices.AddRange(new[] { a, b, c, b, d, c });
-        }
+            for (int j = 0; j < width; j++)
+            {
+                int a = i * width + j, b = i * width + (j + 1) % width, c = a + width, d = b + width;
+                sourceIndices.AddRange(new[] { a, b, c, b, d, c });
+            }
         if (platform)
-        foreach (int first in new[] { 0, steps * width })
-            sourceIndices.AddRange(new[] { first, first + 1, first + 2, first, first + 2, first + 3 });
+            foreach (int first in new[] { 0, steps * width })
+                sourceIndices.AddRange(new[] { first, first + 1, first + 2, first, first + 2, first + 3 });
         var normals = new Vector3[vertices.Length];
         for (int i = 0; i < sourceIndices.Count; i += 3)
         {

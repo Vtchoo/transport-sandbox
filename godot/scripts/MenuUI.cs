@@ -107,12 +107,14 @@ public partial class MenuUI : Control
     {
         Windows = new();
         AddChild(Windows);
-        Dialog = Windows.Create("New game", Bounds, new(300, 330), modal: true, collapsible: false, minimizable: false, scrollBody: false);
+        Dialog = Windows.Create("New game", WindowPlacement.TopCenter, Bounds.Size, new(0, 76), new(300, 330), modal: true, collapsible: false, minimizable: false, scrollBody: false);
+        Dialog.ItemRectChanged += () => Bounds = Dialog.Bounds;
         Dialog.Closed += () =>
         {
             StartButton.FocusMode = FocusModeEnum.All;
             StartButton.GrabFocus();
             Bounds = Dialog.Bounds;
+            _savedBounds = true;
             SavePreferences(false);
         };
         Content = Dialog.Body;
@@ -261,13 +263,14 @@ public partial class MenuUI : Control
         Title.Position = new(left, compact ? viewport.Y * 0.12f : (viewport.Y - groupHeight) / 2);
         StartButton.Position = Title.Position + new Vector2(0, Title.Size.Y + (compact ? 20 : 28));
         StartButton.Size = new(220, 50);
-        if (!_savedBounds)
-            Bounds = new(new Vector2((viewport.X - 460) / 2, Bounds.Position.Y), Bounds.Size);
         Constrain();
     }
     public void Constrain()
     {
-        Dialog.SetBounds(Bounds);
+        if (_savedBounds)
+            Dialog.SetBounds(Bounds);
+        else
+            Dialog.Constrain();
         Bounds = Dialog.Bounds;
     }
     public void OpenSetup()

@@ -64,6 +64,16 @@ public partial class TestRunner : Node
                 case "startup":
                     await Startup();
                     break;
+                case "hover":
+                    GetTree().Root.Size = new(1280, 800);
+                    await Frames();
+                    await NodeHoverChecks.Run(Check, Frame, this);
+                    break;
+                case "platform":
+                    GetTree().Root.Size = new(1280, 800);
+                    await Frames();
+                    await PlatformChecks.Run(Check, Frame, this);
+                    break;
                 case "capture":
                     await Capture();
                     break;
@@ -84,6 +94,7 @@ public partial class TestRunner : Node
         TreeChecks.Run(Check);
         ClearanceChecks.Run(Check);
         TrackGeometryChecks.Run(Check);
+        NodeHoverChecks.ParallelSourceParity(Check);
         var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");
         foreach (var reference in fixtures.GetProperty("cases").EnumerateArray())
         {
@@ -433,6 +444,8 @@ public partial class TestRunner : Node
         editor.SetEnabled(false);
         main.Free();
         await Frame();
+        await NodeHoverChecks.Run(Check, Frame, this);
+        await PlatformChecks.Run(Check, Frame, this);
     }
     private async Task CheckClearanceLifecycle(Main main)
     {
@@ -540,7 +553,7 @@ public partial class TestRunner : Node
         Check(hud.ActionBar.GetGlobalRect().Position.X >= 0 && hud.ActionBar.GetGlobalRect().End.X <= 400, "Action bar fits a narrow viewport");
         GetTree().Root.Size = new((int)width, (int)height);
         await Frames();
-        Check(hud.BuildButton.Text == "Build track" && hud.SettingsButton.Text == "Settings", "HUD labels restore after resizing back to desktop");
+        Check(hud.BuildButton.Text == "" && hud.BuildButton.IconAlignment == HorizontalAlignment.Center && hud.BuildButton.TooltipText == "Build track" && hud.SettingsButton.Text == "Settings", "HUD keeps the build action icon-only after resizing back to desktop");
     }
     private async Task Capture()
     {
@@ -569,6 +582,43 @@ public partial class TestRunner : Node
                 main.HUD.ViewWindow.Open();
             if (state == "settings")
                 main.HUD.OpenSettings();
+            if (_args.GetValueOrDefault("hover", "") is "node" or "segment" or "platform" or "station")
+            {
+                var point = main.Camera.Target + Vector3.Up * 2;
+                if (_args["hover"] is "platform" or "station")
+                    for (int z = -65; z <= 65; z += 5)
+                        for (int x = -6; x <= 6; x += 3)
+                            point.Y = Math.Max(point.Y, (float)main.Generator.Sampler.Height(point.X + x, point.Z + z) + 3);
+                main.Camera.Position = point + new Vector3(105, 95, 150);
+                main.Camera.LookAt(point, Vector3.Up);
+                var a = main.TrackNetwork.AddNode(point - Vector3.Back * 65);
+                var middle = main.TrackNetwork.AddNode(point);
+                var b = main.TrackNetwork.AddNode(point + Vector3.Back * 65);
+                main.TrackNetwork.ConnectNodes(a, middle);
+                main.TrackNetwork.ConnectNodes(middle, b);
+                main.TrackNetwork.AddParallel(middle, 1);
+                main.TrackRenderer._Process(0);
+                main.TrackEditor.SetEnabled(true);
+                main.TrackEditor.SetProcess(false);
+                var timeout = Stopwatch.StartNew();
+                while ((main.TreeClearance.IsPending || main.World.PendingEarthworks > 0) && timeout.Elapsed.TotalSeconds < 15)
+                    await ToSignal(GetTree().CreateTimer(.05), SceneTreeTimer.SignalName.Timeout);
+                var hoverPoint = _args["hover"] == "segment" ? new TrackCurve(main.TrackNetwork.Controls(main.TrackNetwork.Edges.Values.First())).PointAt(.5).Float() : point;
+                main.TrackEditor.RefreshHover(main.Camera.UnprojectPosition(hoverPoint) + TrackNodeHoverMenu.ScreenAxis(main.Camera, point, middle.Axis) * .25f);
+                if (_args["hover"] is "platform" or "station")
+                {
+                    main.TrackEditor.SetMode("station");
+                    var edge = main.TrackNetwork.Edges.Values.First();
+                    var platformPoint = new TrackCurve(main.TrackNetwork.Controls(edge)).PointAt(.5).Float() + TrackNetwork.Right(main.TrackNetwork.Tangent(edge, .5f)) * 3;
+                    main.TrackEditor.RefreshPlatformHover(main.Camera.UnprojectPosition(platformPoint));
+                    if (_args["hover"] == "station")
+                    {
+                        main.TrackNetwork.AddStation(edge, 1);
+                        main.TrackRenderer._Process(0);
+                        main.TrackEditor.Stations.Open(edge.Station);
+                    }
+                }
+            }
         }
         else if (state != "menu")
             main.ShowSetup();

@@ -35,10 +35,18 @@ public sealed class ParallelGroup
     public Dictionary<int, float> Offsets = new();
 }
 /// <summary>Gauge-aware signed-endpoint graph. Scene independent except Curve3D baking.</summary>
-public sealed class TrackNetwork
+public sealed partial class TrackNetwork
 {
     public event Action? Changed;
-    public void NotifyChanged() => Changed?.Invoke();
+    private int _changeDepth;
+    private bool _changePending;
+    public void NotifyChanged()
+    {
+        if (_changeDepth > 0)
+            _changePending = true;
+        else
+            Changed?.Invoke();
+    }
     public readonly Dictionary<int, TrackNode> Nodes = new();
     public readonly Dictionary<int, TrackEdge> Edges = new();
     public readonly Dictionary<int, ParallelGroup> Groups = new();
@@ -170,12 +178,9 @@ public sealed class TrackNetwork
     public TrackNode AddParallel(TrackNode node, int side)
     {
         float spacing = node.Gauge / 1000f + 2.6f;
-        foreach (var edge in Incident(node.Id))
-        {
-            int orientation = edge.A == node.Id ? edge.SideA : -edge.SideB;
-            if (edge.Platforms.Contains(side * orientation))
-                spacing = Math.Max(spacing, Math.Max(1.75f, node.Gauge / 2000f + 1.05f) * 2) + 6;
-        }
+        bool hasPlatform = Incident(node.Id).Any(edge => edge.Platforms.Contains(side * (edge.A == node.Id ? edge.SideA : -edge.SideB)));
+        if (hasPlatform)
+            spacing = Math.Max(spacing, Math.Max(1.75f, node.Gauge / 2000f + 1.05f) * 2) + 6;
         if (node.Group == 0)
         {
             node.Group = _nextGroup++;
@@ -299,9 +304,20 @@ public sealed class TrackNetwork
         edge.LengthB = edge.LengthA;
         NotifyChanged();
     }
+    public bool CanPlaceStation(TrackEdge edge, int side) => side is -1 or 1 && Edges.TryGetValue(edge.Id, out var current) && ReferenceEquals(edge, current) &&
+        !edge.Platforms.Contains(side) && Incident(edge.A).Count <= 2 && Incident(edge.B).Count <= 2;
+    public bool RemovePlatform(TrackEdge edge, int side)
+    {
+        if (!Edges.TryGetValue(edge.Id, out var current) || !ReferenceEquals(edge, current) || !edge.Platforms.Remove(side))
+            return false;
+        if (edge.Platforms.Count == 0)
+            edge.Station = 0;
+        NotifyChanged();
+        return true;
+    }
     public bool AddStation(TrackEdge edge, int side)
     {
-        if (edge.Platforms.Contains(side) || Incident(edge.A).Count > 2 || Incident(edge.B).Count > 2)
+        if (!CanPlaceStation(edge, side))
             return false;
         if (edge.Station == 0)
         {

@@ -45,6 +45,13 @@ public partial class WindowManager : Control
         MoveChild(Taskbar, -1);
         return window;
     }
+    public GameWindow Create(string title, WindowPlacement placement, Vector2 size, Vector2 offset = default,
+        Vector2? minimum = null, bool modal = false, bool? collapsible = null, bool? minimizable = null, bool scrollBody = true)
+    {
+        var window = Create(title, new Rect2(Vector2.Zero, size), minimum, modal, collapsible, minimizable, scrollBody);
+        window.Place(placement, offset);
+        return window;
+    }
     public void Activate(GameWindow window)
     {
         var modal = Windows.LastOrDefault(w => w.Modal && w.Visible);

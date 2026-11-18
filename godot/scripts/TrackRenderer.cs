@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TransportSandbox;
 
@@ -17,10 +18,14 @@ public partial class TrackRenderer : Node3D
     public Node3D Markers = new();
     private readonly record struct RenderKey(Vector3 A, Vector3 B, Vector3 C, Vector3 D, int Gauge, string Platforms, bool RailsOnly);
     private readonly Dictionary<int, RenderKey> _keys = new();
-    private RenderKey? _previewKey;
-    private TrackVisual? _previewVisual;
+    private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
+    private readonly Dictionary<int, TrackCurve> _pickCurves = new();
     public static StandardMaterial3D Material(Color color, float metal = 0) => new() { AlbedoColor = color, Metallic = metal, Roughness = 0.65f };
-    private void MarkDirty() => Dirty = true;
+    private void MarkDirty()
+    {
+        Dirty = true;
+        _pickCurves.Clear();
+    }
     public override void _Ready()
     {
         Network.Changed += MarkDirty;
@@ -99,19 +104,20 @@ public partial class TrackRenderer : Node3D
         }
     }
     private void Marker(Vector3 point, float radius, Color color) => Markers.AddChild(new MeshInstance3D { Mesh = new SphereMesh { Radius = radius, Height = radius * 2 }, Position = point, MaterialOverride = Material(color) });
-    public void ShowPreview(Vector3[] points, int gauge = 1435)
+    public void ShowPreview(Vector3[] points, int gauge = 1435) => ShowPreviews(new[] { points }, gauge);
+    public void ShowPreviews(Vector3[][] curves, int gauge = 1435)
     {
-        var key = new RenderKey(points[0], points[1], points[2], points[3], gauge, "", false);
-        if (_previewKey != key)
+        var keys = curves.Select(p => new RenderKey(p[0], p[1], p[2], p[3], gauge, "", false)).ToArray();
+        if (!_previewKeys.SequenceEqual(keys))
         {
-            if (IsInstanceValid(_previewVisual))
+            foreach (var child in Preview.GetChildren())
             {
-                Preview.RemoveChild(_previewVisual!);
-                _previewVisual!.QueueFree();
+                Preview.RemoveChild(child);
+                child.QueueFree();
             }
-            _previewVisual = new TrackVisual(new TrackGeometry(points, gauge, preview: true), preview: true);
-            Preview.AddChild(_previewVisual);
-            _previewKey = key;
+            foreach (var points in curves)
+                Preview.AddChild(new TrackVisual(new TrackGeometry(points, gauge, preview: true), preview: true));
+            _previewKeys = keys;
         }
         Preview.Visible = true;
     }
@@ -121,19 +127,33 @@ public partial class TrackRenderer : Node3D
         float distance = maximum;
         foreach (var edge in Network.Edges.Values)
         {
-            int count = Math.Max(20, Mathf.CeilToInt(Network.Nodes[edge.A].Position.DistanceTo(Network.Nodes[edge.B].Position) / 3));
-            for (int i = 1; i < count; i++)
+            if (!_pickCurves.TryGetValue(edge.Id, out var curve))
+                _pickCurves[edge.Id] = curve = new TrackCurve(Network.Controls(edge));
+            int count = Math.Min(1024, Math.Max(32, (int)Math.Ceiling(curve.Length / 4)));
+            var previousPoint = curve.Point(0).Float();
+            var previous = camera.UnprojectPosition(previousPoint);
+            for (int i = 1; i <= count; i++)
             {
-                float t = (float)i / count;
-                var point = Network.Point(edge, t);
-                if (camera.IsPositionBehind(point))
-                    continue;
-                float d = mouse.DistanceTo(camera.UnprojectPosition(point));
-                if (d < distance)
+                var nextPoint = curve.Point((double)i / count).Float();
+                var next = camera.UnprojectPosition(nextPoint);
+                if (!camera.IsPositionBehind(previousPoint) && !camera.IsPositionBehind(nextPoint))
                 {
-                    distance = d;
-                    result = new(edge, t, point);
+                    var line = next - previous;
+                    float fraction = Mathf.Clamp((mouse - previous).Dot(line) / Math.Max(line.LengthSquared(), .000001f), 0, 1);
+                    float d = mouse.DistanceTo(previous + line * fraction);
+                    if (d < distance)
+                    {
+                        float t = (i - 1 + fraction) / count;
+                        var point = curve.Point(t).Float();
+                        if (point.DistanceTo(Network.Nodes[edge.A].Position) >= 1 && point.DistanceTo(Network.Nodes[edge.B].Position) >= 1)
+                        {
+                            distance = d;
+                            result = new(edge, t, point);
+                        }
+                    }
                 }
+                previous = next;
+                previousPoint = nextPoint;
             }
         }
         return result;

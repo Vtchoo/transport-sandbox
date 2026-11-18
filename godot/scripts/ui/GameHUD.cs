@@ -92,7 +92,9 @@ public partial class GameHUD : Control
             actions.AddChild(button);
             return button;
         }
-        BuildButton = ActionButton("Build track", "track");
+        BuildButton = ActionButton("", "fence");
+        BuildButton.IconAlignment = HorizontalAlignment.Center;
+        BuildButton.TooltipText = "Build track";
         BuildButton.ToggleMode = true;
         BuildButton.Toggled += Editor.SetEnabled;
         VehiclesButton = ActionButton("Vehicles", "vehicles");
@@ -143,7 +145,7 @@ public partial class GameHUD : Control
     private void SynchronizeBuild(bool enabled) => BuildButton.SetPressedNoSignal(enabled);
     private void BuildViewWindow()
     {
-        ViewWindow = Windows.Create("View options", new(GetViewportRect().Size.X - 340, 140, 300, 260));
+        ViewWindow = Windows.Create("View options", WindowPlacement.TopRight, new Vector2(300, 260), new(0, 116));
         Contours = new()
         {
             Text = "Show terrain contours"
@@ -172,7 +174,7 @@ public partial class GameHUD : Control
     }
     private void BuildSettingsWindow()
     {
-        SettingsWindow = Windows.Create("Settings", new((GetViewportRect().Size.X - 440) / 2, 120, 440, 360), new(300, 240), true);
+        SettingsWindow = Windows.Create("Settings", WindowPlacement.Center, new Vector2(440, 360), minimum: new(300, 240), modal: true);
         _settingsRoot = new();
         SettingsWindow.Body.AddChild(_settingsRoot);
         var gameplay = new Button { Text = "Gameplay  →", CustomMinimumSize = new(0, 58) };
@@ -219,7 +221,7 @@ public partial class GameHUD : Control
     {
         var viewport = GetViewportRect().Size;
         bool compact = viewport.X <= 700;
-        foreach (var (button, text) in new[] { (BuildButton, "Build track"), (VehiclesButton, "Vehicles"), (TrainsButton, "Trains") })
+        foreach (var (button, text) in new[] { (VehiclesButton, "Vehicles"), (TrainsButton, "Trains") })
         {
             button.Text = viewport.X < 460 ? "" : text;
             button.IconAlignment = viewport.X < 460 ? HorizontalAlignment.Center : HorizontalAlignment.Left;

@@ -45,6 +45,11 @@ public partial class GameWindow : Control
     }
     public Vector2 MinimumSize = new(270, 200);
     public Rect2 Bounds = new(40, 85, 330, 300);
+    public WindowPlacement Placement { get; private set; } = WindowPlacement.Custom;
+    public Vector2 PlacementOffset
+    {
+        get; private set;
+    }
     public VBoxContainer Body = null!, Footer = null!;
     public WindowManager Manager = null!;
     private Panel _background = null!;
@@ -237,7 +242,14 @@ public partial class GameWindow : Control
     }
     public void SetBounds(Rect2 bounds)
     {
+        Placement = WindowPlacement.Custom;
         Bounds = bounds;
+        Constrain();
+    }
+    public void Place(WindowPlacement placement, Vector2 offset = default)
+    {
+        Placement = placement;
+        PlacementOffset = offset;
         Constrain();
     }
     public void Constrain()
@@ -246,6 +258,8 @@ public partial class GameWindow : Control
         var available = new Vector2(Math.Max(1, viewport.X - 16), Math.Max(36, viewport.Y - 105));
         var size = new Vector2(Mathf.Clamp(Bounds.Size.X, Math.Min(MinimumSize.X, available.X), available.X), Mathf.Clamp(Bounds.Size.Y, Math.Min(MinimumSize.Y, available.Y), available.Y));
         float height = IsCollapsed ? 34 : size.Y;
+        if (Placement != WindowPlacement.Custom)
+            Bounds = new(WindowPositions.Resolve(Placement, viewport, size, PlacementOffset), size);
         var position = new Vector2(Mathf.Clamp(Bounds.Position.X, 8, Math.Max(8, viewport.X - size.X - 8)), Mathf.Clamp(Bounds.Position.Y, 8, Math.Max(8, viewport.Y - height - 105)));
         Bounds = new(position, size);
         Position = position;

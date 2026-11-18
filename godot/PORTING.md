@@ -23,6 +23,19 @@ The startup scene provides the station/train menu, recommended/advanced world se
 
 The menu's New game dialog also uses `GameWindow`, including its modal input handling, focus loop, dragging and resizing. `Collapsible` and `Minimizable` independently hide the corresponding buttons and guard their actions; both are disabled for New game. They can also be changed at runtime. Modal windows default to both disabled when created through `WindowManager.Create`. The shared optional footer keeps Start game fixed while advanced settings scroll; setup values and window bounds retain their existing persistence.
 
+Windows can use explicit bounds or screen placement presets: Center, TopLeft, TopCenter, TopRight, CenterLeft, CenterRight, BottomLeft, BottomCenter and BottomRight. Presets support pixel offsets and follow viewport resizing until a manual drag, resize or `SetBounds` switches the window to Custom placement. Normal viewport constraints still apply, reserving room for the bottom HUD.
+
+```csharp
+var dialog = windows.Create("Settings", WindowPlacement.Center, new Vector2(440, 360), modal: true);
+var tools = windows.Create("Tools", WindowPlacement.TopLeft, new Vector2(330, 460), offset: new(0, 61));
+var custom = windows.Create("Custom", new Rect2(24, 85, 330, 460));
+tools.Place(WindowPlacement.BottomRight);
+```
+
+The track editor's `TrackNodeHoverMenu` now follows the browser's screen projection: hover within 100 px of a node to select its tangent side, with continuation 65 px along that side, delete 32 px beside it, and parallel-node controls on the projected lateral axis. Controls hide beyond 600 m, behind the camera, during drags, in station mode or beneath modal UI. Station-facing continuation is suppressed. Node deletion and merging require a second click; deletion preserves neighboring/parallel nodes, while merge is available only for two compatible opposite-side connections and retains outer endpoint handles.
+
+Parallel groups expose a separate continuation action that previews and builds every track, then continues from the new group until Escape. `ParallelTracks.cs` ports offset-curve handle fitting, gauge/spacing matching and tight-turn rejection from the original model. Group creation commits as one graph notification and rolls back failed connections. Preview fitting is reused while the endpoint and graph stay unchanged. Node hover, action confirmations, placement presets and grouped construction are covered by `NodeHoverChecks`; source curve fixtures can be refreshed with `node scripts/export-godot-parallel-fixtures.mjs`. The native hover layout was also reviewed in a GPU capture (`compare-godot-menu.mjs --state=build --hover=node` adds a native test track).
+
 The startup checks cover window lifecycle, minimized restoration, roll-up, bounds, editor/HUD synchronization, modal camera blocking, view options, camera switching, debug visibility and narrow-screen layout. GPU captures were reviewed at 1280x800 and 700x800. `compare-godot-menu.mjs` accepts `game`, `build`, `view` and `settings` states in addition to the menu/setup states. Terrain rendering remains a separate unfinished migration.
 
 ## Migration agreement
@@ -110,8 +123,12 @@ Verified on the installed Godot 4.7.2 .NET editor: core numerical/graph parity a
 
 All implemented Godot runtime logic and test tools now use C#. Shaders remain Godot shader language, scenes remain `.tscn`, and asset/fixture exporters remain Node scripts. The original browser TypeScript code is retained as the migration reference. Browser export remains optional and is not supported by this Godot 4 C# project currently.
 
+Segment actions use `TrackSegmentHoverMenu`: Straighten and Delete track stay above the arc-length midpoint, activate within 60 screen pixels, and require a second click with explicit confirmation colors. Clicking the rail selects a preview node and shows only Confirm split at that point; Escape or a world click cancels without modifying the track. Controls retain their target while hovered and hide during construction, dragging, station editing, modal windows and beyond 600 m. Run `--suite=hover` for focused node/segment interaction checks, or `compare-godot-menu.mjs --state=build --hover=segment` for a native visual fixture.
+
+Station building now includes full-segment translucent platform previews, rail-height side selection, continuous screen-space segment picking, Build/Remove actions and red removal previews. Junction segments are rejected; consecutive segments and parallel groups share station IDs, and the second visual side does not create a second station. Parallel clearance accounts for two platforms once per node, including the meeting point of consecutive station segments. Clicking a platform opens a reusable station window with a live world viewport and per-run usable length (parallel tracks and visual sides are not summed). Removing the final platform closes its station window. `--suite=platform` checks these interactions; `--hover=platform` and `--hover=station` add native visual fixtures to build captures.
+
 ## C# verification tools
 
-`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
+`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `hover`, `platform`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
 
 `tests/physics-fixtures.json` preserves 144 numerical cases captured from the previous GDScript physics helper before removal: realistic/HO, started/stopped, uphill/downhill/flat, several speeds and speed limits. It is a migration baseline, not evidence of full browser train-simulation integration.
