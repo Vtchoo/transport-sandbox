@@ -13,7 +13,7 @@ The project now requires the .NET editor and .NET 8 SDK or newer. The editor bui
 - Gauge-aware signed-endpoint track graph: Bezier handles, parallel groups, split/merge, station grouping and junction restrictions.
 - Directed-edge router with a binary priority queue and bounded route cache. It is not yet connected to a train simulation.
 
-The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses per-segment instanced rails, sleepers and platforms. Track editor work is in progress; consist editing, train simulation integration and game windows are not complete. Do not treat the project as feature complete.
+The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track editor work is in progress; consist editing, train simulation integration and game windows are not complete. Do not treat the project as feature complete.
 
 ## Migration agreement
 
@@ -40,7 +40,13 @@ Menu verification: source-based fixtures pass for all three compositions, camera
 
 Terrain now uses `scripts/terrain/TerrainSampler.cs` for double-precision noise, heights and palette calculation, and `TerrainBackend.cs` for complete chunk jobs. `TerrainWorld.cs` submits one request per chunk. Sampling and scheduling now stay in C# throughout. Up to three .NET worker tasks run concurrently (matching the browser's CPU-based limit); completed buffers are polled and uploaded on the main thread. Scene teardown cancels outstanding jobs and joins workers.
 
-The loader now follows the browser's radius of ten chunks, altitude-aware 128/64/32/16 tessellation and nearby-first priorities, refilling workers every frame rather than every 200 ms. Distant chunks skip vegetation generation. The native tree placement/models and terrain rendering remain unfinished migrations; this change does not claim vegetation, earthworks or gameplay rendering parity.
+The loader now follows the browser's radius of ten chunks, altitude-aware 128/64/32/16 tessellation and nearby-first priorities, refilling workers every frame rather than every 200 ms. Distant chunks skip vegetation generation. Tree meshes now reproduce the original broadleaf/conifer geometry and LODs; all 256 menu tree transforms and leaf colors match browser fixtures. Natural terrain tree distribution and terrain rendering remain unfinished migrations; this does not claim vegetation placement, earthworks or gameplay rendering parity.
+
+`scripts/track/TrackGeometry.cs` ports the browser's 512-sample arc-length mapping, finite-difference tangents, upright frames and swept profiles. Rail heads are at curve Y=0; rails are 0.07 m wide and 0.15 m high, with gauge measured between inner faces. Ballast shoulders span 4 m at the base and 2.72 m at the top, from -0.65 m to -0.33 m. Sleepers measure gauge + 0.85 m by 0.18 m by 0.24 m and sit at -0.24 m, spaced by the original arc-length rules. Platforms retain the 3 m slab, caps and yellow edge strip. Menu and gameplay use the same `TrackVisual` objects and native materials.
+
+Sleepers retain 64-instance batches, original ordering, draw-count LOD and hysteresis at 150/400/900/1600 m. Moving the camera updates visible instance counts without rebuilding mesh geometry. Edits rebuild changed segments only; affected segments use rails-only geometry while dragging, with full detail restored on release. Placement previews use the same swept rails and ballast with translucency.
+
+Refresh geometry fixtures with `node scripts/export-godot-track-fixtures.mjs` and `node scripts/export-godot-tree-fixtures.mjs`. The core suite compares every swept vertex, normal and triangle against seven browser cases (straight, graded curve, translated coordinates, vertical, short, preview and rails-only), plus all sleeper matrices, counts and hysteresis transitions. Tree checks cover all five source meshes and the 256 original menu placements/colors. The startup suite verifies affected-only drag rendering, restoration, unchanged-track reuse and gauge-aware previews.
 
 Run `godot --headless --path godot tests/runner.tscn -- --suite=terrain` for parallel completion, cancellation, chunk vertices/normals/colors/topology and all 441 LOD decisions against browser fixtures. Refresh these fixtures with `node scripts/export-godot-chunk-fixtures.mjs`. The `core` suite also validates the C# heights and UTF-16 seed hashes, including Unicode seeds.
 

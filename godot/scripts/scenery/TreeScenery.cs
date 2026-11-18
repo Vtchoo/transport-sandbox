@@ -18,22 +18,27 @@ public static class TreeScenery
         : Near[species] ??= Materialize(TreeGeometry.Crown(species, false), true);
     private static ArrayMesh Materialize(ArrayMesh mesh, bool crown)
     {
-        mesh.SurfaceSetMaterial(0, new StandardMaterial3D { AlbedoColor = crown ? Colors.White : new Color("655343"),
-            Roughness = 1, VertexColorUseAsAlbedo = crown, VertexColorIsSrgb = false });
+        mesh.SurfaceSetMaterial(0, new StandardMaterial3D
+        {
+            AlbedoColor = crown ? Colors.White : new Color("655343"),
+            Roughness = 1,
+            VertexColorUseAsAlbedo = crown,
+            VertexColorIsSrgb = false
+        });
         return mesh;
     }
     public static TreeData[] MenuTrees()
     {
         var data = new List<TreeData>();
         for (int row = 0; row < 8; row++)
-        for (int i = 0; i < 32; i++)
-        {
-            double jitter = Math.Sin(i * 17.13 + row * 8.7);
-            // Match the original Float32Array rounding before transforms are constructed.
-            data.Add(new((float)(18 + row * 10 + jitter * 3), -.65f,
-                (float)((i - 16) * 10 + Math.Cos(row * 12 + i) * 4),
-                (float)(9 + (jitter + 1) * 3), (float)(3 + jitter + 1), (float)(i + row * .7), row % 2));
-        }
+            for (int i = 0; i < 32; i++)
+            {
+                double jitter = Math.Sin(i * 17.13 + row * 8.7);
+                // Match the original Float32Array rounding before transforms are constructed.
+                data.Add(new((float)(18 + row * 10 + jitter * 3), -.65f,
+                    (float)((i - 16) * 10 + Math.Cos(row * 12 + i) * 4),
+                    (float)(9 + (jitter + 1) * 3), (float)(3 + jitter + 1), (float)(i + row * .7), row % 2));
+            }
         return data.ToArray();
     }
     public static TreeChunk CreateWoodland() => Create(MenuTrees(), "Woodland");
@@ -44,7 +49,8 @@ public static class TreeScenery
         for (int species = 0; species < 2; species++)
         {
             var trees = entries.Where(tree => tree.Species == species).ToArray();
-            if (trees.Length == 0) continue;
+            if (trees.Length == 0)
+                continue;
             var trunk = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = Trunk, InstanceCount = trees.Length };
             var crown = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, UseColors = true, Mesh = Crown(species, false), InstanceCount = trees.Length };
             var trunkTransforms = new Transform3D[trees.Length];
@@ -64,7 +70,8 @@ public static class TreeScenery
             }
             var trunkNode = new MultiMeshInstance3D { Name = $"Trunks_{species}", Multimesh = trunk };
             var crownNode = new MultiMeshInstance3D { Name = $"Crowns_{species}", Multimesh = crown };
-            chunk.AddChild(trunkNode); chunk.AddChild(crownNode);
+            chunk.AddChild(trunkNode);
+            chunk.AddChild(crownNode);
             chunk.Batches.Add(new(species, trunkNode, crownNode, trunkTransforms, crownTransforms, colors));
         }
         return chunk;
@@ -76,10 +83,16 @@ public static class TreeScenery
         double p = l <= .5 ? l * (1 + s) : l + s - l * s, q = 2 * l - p;
         double Hue(double t)
         {
-            if (t < 0) t += 1; if (t > 1) t -= 1;
-            if (t < 1.0 / 6) return q + (p - q) * 6 * t;
-            if (t < .5) return p;
-            if (t < 2.0 / 3) return q + (p - q) * 6 * (2.0 / 3 - t);
+            if (t < 0)
+                t += 1;
+            if (t > 1)
+                t -= 1;
+            if (t < 1.0 / 6)
+                return q + (p - q) * 6 * t;
+            if (t < .5)
+                return p;
+            if (t < 2.0 / 3)
+                return q + (p - q) * 6 * (2.0 / 3 - t);
             return q;
         }
         return new((float)Hue(h + 1.0 / 3), (float)Hue(h), (float)Hue(h - 1.0 / 3));
@@ -97,7 +110,8 @@ public partial class TreeChunk : Node3D
         {
             batch.Trunk.Visible = distance < 1100;
             var mesh = TreeScenery.Crown(batch.Species, distance >= 850);
-            if (batch.Crown.Multimesh.Mesh != mesh) batch.Crown.Multimesh.Mesh = mesh;
+            if (batch.Crown.Multimesh.Mesh != mesh)
+                batch.Crown.Multimesh.Mesh = mesh;
         }
     }
 }

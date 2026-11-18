@@ -148,7 +148,7 @@ public partial class TrackEditor : Node
             Network.Nodes.TryGetValue(node, out var snap);
             if (snap != null && snap.Id != Source)
                 end = snap.Position;
-            Renderer.ShowPreview(PreviewControls(end, snap));
+            Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge);
         }
         else if (hit != null && Mode == "track" && node == 0)
         {

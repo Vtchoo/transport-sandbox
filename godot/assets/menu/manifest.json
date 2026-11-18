@@ -1,0 +1,6253 @@
+{
+  "presets": [
+	{
+	  "gauge": 1435,
+	  "cars": [
+		"tgv-sud-est-power",
+		"tgv-sud-est-coach",
+		"tgv-sud-est-coach",
+		"tgv-sud-est-coach",
+        "tgv-sud-est-power"
+	  ],
+	  "length": 99.30499999999999,
+	  "offsets": [
+		40.152499999999996,
+		20.394999999999996,
+		-3.552713678800501e-15,
+		-20.395000000000003,
+		-40.1525
+	  ],
+	  "exhausts": [],
+	  "materials": {
+		"menu_material_0": {
+		  "color": [
+			0.1844749944900301,
+			0.181164244239483,
+			0.14702726648767014
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_1": {
+		  "color": [
+			0.36130677977297226,
+			0.41254261347374327,
+			0.4286904966038916
+		  ],
+		  "metalness": 0.7,
+		  "roughness": 0.3,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_2": {
+		  "color": [
+			0.11697066774917994,
+			0.08650046202808521,
+			0.061246054224174035
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_3": {
+		  "color": [
+			0.29613827078752575,
+			0.28314874041918053,
+			0.2541520943200296
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_4": {
+		  "color": [
+			0.8148465722120952,
+			0.6172065624120635,
+			0.17788841597328695
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_5": {
+		  "color": [
+			0.1499597898006365,
+			0.21586050010324417,
+			0.08021982030622662
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_6": {
+		  "color": [
+			0.3277780980458375,
+			0.3005437944049895,
+			0.23074004851362043
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_7": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_8": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_9": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_10": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_11": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_12": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_13": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_14": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_15": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_16": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_17": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_18": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_19": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_20": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_21": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_22": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_23": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_24": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_25": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_26": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_27": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_28": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_29": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_30": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_31": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_32": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_33": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_34": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_35": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_36": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_37": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_38": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_39": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_40": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_41": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_42": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_43": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_44": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_45": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_46": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_47": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_48": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_49": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_50": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_51": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_52": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_53": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_54": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_55": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_56": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_57": {
+		  "color": [
+			0.8631572134510892,
+			0.13843161502267545,
+			0.01764195448412081
+		  ],
+		  "metalness": 0.25,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_58": {
+		  "color": [
+			0.16202937562896222,
+			0.1912016827303171,
+			0.21586050010324417
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.45,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_59": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_60": {
+		  "color": [
+			0.7912979403281551,
+			0.7379104087672317,
+			0.6307571363387763
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.5,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_61": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_62": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_63": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_64": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_65": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_66": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_67": {
+		  "color": [
+			0.8631572134510892,
+			0.13843161502267545,
+			0.01764195448412081
+		  ],
+		  "metalness": 0.25,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_68": {
+		  "color": [
+			0.16202937562896222,
+			0.1912016827303171,
+			0.21586050010324417
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.45,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_69": {
+		  "color": [
+			0.7912979403281551,
+			0.7379104087672317,
+			0.6307571363387763
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.5,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_70": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_71": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_72": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_73": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_74": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_75": {
+		  "color": [
+			0.13013647668074665,
+			0.08650046202808521,
+			0.05612849004241121
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_76": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		}
+	  },
+	  "model": "res://assets/menu/menu-0.glb"
+	},
+	{
+	  "gauge": 914,
+	  "cars": [
+		"drgw-consolidation",
+		"drgw-wood-baggage",
+		"drgw-wood-coach",
+        "drgw-wood-coach"
+	  ],
+	  "length": 64.26,
+	  "offsets": [
+		22.980000000000004,
+		6.110000000000001,
+		-9.209999999999997,
+		-24.529999999999994
+	  ],
+	  "exhausts": [
+		{
+		  "position": [
+			0,
+			3.97,
+			30.130000000000003
+		  ],
+		  "kind": "steam"
+		}
+	  ],
+	  "materials": {
+		"menu_material_0": {
+		  "color": [
+			0.1844749944900301,
+			0.181164244239483,
+			0.14702726648767014
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_1": {
+		  "color": [
+			0.36130677977297226,
+			0.41254261347374327,
+			0.4286904966038916
+		  ],
+		  "metalness": 0.7,
+		  "roughness": 0.3,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_2": {
+		  "color": [
+			0.11697066774917994,
+			0.08650046202808521,
+			0.061246054224174035
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_3": {
+		  "color": [
+			0.29613827078752575,
+			0.28314874041918053,
+			0.2541520943200296
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_4": {
+		  "color": [
+			0.8148465722120952,
+			0.6172065624120635,
+			0.17788841597328695
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_5": {
+		  "color": [
+			0.1499597898006365,
+			0.21586050010324417,
+			0.08021982030622662
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_6": {
+		  "color": [
+			0.3277780980458375,
+			0.3005437944049895,
+			0.23074004851362043
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_7": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_8": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_9": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_10": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_11": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_12": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_13": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_14": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_15": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_16": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_17": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_18": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_19": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_20": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_21": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_22": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_23": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_24": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_25": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_26": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_27": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_28": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_29": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_30": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_31": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_32": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_33": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_34": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_35": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_36": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_37": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_38": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_39": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_40": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_41": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_42": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_43": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_44": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_45": {
+		  "color": [
+			0.4735314961384573,
+			0.35640014413537763,
+			0.10461648408208657
+		  ],
+		  "metalness": 0.7,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_46": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_47": {
+		  "color": [
+			0.8069522576650873,
+			0.46207699964472876,
+			0.028426039499072558
+		  ],
+		  "metalness": 0.55,
+		  "roughness": 0.35,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_48": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_49": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_50": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_51": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_52": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_53": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_54": {
+		  "color": [
+			1,
+			0.775822218312646,
+			0.3813260114221238
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			1,
+			0.6172065624120635,
+			0.1844749944900301
+		  ],
+		  "emissiveIntensity": 0.8
+		},
+		"menu_material_55": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_56": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_57": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_58": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_59": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_60": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_61": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_62": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_63": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_64": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_65": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_66": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_67": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_68": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_69": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_70": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_71": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_72": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_73": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_74": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_75": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_76": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_77": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_78": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_79": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_80": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_81": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_82": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_83": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_84": {
+		  "color": [
+			0.02955683443236377,
+			0.0343398068028541,
+			0.02732089163382382
+		  ],
+		  "metalness": 0.45,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_85": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_86": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_87": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_88": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_89": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_90": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_91": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_92": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_93": {
+		  "color": [
+			0.181164244239483,
+			0.20507873637973145,
+			0.1878207722902346
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.65,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_94": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_95": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_96": {
+		  "color": [
+			0.8069522576650873,
+			0.46207699964472876,
+			0.028426039499072558
+		  ],
+		  "metalness": 0.55,
+		  "roughness": 0.35,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_97": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_98": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_99": {
+		  "color": [
+			0.018500220124016652,
+			0.02028856305209031,
+			0.01764195448412081
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_100": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_101": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_102": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_103": {
+		  "color": [
+			0.8069522576650873,
+			0.46207699964472876,
+			0.028426039499072558
+		  ],
+		  "metalness": 0.55,
+		  "roughness": 0.35,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_104": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_105": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_106": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_107": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_108": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_109": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_110": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_111": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_112": {
+		  "color": [
+			0.8069522576650873,
+			0.46207699964472876,
+			0.028426039499072558
+		  ],
+		  "metalness": 0.55,
+		  "roughness": 0.35,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_113": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_114": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_115": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_116": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_117": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_118": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_119": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_120": {
+		  "color": [
+			0.13013647668074665,
+			0.08650046202808521,
+			0.05612849004241121
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_121": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		}
+	  },
+	  "model": "res://assets/menu/menu-1.glb"
+	},
+	{
+	  "gauge": 1435,
+	  "cars": [
+		"atsf-f7a",
+		"atsf-coach",
+		"atsf-pleasure-dome",
+        "atsf-coach"
+	  ],
+	  "length": 93.324,
+	  "offsets": [
+		38.9404,
+		18.1448,
+		-7.781600000000001,
+		-33.708
+	  ],
+	  "exhausts": [
+		{
+		  "position": [
+			0,
+			4.34,
+			39.1404
+		  ],
+		  "kind": "diesel",
+		  "idleRate": 1.2
+		}
+	  ],
+	  "materials": {
+		"menu_material_0": {
+		  "color": [
+			0.1844749944900301,
+			0.181164244239483,
+			0.14702726648767014
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_1": {
+		  "color": [
+			0.36130677977297226,
+			0.41254261347374327,
+			0.4286904966038916
+		  ],
+		  "metalness": 0.7,
+		  "roughness": 0.3,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_2": {
+		  "color": [
+			0.11697066774917994,
+			0.08650046202808521,
+			0.061246054224174035
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_3": {
+		  "color": [
+			0.29613827078752575,
+			0.28314874041918053,
+			0.2541520943200296
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_4": {
+		  "color": [
+			0.8148465722120952,
+			0.6172065624120635,
+			0.17788841597328695
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.95,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 2,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_5": {
+		  "color": [
+			0.1499597898006365,
+			0.21586050010324417,
+			0.08021982030622662
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_6": {
+		  "color": [
+			0.3277780980458375,
+			0.3005437944049895,
+			0.23074004851362043
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_7": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_8": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_9": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_10": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_11": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_12": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_13": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_14": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_15": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_16": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_17": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_18": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_19": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_20": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_21": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_22": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_23": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_24": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_25": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_26": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_27": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_28": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_29": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_30": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_31": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_32": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_33": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_34": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_35": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_36": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_37": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_38": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_39": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_40": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_41": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_42": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_43": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_44": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_45": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_46": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_47": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_48": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_49": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_50": {
+		  "color": [
+			0.08650046202808521,
+			0.11443537381770343,
+			0.09758734713304495
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_51": {
+		  "color": [
+			0.19461783043107173,
+			0.09530746662221588,
+			0.040915196900556984
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_52": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_53": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_54": {
+		  "color": [
+			0.04817182422013895,
+			0.08228270712149792,
+			0.06847816983662762
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_55": {
+		  "color": [
+			0.8148465722120952,
+			0.7379104087672317,
+			0.4793201830913402
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.85,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_56": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_57": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_58": {
+		  "color": [
+			0.514917665367466,
+			0.015208514418949472,
+			0.012983032338510335
+		  ],
+		  "metalness": 0.4,
+		  "roughness": 0.34,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_59": {
+		  "color": [
+			0.8069522576650873,
+			0.46207699964472876,
+			0.028426039499072558
+		  ],
+		  "metalness": 0.55,
+		  "roughness": 0.35,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_60": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_61": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_62": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_63": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_64": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_65": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_66": {
+		  "color": [
+			1,
+			0.8468732315065057,
+			0.5394794890033748
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			1,
+			0.6938717612856897,
+			0.2541520943200296
+		  ],
+		  "emissiveIntensity": 1.8
+		},
+		"menu_material_67": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_68": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_69": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_70": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_71": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_72": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_73": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_74": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_75": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_76": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_77": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_78": {
+		  "color": [
+			0.007499032040460618,
+			0.011612245176281512,
+			0.012286488353353374
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.9,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_79": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_80": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_81": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_82": {
+		  "color": [
+			0.55201140150344,
+			0.5840784178830671,
+			0.5972017883558645
+		  ],
+		  "metalness": 0.75,
+		  "roughness": 0.32,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_83": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_84": {
+		  "color": [
+			0.008568125615105716,
+			0.0343398068028541,
+			0.04518620437910499
+		  ],
+		  "metalness": 0.6,
+		  "roughness": 0.17,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_85": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_86": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_87": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_88": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": true,
+		  "transparent": true,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": true,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 0
+		},
+		"menu_material_89": {
+		  "color": [
+			0.007499032040460618,
+			0.011612245176281512,
+			0.012286488353353374
+		  ],
+		  "metalness": 0,
+		  "roughness": 0.9,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_90": {
+		  "color": [
+			0.01680737574872402,
+			0.023153366173251363,
+			0.024157632443547246
+		  ],
+		  "metalness": 0.3,
+		  "roughness": 0.7,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_91": {
+		  "color": [
+			0.33245153633549385,
+			0.3813260114221238,
+			0.4019777798219466
+		  ],
+		  "metalness": 0.65,
+		  "roughness": 0.4,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_92": {
+		  "color": [
+			0.13013647668074665,
+			0.08650046202808521,
+			0.05612849004241121
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		},
+		"menu_material_93": {
+		  "color": [
+			1,
+			1,
+			1
+		  ],
+		  "metalness": 0,
+		  "roughness": 1,
+		  "unlit": false,
+		  "transparent": false,
+		  "opacity": 1,
+		  "side": 0,
+		  "map": false,
+		  "emissive": [
+			0,
+			0,
+			0
+		  ],
+		  "emissiveIntensity": 1
+		}
+	  },
+	  "model": "res://assets/menu/menu-2.glb"
+	}
+  ],
+  "cameras": [
+	{
+	  "preset": 0,
+	  "aspect": 1.7777777777777777,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		62.652499999999996
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 0,
+	  "aspect": 1.7777777777777777,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		62.652499999999996
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 0,
+	  "aspect": 1.6,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		62.652499999999996
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 0,
+	  "aspect": 1.6,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		62.652499999999996
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 0,
+	  "aspect": 0.6,
+	  "time": 0,
+	  "position": [
+		-4.242424242424242,
+		2.8,
+		71.10249999999999
+	  ],
+	  "quaternion": [
+		-0.01471251149418857,
+		-0.06357921115092134,
+		-0.0009374085229365054,
+		0.9978679006663261
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 0,
+	  "aspect": 0.6,
+	  "time": 30000,
+	  "position": [
+		-3.962812516634074,
+		2.8,
+		71.10249999999999
+	  ],
+	  "quaternion": [
+		-0.01473561303565606,
+		-0.05847011406796143,
+		-0.0008631639117495653,
+		0.9981800250543009
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 1.7777777777777777,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		45.13
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 1.7777777777777777,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		45.13
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 1.6,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		45.13
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 1.6,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		45.13
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 0.6,
+	  "time": 0,
+	  "position": [
+		-4.242424242424242,
+		2.8,
+		53.58
+	  ],
+	  "quaternion": [
+		-0.01471251149418857,
+		-0.06357921115092134,
+		-0.0009374085229365054,
+		0.9978679006663261
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 1,
+	  "aspect": 0.6,
+	  "time": 30000,
+	  "position": [
+		-3.962812516634074,
+		2.8,
+		53.58
+	  ],
+	  "quaternion": [
+		-0.01473561303565606,
+		-0.05847011406796143,
+		-0.0008631639117495653,
+		0.9981800250543009
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 1.7777777777777777,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		59.662
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 1.7777777777777777,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		59.662
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 1.6,
+	  "time": 0,
+	  "position": [
+		-7,
+		2.8,
+		59.662
+	  ],
+	  "quaternion": [
+		-0.017327389403080637,
+		-0.13689458884187702,
+		-0.002394942653356681,
+		0.9904311674073948
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 1.6,
+	  "time": 30000,
+	  "position": [
+		-6.720388274209832,
+		2.8,
+		59.662
+	  ],
+	  "quaternion": [
+		-0.017397701155402196,
+		-0.13104205865473786,
+		-0.002300021374743364,
+		0.9912214731127001
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 0.6,
+	  "time": 0,
+	  "position": [
+		-4.242424242424242,
+		2.8,
+		68.112
+	  ],
+	  "quaternion": [
+		-0.01471251149418857,
+		-0.06357921115092134,
+		-0.0009374085229365054,
+		0.9978679006663261
+	  ],
+	  "fov": 38
+	},
+	{
+	  "preset": 2,
+	  "aspect": 0.6,
+	  "time": 30000,
+	  "position": [
+		-3.962812516634074,
+		2.8,
+		68.112
+	  ],
+	  "quaternion": [
+		-0.01473561303565606,
+		-0.05847011406796143,
+		-0.0008631639117495653,
+		0.9981800250543009
+	  ],
+	  "fov": 38
+	}
+  ]
+}

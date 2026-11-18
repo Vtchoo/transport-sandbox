@@ -4,13 +4,18 @@ using System.Collections.Generic;
 
 namespace TransportSandbox;
 
+// Geometry conventions adapted from Three.js (MIT); license in assets/menu/README.md.
 /// <summary>Original tree primitives, with Three.js vertex conventions and Godot face winding.</summary>
 public static class TreeGeometry
 {
     private readonly record struct V(double X, double Y, double Z)
     {
         public V Lerp(V b, double t) => new(X + (b.X - X) * t, Y + (b.Y - Y) * t, Z + (b.Z - Z) * t);
-        public V Unit() { double d = Math.Sqrt(X * X + Y * Y + Z * Z); return new(X / d, Y / d, Z / d); }
+        public V Unit()
+        {
+            double d = Math.Sqrt(X * X + Y * Y + Z * Z);
+            return new(X / d, Y / d, Z / d);
+        }
         public Vector3 Float() => new((float)X, (float)Y, (float)Z);
     }
     private sealed class Builder
@@ -27,16 +32,21 @@ public static class TreeGeometry
         }
         public ArrayMesh Mesh()
         {
-            var arrays = new Godot.Collections.Array(); arrays.Resize((int)Godot.Mesh.ArrayType.Max);
+            var arrays = new Godot.Collections.Array();
+            arrays.Resize((int)Godot.Mesh.ArrayType.Max);
             arrays[(int)Godot.Mesh.ArrayType.Vertex] = Vertices.ToArray();
             arrays[(int)Godot.Mesh.ArrayType.Normal] = Normals.ToArray();
             arrays[(int)Godot.Mesh.ArrayType.Index] = Indices.ToArray();
-            var mesh = new ArrayMesh(); mesh.AddSurfaceFromArrays(Godot.Mesh.PrimitiveType.Triangles, arrays); return mesh;
+            var mesh = new ArrayMesh();
+            mesh.AddSurfaceFromArrays(Godot.Mesh.PrimitiveType.Triangles, arrays);
+            return mesh;
         }
     }
     public static ArrayMesh Trunk()
     {
-        var builder = new Builder(); Cylinder(builder, .013, .025, 1, 5, .5, false); return builder.Mesh();
+        var builder = new Builder();
+        Cylinder(builder, .013, .025, 1, 5, .5, false);
+        return builder.Mesh();
     }
     public static ArrayMesh Crown(int species, bool distant)
     {
@@ -44,14 +54,16 @@ public static class TreeGeometry
         if (species == 1)
         {
             var parts = distant ? new[] { (1.0, .82, .59) } : new[] { (1.0, .57, .4), (.82, .52, .6), (.56, .43, .8) };
-            foreach (var (r, h, y) in parts) Cylinder(builder, 0, r, h, distant ? 5 : 7, y, true);
+            foreach (var (r, h, y) in parts)
+                Cylinder(builder, 0, r, h, distant ? 5 : 7, y, true);
         }
         else
         {
             var parts = distant ? new[] { (0.0, .69, 0.0, 1.0, .32, .9) } : new[] {
                 (0.0,.72,0.0,.85,.29,.8),(-.4,.57,.12,.64,.24,.67),
                 (.42,.62,.17,.66,.27,.65),(.05,.59,-.4,.72,.26,.63) };
-            foreach (var (x, y, z, sx, sy, sz) in parts) Icosahedron(builder, distant ? 0 : 1, new(x, y, z), new(sx, sy, sz));
+            foreach (var (x, y, z, sx, sy, sz) in parts)
+                Icosahedron(builder, distant ? 0 : 1, new(x, y, z), new(sx, sy, sz));
         }
         return builder.Mesh();
     }
@@ -63,19 +75,30 @@ public static class TreeGeometry
         Vector3 Normal(int i) => new V(Math.Sin(i * Math.Tau / segments), (bottom - top) / height, Math.Cos(i * Math.Tau / segments)).Unit().Float();
         for (int i = 0; i < segments; i++)
         {
-            var a = Vertex(top, i, height / 2); var b = Vertex(bottom, i, -height / 2);
-            var c = Vertex(bottom, i + 1, -height / 2); var d = Vertex(top, i + 1, height / 2);
-            if (top > 0) builder.Triangle(a, b, d, flat ? null : Normal(i), flat ? null : Normal(i), flat ? null : Normal(i + 1));
-            if (bottom > 0) builder.Triangle(b, c, d, flat ? null : Normal(i), flat ? null : Normal(i + 1), flat ? null : Normal(i + 1));
+            var a = Vertex(top, i, height / 2);
+            var b = Vertex(bottom, i, -height / 2);
+            var c = Vertex(bottom, i + 1, -height / 2);
+            var d = Vertex(top, i + 1, height / 2);
+            if (top > 0)
+                builder.Triangle(a, b, d, flat ? null : Normal(i), flat ? null : Normal(i), flat ? null : Normal(i + 1));
+            if (bottom > 0)
+                builder.Triangle(b, c, d, flat ? null : Normal(i), flat ? null : Normal(i + 1), flat ? null : Normal(i + 1));
         }
         foreach (bool upper in new[] { true, false })
         {
-            double radius = upper ? top : bottom; if (radius == 0) continue;
-            double localY = height / 2 * (upper ? 1 : -1); var center = Vertex(0, 0, localY);
+            double radius = upper ? top : bottom;
+            if (radius == 0)
+                continue;
+            double localY = height / 2 * (upper ? 1 : -1);
+            var center = Vertex(0, 0, localY);
             for (int i = 0; i < segments; i++)
             {
-                var a = Vertex(radius, i, localY); var b = Vertex(radius, i + 1, localY);
-                if (upper) builder.Triangle(a, b, center); else builder.Triangle(b, a, center);
+                var a = Vertex(radius, i, localY);
+                var b = Vertex(radius, i + 1, localY);
+                if (upper)
+                    builder.Triangle(a, b, center);
+                else
+                    builder.Triangle(b, a, center);
             }
         }
     }
@@ -93,19 +116,28 @@ public static class TreeGeometry
         }
         for (int face = 0; face < indices.Length; face += 3)
         {
-            var a = vertices[indices[face]]; var b = vertices[indices[face + 1]]; var c = vertices[indices[face + 2]];
-            int cols = detail + 1; var grid = new V[cols + 1][];
+            var a = vertices[indices[face]];
+            var b = vertices[indices[face + 1]];
+            var c = vertices[indices[face + 2]];
+            int cols = detail + 1;
+            var grid = new V[cols + 1][];
             for (int i = 0; i <= cols; i++)
             {
-                var aj = a.Lerp(c, (double)i / cols); var bj = b.Lerp(c, (double)i / cols); int rows = cols - i;
+                var aj = a.Lerp(c, (double)i / cols);
+                var bj = b.Lerp(c, (double)i / cols);
+                int rows = cols - i;
                 grid[i] = new V[rows + 1];
-                for (int j = 0; j <= rows; j++) grid[i][j] = rows == 0 ? aj : aj.Lerp(bj, (double)j / rows);
+                for (int j = 0; j <= rows; j++)
+                    grid[i][j] = rows == 0 ? aj : aj.Lerp(bj, (double)j / rows);
             }
-            for (int i = 0; i < cols; i++) for (int j = 0; j < 2 * (cols - i) - 1; j++)
+            for (int i = 0; i < cols; i++)
+            for (int j = 0; j < 2 * (cols - i) - 1; j++)
             {
                 int k = j / 2;
-                if (j % 2 == 0) builder.Triangle(Transform(grid[i][k + 1]), Transform(grid[i + 1][k]), Transform(grid[i][k]));
-                else builder.Triangle(Transform(grid[i][k + 1]), Transform(grid[i + 1][k + 1]), Transform(grid[i + 1][k]));
+                if (j % 2 == 0)
+                    builder.Triangle(Transform(grid[i][k + 1]), Transform(grid[i + 1][k]), Transform(grid[i][k]));
+                else
+                    builder.Triangle(Transform(grid[i][k + 1]), Transform(grid[i + 1][k + 1]), Transform(grid[i + 1][k]));
             }
         }
     }

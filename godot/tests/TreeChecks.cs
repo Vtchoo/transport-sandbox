@@ -55,15 +55,18 @@ public static class TreeChecks
                 // Validate the exact submitted data: the headless dummy renderer has no GPU readback.
                 Transform(batch.TrunkTransforms[i], transforms[i].GetProperty("trunk"));
                 Transform(batch.CrownTransforms[i], transforms[i].GetProperty("crown"));
-                var color = batch.Colors[i]; var source = transforms[i].GetProperty("color");
-                check(Math.Abs(color.R-source[0].GetDouble()) < 1e-6 && Math.Abs(color.G-source[1].GetDouble()) < 1e-6
-                    && Math.Abs(color.B-source[2].GetDouble()) < 1e-6, "Per-tree leaf color matches original HSL");
+                var color = batch.Colors[i];
+                var source = transforms[i].GetProperty("color");
+                check(Math.Abs(color.R - source[0].GetDouble()) < 1e-6 && Math.Abs(color.G - source[1].GetDouble()) < 1e-6
+                    && Math.Abs(color.B - source[2].GetDouble()) < 1e-6, "Per-tree leaf color matches original HSL");
             }
         }
         woodland.UpdateLod(850);
         check(woodland.Batches.All(batch => batch.Crown.Multimesh.Mesh == TreeScenery.Crown(batch.Species, true) && batch.Trunk.Visible), "Distant tree crowns switch at 850 metres");
-        woodland.UpdateLod(1100); check(woodland.Batches.All(batch => !batch.Trunk.Visible), "Tree trunks hide at 1100 metres");
-        woodland.UpdateLod(849); check(woodland.Batches.All(batch => batch.Trunk.Visible && batch.Crown.Multimesh.Mesh == TreeScenery.Crown(batch.Species, false)), "Tree LOD restores when approaching");
+        woodland.UpdateLod(1100);
+        check(woodland.Batches.All(batch => !batch.Trunk.Visible), "Tree trunks hide at 1100 metres");
+        woodland.UpdateLod(849);
+        check(woodland.Batches.All(batch => batch.Trunk.Visible && batch.Crown.Multimesh.Mesh == TreeScenery.Crown(batch.Species, false)), "Tree LOD restores when approaching");
         woodland.Free();
     }
 }

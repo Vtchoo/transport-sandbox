@@ -24,7 +24,8 @@ The menu chooses a random entry at startup. No scene export or code change is ne
 
 Menu UI layout and camera drift retain the browser reference. Scene lighting, rails,
 platforms, trees and vehicle materials now use the native game objects. The idle smoke
-shader retains Three.js-derived color mapping functions; their license follows.
+shader retains Three.js-derived color mapping functions. The procedural tree primitives
+also adapt Three.js geometry algorithms; their license follows.
 
 MIT License
 

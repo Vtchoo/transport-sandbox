@@ -79,6 +79,7 @@ public partial class TestRunner : Node
     private void Core()
     {
         TreeChecks.Run(Check);
+        TrackGeometryChecks.Run(Check);
         var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");
         foreach (var reference in fixtures.GetProperty("cases").EnumerateArray())
         {
@@ -373,6 +374,29 @@ public partial class TestRunner : Node
         editor.Parallel(edge.A, 1);
         Check(main.TrackNetwork.Edges.Count == 2, "Parallel action connects during construction");
         editor.Cancel();
+        var distantA = main.TrackNetwork.AddNode(p + new Vector3(300, 0, 0));
+        var distantB = main.TrackNetwork.AddNode(p + new Vector3(300, 0, 100));
+        var independent = main.TrackNetwork.ConnectNodes(distantA, distantB)!;
+        main.TrackRenderer._Process(0);
+        var preserved = main.TrackRenderer.Holders[independent.Id];
+        main.TrackRenderer.Selected = edge.A;
+        main.TrackRenderer.Dragging = true;
+        main.TrackNetwork.MoveNode(main.TrackNetwork.Nodes[edge.A], p + new Vector3(5, 0, 0));
+        main.TrackRenderer._Process(0);
+        var edited = main.TrackRenderer.Holders[edge.Id].Geometry;
+        Check(edited.Sleepers.Count == 0 && edited.Surfaces.All(s => s.Name != "Ballast"), "Dragging uses rails-only geometry for affected tracks");
+        Check(ReferenceEquals(preserved, main.TrackRenderer.Holders[independent.Id]) && preserved.Geometry.Sleepers.Count > 0, "Unchanged tracks retain their meshes and sleepers during dragging");
+        main.TrackRenderer.Dragging = false;
+        main.TrackRenderer.Dirty = true;
+        main.TrackRenderer._Process(0);
+        Check(main.TrackRenderer.Holders[edge.Id].Geometry.Sleepers.Count > 0, "Ending a drag restores sleepers");
+        var restoredTrack = main.TrackRenderer.Holders[edge.Id];
+        main.Camera.Position += new Vector3(500, 0, 0);
+        main.TrackRenderer._Process(0);
+        Check(ReferenceEquals(restoredTrack, main.TrackRenderer.Holders[edge.Id]), "Camera movement updates sleeper draw counts without rebuilding track meshes");
+        main.TrackRenderer.ShowPreview(main.TrackNetwork.Controls(edge), 914);
+        var preview = main.TrackRenderer.Preview.GetChild<TrackVisual>(0);
+        Check(preview.Geometry.Gauge == 914 && preview.Geometry.Sleepers.Count == 0 && preview.Geometry.Surfaces.Count == 3, "Placement preview uses matching swept rails and ballast for its gauge");
         editor.SetEnabled(false);
         main.Free();
         await Frame();
