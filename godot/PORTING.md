@@ -38,6 +38,10 @@ Parallel groups expose a separate continuation action that previews and builds e
 
 The startup checks cover window lifecycle, minimized restoration, roll-up, bounds, editor/HUD synchronization, modal camera blocking, view options, camera switching, debug visibility and narrow-screen layout. GPU captures were reviewed at 1280x800 and 700x800. `compare-godot-menu.mjs` accepts `game`, `build`, `view` and `settings` states in addition to the menu/setup states. Terrain rendering remains a separate unfinished migration.
 
+The track tools include the original world grid selector (Off, 1, 5, 10, 25 metres). G toggles snapping and restores the last nonzero spacing. The 80-cell translucent overlay follows the pointer on fixed world X/Z axes, hides over UI/in station mode/when disabled, and preserves placement height. Snap rounding matches JavaScript even at negative half-cell boundaries. Existing-node placement and Shift's outgoing straight alignment take priority.
+
+Selected parallel groups expose purple lateral spacing handles about 25 screen pixels outside their nodes. Selecting the anchor shows every non-anchor handle; selecting another member shows only its own. Dragging changes that node's offset only, ignoring Shift and world-grid snapping, with rails-only rendering restricted to its connected segments. Handles track the camera zoom. Deleting an anchor rebases the remaining offsets without moving the nodes. `--suite=grid` checks grid selection/toggling/rounding, snapping priority, native spacing dragging, rendering scope and group rebasing; `--hover=grid` adds a native visual fixture.
+
 ## Migration agreement
 
 Port behavior from the browser implementation and verify it against source-based fixtures. Do not substitute simplified behavior without discussing the change. Ask at subsystem boundaries when an engine-specific adaptation is useful; do not assume every visual or interaction should be redesigned.
@@ -129,6 +133,6 @@ Station building now includes full-segment translucent platform previews, rail-h
 
 ## C# verification tools
 
-`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `hover`, `platform`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
+`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `hover`, `platform`, `grid`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
 
 `tests/physics-fixtures.json` preserves 144 numerical cases captured from the previous GDScript physics helper before removal: realistic/HO, started/stopped, uphill/downhill/flat, several speeds and speed limits. It is a migration baseline, not evidence of full browser train-simulation integration.

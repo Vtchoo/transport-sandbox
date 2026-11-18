@@ -31,6 +31,7 @@ public sealed class TrackEdge
 }
 public sealed class ParallelGroup
 {
+    public int Anchor;
     public Vector3 Origin, Axis;
     public Dictionary<int, float> Offsets = new();
 }
@@ -186,6 +187,7 @@ public sealed partial class TrackNetwork
             node.Group = _nextGroup++;
             Groups[node.Group] = new()
             {
+                Anchor = node.Id,
                 Origin = node.Position,
                 Axis = node.Axis,
                 Offsets = new()
@@ -207,9 +209,11 @@ public sealed partial class TrackNetwork
     }
     public void SetParallelOffset(TrackNode node, float offset)
     {
-        if (node.Group == 0)
+        if (node.Group == 0 || !float.IsFinite(offset))
             return;
         var group = Groups[node.Group];
+        if (node.Id == group.Anchor)
+            return;
         group.Offsets[node.Id] = offset;
         node.Position = group.Origin + Right(group.Axis) * offset;
         NotifyChanged();
@@ -229,6 +233,14 @@ public sealed partial class TrackNetwork
                 foreach (int remaining in group.Offsets.Keys)
                     Nodes[remaining].Group = 0;
                 Groups.Remove(node.Group);
+            }
+            else if (group.Anchor == id)
+            {
+                var (anchor, offset) = group.Offsets.First();
+                group.Anchor = anchor;
+                group.Origin = Nodes[anchor].Position;
+                foreach (int member in group.Offsets.Keys.ToArray())
+                    group.Offsets[member] -= offset;
             }
         }
         Nodes.Remove(id);

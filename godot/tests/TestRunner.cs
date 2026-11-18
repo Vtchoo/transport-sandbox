@@ -74,6 +74,11 @@ public partial class TestRunner : Node
                     await Frames();
                     await PlatformChecks.Run(Check, Frame, this);
                     break;
+                case "grid":
+                    GetTree().Root.Size = new(1280, 800);
+                    await Frames();
+                    await GridSpacingChecks.Run(Check, Frame, this);
+                    break;
                 case "capture":
                     await Capture();
                     break;
@@ -446,6 +451,7 @@ public partial class TestRunner : Node
         await Frame();
         await NodeHoverChecks.Run(Check, Frame, this);
         await PlatformChecks.Run(Check, Frame, this);
+        await GridSpacingChecks.Run(Check, Frame, this);
     }
     private async Task CheckClearanceLifecycle(Main main)
     {
@@ -582,10 +588,10 @@ public partial class TestRunner : Node
                 main.HUD.ViewWindow.Open();
             if (state == "settings")
                 main.HUD.OpenSettings();
-            if (_args.GetValueOrDefault("hover", "") is "node" or "segment" or "platform" or "station")
+            if (_args.GetValueOrDefault("hover", "") is "node" or "segment" or "platform" or "station" or "grid")
             {
                 var point = main.Camera.Target + Vector3.Up * 2;
-                if (_args["hover"] is "platform" or "station")
+                if (_args["hover"] is "platform" or "station" or "grid")
                     for (int z = -65; z <= 65; z += 5)
                         for (int x = -6; x <= 6; x += 3)
                             point.Y = Math.Max(point.Y, (float)main.Generator.Sampler.Height(point.X + x, point.Z + z) + 3);
@@ -605,6 +611,15 @@ public partial class TestRunner : Node
                     await ToSignal(GetTree().CreateTimer(.05), SceneTreeTimer.SignalName.Timeout);
                 var hoverPoint = _args["hover"] == "segment" ? new TrackCurve(main.TrackNetwork.Controls(main.TrackNetwork.Edges.Values.First())).PointAt(.5).Float() : point;
                 main.TrackEditor.RefreshHover(main.Camera.UnprojectPosition(hoverPoint) + TrackNodeHoverMenu.ScreenAxis(main.Camera, point, middle.Axis) * .25f);
+                if (_args["hover"] == "grid")
+                {
+                    main.TrackRenderer.Selected = middle.Id;
+                    main.TrackRenderer.UpdateMarkers();
+                    main.TrackEditor.SetGridSpacing(5);
+                    main.TrackEditor.GridOverlay.ShowAt(point, true);
+                    main.TrackEditor.NodeMenu.Hide();
+                    main.TrackEditor.SegmentMenu.Hide();
+                }
                 if (_args["hover"] is "platform" or "station")
                 {
                     main.TrackEditor.SetMode("station");

@@ -13,6 +13,7 @@ public partial class TrackRenderer : Node3D
     public Camera3D Camera = null!;
     public readonly Dictionary<int, TrackVisual> Holders = new();
     public bool Dirty = true, Dragging;
+    public bool SpacingDrag;
     public Node3D Preview = null!;
     public int Selected;
     public Node3D Markers = new();
@@ -20,6 +21,8 @@ public partial class TrackRenderer : Node3D
     private readonly Dictionary<int, RenderKey> _keys = new();
     private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
     private readonly Dictionary<int, TrackCurve> _pickCurves = new();
+    private readonly Dictionary<int, (MeshInstance3D Marker, MeshInstance3D Line)> _spacingHandles = new();
+    public System.Collections.Generic.IEnumerable<int> SpacingNodes => _spacingHandles.Keys;
     public static StandardMaterial3D Material(Color color, float metal = 0) => new() { AlbedoColor = color, Metallic = metal, Roughness = 0.65f };
     private void MarkDirty()
     {
@@ -55,15 +58,18 @@ public partial class TrackRenderer : Node3D
             UpdateMarkers();
         }
         if (IsInstanceValid(Camera))
+        {
             foreach (var holder in Holders.Values)
                 holder.UpdateSleeperLod(Camera.GlobalPosition);
+            UpdateSpacingHandles();
+        }
     }
     public static Basis Frame(Vector3 direction) => TrackFrame.From(TrackVector.From(direction)).Basis;
     private void BuildEdge(TrackEdge edge)
     {
         var controls = Network.Controls(edge);
         bool affected = Network.Nodes.TryGetValue(Selected, out var selected) &&
-            (edge.A == Selected || edge.B == Selected || selected.Group != 0 &&
+            (edge.A == Selected || edge.B == Selected || !SpacingDrag && selected.Group != 0 &&
             (Network.Nodes[edge.A].Group == selected.Group || Network.Nodes[edge.B].Group == selected.Group));
         bool railsOnly = Dragging && affected;
         var key = new RenderKey(controls[0], controls[1], controls[2], controls[3], edge.Gauge, string.Join(",", edge.Platforms), railsOnly);
@@ -79,7 +85,11 @@ public partial class TrackRenderer : Node3D
     public void UpdateMarkers()
     {
         foreach (var child in Markers.GetChildren())
+        {
+            Markers.RemoveChild(child);
             child.QueueFree();
+        }
+        _spacingHandles.Clear();
         if (!Visible)
             return;
         foreach (var node in Network.Nodes.Values)
@@ -101,6 +111,59 @@ public partial class TrackRenderer : Node3D
             line.SurfaceAddVertex(control);
             line.SurfaceEnd();
             Markers.AddChild(new MeshInstance3D { Mesh = line, MaterialOverride = Material(new(1, 0.6f, 0.1f)) });
+        }
+        foreach (int id in SpacingHandleNodes())
+        {
+            var material = Material(new("d19aff"));
+            material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+            material.NoDepthTest = true;
+            material.RenderPriority = 20;
+            var marker = new MeshInstance3D { Mesh = new SphereMesh { Radius = 1, Height = 2 }, MaterialOverride = material, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
+            var line = new MeshInstance3D { Mesh = new ImmediateMesh(), MaterialOverride = material, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
+            Markers.AddChild(marker);
+            Markers.AddChild(line);
+            _spacingHandles[id] = (marker, line);
+        }
+        UpdateSpacingHandles();
+    }
+    public int[] SpacingHandleNodes()
+    {
+        if (!Network.Nodes.TryGetValue(Selected, out var selected) || selected.Group == 0)
+            return Array.Empty<int>();
+        var group = Network.Groups[selected.Group];
+        return group.Offsets.Keys.Where(id => id != group.Anchor && (Selected == group.Anchor || id == Selected)).ToArray();
+    }
+    public Vector3 SpacingPosition(TrackNode node)
+    {
+        var group = Network.Groups[node.Group];
+        var right = TrackNetwork.Right(group.Axis);
+        var center = Camera.UnprojectPosition(node.Position);
+        float pixels = center.DistanceTo(Camera.UnprojectPosition(node.Position + right));
+        float units = Camera.Position.DistanceTo(node.Position) * 2 * Mathf.Tan(Mathf.DegToRad(Camera.Fov / 2)) / Math.Max(1, GetViewport().GetVisibleRect().Size.Y);
+        float distance = pixels > .01f ? 25 / pixels : units * 25;
+        float sign = group.Offsets[node.Id] < 0 ? -1 : 1;
+        return node.Position + right * sign * Math.Max(.2f, distance);
+    }
+    private void UpdateSpacingHandles()
+    {
+        if (!IsInstanceValid(Camera))
+            return;
+        foreach (var (id, visual) in _spacingHandles)
+        {
+            if (!Network.Nodes.TryGetValue(id, out var node) || node.Group == 0)
+                continue;
+            var position = SpacingPosition(node);
+            visual.Marker.Position = position;
+            float units = Camera.Position.DistanceTo(position) * 2 * Mathf.Tan(Mathf.DegToRad(Camera.Fov / 2)) / Math.Max(1, GetViewport().GetVisibleRect().Size.Y);
+            visual.Marker.Scale = Vector3.One * Math.Max(.08f, units * 5);
+            bool visible = !Camera.IsPositionBehind(node.Position) && Camera.Position.DistanceTo(node.Position) <= 600;
+            visual.Marker.Visible = visual.Line.Visible = visible;
+            var mesh = (ImmediateMesh)visual.Line.Mesh;
+            mesh.ClearSurfaces();
+            mesh.SurfaceBegin(Mesh.PrimitiveType.Lines);
+            mesh.SurfaceAddVertex(node.Position);
+            mesh.SurfaceAddVertex(position);
+            mesh.SurfaceEnd();
         }
     }
     private void Marker(Vector3 point, float radius, Color color) => Markers.AddChild(new MeshInstance3D { Mesh = new SphereMesh { Radius = radius, Height = radius * 2 }, Position = point, MaterialOverride = Material(color) });

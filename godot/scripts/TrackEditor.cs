@@ -29,7 +29,9 @@ public partial class TrackEditor : Node
     private (int Source, int Side, int Target, Vector3 Point, float Angle)? _parallelGhostKey;
     private bool _parallelGhostValid;
     public Label Status = null!;
-    public OptionButton GaugePicker = null!, StationAction = null!;
+    public OptionButton GaugePicker = null!, StationAction = null!, GridPicker = null!;
+    public WorldTrackGrid GridOverlay = null!;
+    private int _lastGridSpacing = 5;
     public TrackVisual? PlatformPreview
     {
         get; private set;
@@ -44,14 +46,15 @@ public partial class TrackEditor : Node
     private VBoxContainer _trackOptions = null!, _stationOptions = null!;
     private Button _trackTab = null!, _stationTab = null!;
     public string Mode = "track";
-    public bool Enabled, Grid;
+    public bool Enabled;
+    public bool Grid => GridOverlay.Spacing != 0;
     public int Gauge = 1435, Source, SourceSide = 1, HoverNode;
     public float EndAngle;
     public TrackHit? HoverSegment, PendingSplit;
     private string _confirmation = "";
     private sealed class DragState
     {
-        public int Id; public Vector3 Point; public Vector2 Mouse; public TrackEdge? Edge; public bool Active;
+        public int Id; public Vector3 Point; public Vector2 Mouse; public TrackEdge? Edge; public bool Active, Spacing, Vertical; public float InitialOffset;
     }
     private DragState? _drag;
     private MeshInstance3D? _splitMarker;
@@ -99,6 +102,15 @@ public partial class TrackEditor : Node
             GaugePicker.AddItem($"{mm} mm", mm);
         GaugePicker.ItemSelected += index => { Gauge = GaugePicker.GetItemId((int)index); Cancel(); };
         _trackOptions.AddChild(GaugePicker);
+        UiSkin.Label(_trackOptions, "WORLD GRID SNAP - G", 9, "c0cbbd");
+        GridPicker = new();
+        UiSkin.Selector(GridPicker);
+        foreach (int spacing in WorldTrackGrid.Spacings)
+            GridPicker.AddItem(spacing == 0 ? "Off" : $"{spacing} m", spacing);
+        GridPicker.ItemSelected += index => SetGridSpacing(GridPicker.GetItemId((int)index));
+        _trackOptions.AddChild(GridPicker);
+        GridOverlay = new();
+        Renderer.AddChild(GridOverlay);
         _stationOptions = new()
         {
             Visible = false
@@ -206,12 +218,29 @@ public partial class TrackEditor : Node
     }
     public void ToggleGrid()
     {
-        Grid = !Grid;
-        Status.Text = $"World grid {(Grid ? "on" : "off")} (5 m).";
+        SetGridSpacing(Grid ? 0 : _lastGridSpacing);
+    }
+    public void SetGridSpacing(int spacing)
+    {
+        if (!WorldTrackGrid.Spacings.Contains(spacing))
+            return;
+        GridOverlay.SetSpacing(spacing);
+        GridPicker.Select(Array.IndexOf(WorldTrackGrid.Spacings, spacing));
+        if (spacing != 0)
+            _lastGridSpacing = spacing;
+        _parallelGhostKey = null;
+        Status.Text = spacing == 0 ? "World grid snap off." : $"World grid snap - {spacing} m. Existing nodes and Shift straight snap take priority.";
     }
     public void Cancel()
     {
+        if (_drag != null)
+        {
+            _drag = null;
+            Renderer.Dragging = Renderer.SpacingDrag = false;
+            Renderer.Dirty = true;
+        }
         ClearPlatformPreview();
+        GridOverlay.Hide();
         Source = 0;
         BuildingParallel = false;
         _parallelGhostKey = null;
@@ -233,6 +262,10 @@ public partial class TrackEditor : Node
     {
         if (!Enabled || Windows.HasModal || _drag != null)
         {
+            if (_drag != null)
+                GridOverlay.ShowAt(Network.Nodes[_drag.Id].Position, Enabled && !Windows.HasModal && Mode == "track");
+            else
+                GridOverlay.Hide();
             NodeMenu.Hide();
             SegmentMenu.Hide();
             if (IsInstanceValid(_splitMarker))
@@ -244,6 +277,7 @@ public partial class TrackEditor : Node
         }
         if (Mode == "station")
         {
+            GridOverlay.Hide();
             NodeMenu.Hide();
             SegmentMenu.Hide();
             Renderer.Preview.Hide();
@@ -261,6 +295,7 @@ public partial class TrackEditor : Node
         var mouse = GetViewport().GetMousePosition();
         if (GetViewport().GuiGetHoveredControl() is { } hovered)
         {
+            GridOverlay.Hide();
             Renderer.Preview.Hide();
             if (hovered != NodeMenu && hovered != SegmentMenu && !NodeMenu.IsAncestorOf(hovered) && !SegmentMenu.IsAncestorOf(hovered))
             {
@@ -273,6 +308,8 @@ public partial class TrackEditor : Node
             }
             return;
         }
+        var gridPoint = Grid ? Camera.GroundPoint(Generator) + Vector3.Up * .2f : (Vector3?)null;
+        GridOverlay.ShowAt(gridPoint, gridPoint.HasValue && Camera.Position.DistanceTo(gridPoint.Value) <= ActionDistance);
         RefreshHover(mouse);
         int node = _pointerNode;
         var hit = HoverSegment;
@@ -401,20 +438,38 @@ public partial class TrackEditor : Node
         }
         return null;
     }
+    internal int PickSpacing(Vector2 mouse)
+    {
+        int found = 0;
+        float best = 11;
+        foreach (int id in Renderer.SpacingHandleNodes())
+        {
+            var node = Network.Nodes[id];
+            if (Camera.IsPositionBehind(node.Position) || Camera.Position.DistanceTo(node.Position) > ActionDistance)
+                continue;
+            float distance = Camera.UnprojectPosition(Renderer.SpacingPosition(node)).DistanceTo(mouse);
+            if (distance < best)
+            {
+                found = id;
+                best = distance;
+            }
+        }
+        return found;
+    }
     public Vector3 PlacementPoint()
     {
         var point = Camera.GroundPoint(Generator) + Vector3.Up * 0.2f;
-        if (Grid)
-        {
-            point.X = Mathf.Snapped(point.X, 5);
-            point.Z = Mathf.Snapped(point.Z, 5);
-            point.Y = (float)Generator.Height(point.X, point.Z) + 0.2f;
-        }
-        if (Source != 0 && Input.IsPhysicalKeyPressed(Key.Shift))
+        return ConstrainPlacementPoint(point, Input.IsPhysicalKeyPressed(Key.Shift));
+    }
+    internal Vector3 ConstrainPlacementPoint(Vector3 point, bool straight)
+    {
+        if (Source != 0 && straight)
         {
             var start = Network.Nodes[Source];
-            point = start.Position + start.Axis * (point - start.Position).Dot(start.Axis);
+            float along = SourceSide * Math.Max(0, (point - start.Position).Dot(start.Axis) * SourceSide);
+            return start.Position + start.Axis * along;
         }
+        point = GridOverlay.Snap(point);
         return point;
     }
     public Vector3[] PreviewControls(Vector3 point, TrackNode? target = null)
@@ -578,8 +633,15 @@ public partial class TrackEditor : Node
         }
         int node = PickNode(mouse.Position);
         var handle = PickHandle(mouse.Position);
-        if (Source != 0)
+        int spacing = PickSpacing(mouse.Position);
+        if (Source != 0 && handle == null && spacing == 0 && node != Source)
             Place(node != 0 ? Network.Nodes[node].Position : PlacementPoint(), node);
+        else if (spacing != 0)
+        {
+            Renderer.Selected = spacing;
+            Renderer.UpdateMarkers();
+            StartDrag(spacing, Renderer.SpacingPosition(Network.Nodes[spacing]), mouse.Position, spacing: true);
+        }
         else if (handle is { } h)
             StartDrag(h.Node, h.Point, mouse.Position, h.Edge);
         else if (node != 0)
@@ -603,7 +665,7 @@ public partial class TrackEditor : Node
         }
         GetViewport().SetInputAsHandled();
     }
-    private void StartDrag(int id, Vector3 point, Vector2 mouse, TrackEdge? edge = null)
+    private void StartDrag(int id, Vector3 point, Vector2 mouse, TrackEdge? edge = null, bool spacing = false)
     {
         NodeMenu.Hide();
         SegmentMenu.Hide();
@@ -613,7 +675,10 @@ public partial class TrackEditor : Node
             Id = id,
             Point = point,
             Mouse = mouse,
-            Edge = edge
+            Edge = edge,
+            Spacing = spacing,
+            Vertical = !spacing && Input.IsPhysicalKeyPressed(Key.Shift),
+            InitialOffset = spacing ? Network.Groups[Network.Nodes[id].Group].Offsets[id] : 0
         };
     }
     public override void _Input(InputEvent input)
@@ -624,6 +689,7 @@ public partial class TrackEditor : Node
         {
             _drag = null;
             Renderer.Dragging = false;
+            Renderer.SpacingDrag = false;
             Renderer.Dirty = true;
             GetViewport().SetInputAsHandled();
         }
@@ -633,31 +699,42 @@ public partial class TrackEditor : Node
                 return;
             _drag.Active = true;
             Renderer.Dragging = true;
-            var original = _drag.Point;
-            var ray = Camera.ProjectRayOrigin(motion.Position);
-            var direction = Camera.ProjectRayNormal(motion.Position);
-            var point = original;
-            bool vertical = Input.IsPhysicalKeyPressed(Key.Shift);
-            var normal = vertical ? new Vector3(Camera.Position.X - original.X, 0, Camera.Position.Z - original.Z).Normalized() : Vector3.Up;
-            var plane = new Plane(normal, normal.Dot(original));
-            var intersection = plane.IntersectsRay(ray, direction);
-            var start = plane.IntersectsRay(Camera.ProjectRayOrigin(_drag.Mouse), Camera.ProjectRayNormal(_drag.Mouse));
-            if (intersection is { } end && start is { } begin)
+            Renderer.SpacingDrag = _drag.Spacing;
+            var node = Network.Nodes[_drag.Id];
+            bool vertical = !_drag.Spacing && (motion.ShiftPressed || Input.IsPhysicalKeyPressed(Key.Shift));
+            if (_drag.Vertical != vertical)
             {
-                if (vertical)
-                    point.Y += end.Y - begin.Y;
-                else
-                    point += end - begin;
+                _drag.Vertical = vertical;
+                _drag.Point = _drag.Edge != null ? Network.Controls(_drag.Edge)[_drag.Edge.A == node.Id ? 1 : 2] : node.Position;
+                _drag.Mouse = motion.Position;
+                GetViewport().SetInputAsHandled();
+                return;
             }
-            if (!vertical && Grid)
+            var point = _drag.Point;
+            if (vertical)
             {
-                point.X = Mathf.Snapped(point.X, 5);
-                point.Z = Mathf.Snapped(point.Z, 5);
+                float units = Math.Max(1, Camera.Position.DistanceTo(point)) * 2 * Mathf.Tan(Mathf.DegToRad(Camera.Fov / 2)) / Math.Max(1, GetViewport().GetVisibleRect().Size.Y);
+                point.Y += (_drag.Mouse.Y - motion.Position.Y) * units;
             }
-            if (_drag.Edge == null)
-                Network.MoveNode(Network.Nodes[_drag.Id], point);
             else
-                Network.SetHandle(_drag.Edge, _drag.Id, point);
+            {
+                var plane = new Plane(Vector3.Up, point.Y);
+                var end = plane.IntersectsRay(Camera.ProjectRayOrigin(motion.Position), Camera.ProjectRayNormal(motion.Position));
+                if (end == null)
+                    return;
+                point = end.Value;
+            }
+            if (_drag.Spacing)
+            {
+                var group = Network.Groups[node.Group];
+                Network.SetParallelOffset(node, _drag.InitialOffset + (point - _drag.Point).Dot(TrackNetwork.Right(group.Axis)));
+                Status.Text = "Parallel spacing - lateral movement only.";
+            }
+            else if (_drag.Edge != null)
+                Network.SetHandle(_drag.Edge, node.Id, point);
+            else
+                Network.MoveNode(node, vertical ? point : GridOverlay.Snap(point));
+            GridOverlay.ShowAt(node.Position, Enabled && Mode == "track");
             GetViewport().SetInputAsHandled();
         }
     }
