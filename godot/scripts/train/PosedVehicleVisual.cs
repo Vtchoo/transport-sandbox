@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TransportSandbox;
 
@@ -55,7 +56,13 @@ public partial class PosedVehicleVisual : Node3D
             material.EmissionEnergyMultiplier = valid ? .22f : .65f;
         }
     }
-    private Node3D Part(string name) => Vehicle.Model.FindChild(name, true, false) as Node3D ?? throw new InvalidOperationException("Missing imported model part: " + name);
+    private readonly Dictionary<string, Node3D> _parts = new();
+    private Node3D Part(string name)
+    {
+        if (!_parts.TryGetValue(name, out var part))
+            _parts[name] = part = Vehicle.Model.FindChild(name, true, false) as Node3D ?? throw new InvalidOperationException("Missing imported model part: " + name);
+        return part;
+    }
     public void Apply(VehiclePose pose)
     {
         Pose = pose;
@@ -78,6 +85,23 @@ public partial class PosedVehicleVisual : Node3D
             if (Definition.Sections.Count > 0) local.Z -= (float)Definition.Sections[0].Offset;
             yield return outlet with { Position = body.GlobalTransform * local };
         }
+    }
+    private AnimationPlayer[]? _runningGear;
+    private double _wheelPhase;
+    public void AdvanceRunningGear(double distance)
+    {
+        if (_runningGear == null)
+        {
+            _runningGear = Vehicle.Model.FindChildren("*", "AnimationPlayer", true, false).Cast<AnimationPlayer>().ToArray();
+            foreach (var player in _runningGear)
+            {
+                var name = player.GetAnimationList().FirstOrDefault(n => n.EndsWith("running_gear"));
+                if (name != null) { player.Play(name); player.Pause(); }
+            }
+        }
+        _wheelPhase = ((_wheelPhase + distance / (Math.Tau * .65)) % 1 + 1) % 1;
+        foreach (var player in _runningGear)
+            if (!string.IsNullOrEmpty(player.AssignedAnimation)) player.Seek(_wheelPhase, true);
     }
     public static VehiclePose Straight(VehicleDefinition definition, Vector3 center, Vector3 direction, int facing = 1)
     {

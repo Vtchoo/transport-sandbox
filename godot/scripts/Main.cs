@@ -105,6 +105,8 @@ public partial class Main : Node3D
         Interface.AddChild(HUD);
         Trains = new()
         {
+            HoPhysics = settings.Physics == "ho",
+            WorldSeed = settings.Seed,
             Network = TrackNetwork,
             Catalog = Vehicles,
             Camera = Camera,

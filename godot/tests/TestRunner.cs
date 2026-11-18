@@ -671,7 +671,7 @@ public partial class TestRunner : Node
                 main.Trains.RefreshPreview(main.Camera.UnprojectPosition(point));
                 if (_args["hover"] != "train-preview")
                     main.Trains.CommitPreview();
-                main.TrainUI.OpenTrain(id, _args["hover"] != "train-viewport");
+                main.TrainUI.OpenTrain(id, _args["hover"] is not ("train-viewport" or "train-moving"));
                 if (_args["hover"] == "train-preview")
                     main.Trains.StartPlacement(id);
                 main.TrainUI.Views[id].Window.SetBounds(new(870, 100, 380, 530));
@@ -681,8 +681,13 @@ public partial class TestRunner : Node
                     await Frames(2);
                     main.TrainUI.CatalogButtons["atsf-f7a"].GrabFocus();
                 }
+                if (_args["hover"] == "train-moving")
+                {
+                    main.Trains.ToggleRunning(id);
+                    for (int i = 0; i < 100; i++) main.Trains.AdvanceMovement(.1);
+                }
                 main.TrainUI._Process(.2);
-                main.TrainUI.SetProcess(_args["hover"] is "train-edit" or "train-viewport");
+                main.TrainUI.SetProcess(_args["hover"] is "train-edit" or "train-viewport" or "train-moving");
                 if (_args["hover"] == "train-preview")
                     main.Trains.RefreshPreview(main.Camera.UnprojectPosition(point));
                 var timeout = Stopwatch.StartNew();

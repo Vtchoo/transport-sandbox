@@ -73,6 +73,7 @@ public static class TrainPlacementChecks
     public static async Task Run(Action<bool, string> check, Func<Task> frame, Node parent)
     {
         Parity(check);
+        TrainMovementChecks.Parity(check);
         var graph = new TrackNetwork();
         var catalog = VehicleCatalog.Load();
         var generator = new TerrainGenerator();
@@ -235,6 +236,7 @@ public static class TrainPlacementChecks
             double half = editor.Builder.Get(steam).Length / 2;
             editor.RefreshPreview(camera.UnprojectPosition(new(30, 0, (float)(700 - half - 2))));
             check(editor.Valid && editor.SnappedStation == narrow.Station, "Placement snaps the leading coupler to its own station end");
+            TrainMovementChecks.Movement(check, editor, ui, steam);
             await frame();
         }
         finally { ui.Free(); editor.Free(); trackEditor.Free(); renderer.Free(); layer.Free(); camera.Free(); generator.Backend.Shutdown(); generator.Backend.Dispose(); }

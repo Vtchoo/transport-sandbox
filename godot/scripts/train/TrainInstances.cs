@@ -9,12 +9,15 @@ namespace TransportSandbox;
 public partial class TrainInstances : Node3D
 {
     private readonly Dictionary<string, ArrayMesh> _templates = new();
+    private readonly Dictionary<PosedVehicleVisual, Node3D[]> _parts = new();
     public override void _ExitTree()
     {
         foreach (var mesh in _templates.Values) mesh.Dispose();
         _templates.Clear();
+        _parts.Clear();
     }
     public int BatchCount { get; private set; }
+    private readonly Dictionary<string, MultiMeshInstance3D> _batches = new();
     private sealed class Surface
     {
         public Material? Material;
@@ -22,16 +25,20 @@ public partial class TrainInstances : Node3D
         public readonly List<Vector2> Uvs = new();
         public readonly List<int> Indices = new();
     }
-    private static IEnumerable<MeshInstance3D> Meshes(Node node)
+    private static IEnumerable<MeshInstance3D> Meshes(Node node, bool skipMotion = false)
     {
         if (node is MeshInstance3D mesh) yield return mesh;
-        foreach (var child in node.GetChildren()) foreach (var nested in Meshes(child)) yield return nested;
+        foreach (var child in node.GetChildren())
+        {
+            if (skipMotion && child.Name.ToString().Contains("motion_")) continue;
+            foreach (var nested in Meshes(child, skipMotion)) yield return nested;
+        }
     }
     private ArrayMesh Template(Node3D root)
     {
         var surfaces = new Dictionary<ulong, Surface>();
         var inverse = root.GlobalTransform.AffineInverse();
-        foreach (var mesh in Meshes(root))
+        foreach (var mesh in Meshes(root, true))
             for (int s = 0; s < mesh.Mesh.GetSurfaceCount(); s++)
             {
                 var material = mesh.GetActiveMaterial(s); ulong id = material?.GetInstanceId() ?? 0;
@@ -65,15 +72,23 @@ public partial class TrainInstances : Node3D
     }
     private static IEnumerable<Node3D> Parts(Node node)
     {
-        if (node is Node3D part && (part.Name.ToString().EndsWith("body") || part.Name.ToString().Contains("bogie_"))) { yield return part; yield break; }
+        if (node is Node3D part && (part.Name.ToString().EndsWith("body") || part.Name.ToString().Contains("bogie_") || part.Name.ToString().Contains("motion_"))) yield return part;
         foreach (var child in node.GetChildren()) foreach (var nested in Parts(child)) yield return nested;
     }
     public void Sync(IEnumerable<PosedVehicleVisual> vehicles)
     {
-        foreach (var child in GetChildren()) { RemoveChild(child); child.QueueFree(); }
+        var active = vehicles.ToArray();
+        var activeSet = active.ToHashSet();
+        foreach (var obsolete in _parts.Keys.Where(v => !activeSet.Contains(v)).ToArray()) _parts.Remove(obsolete);
         var batches = new Dictionary<string, (ArrayMesh Mesh, List<Transform3D> Transforms)>();
-        foreach (var vehicle in vehicles)
-            foreach (var part in Parts(vehicle.Vehicle.Model))
+        foreach (var vehicle in active)
+        {
+            if (!_parts.TryGetValue(vehicle, out var parts))
+            {
+                _parts[vehicle] = parts = Parts(vehicle.Vehicle.Model).ToArray();
+                foreach (var leaf in Meshes(vehicle.Vehicle.Model)) leaf.Visible = false;
+            }
+            foreach (var part in parts)
             {
                 string templateKey = $"{vehicle.Definition.Id}:{vehicle.Gauge}:{part.Name}";
                 if (!_templates.TryGetValue(templateKey, out var mesh))
@@ -84,14 +99,24 @@ public partial class TrainInstances : Node3D
                 string key = templateKey + $":{Math.Floor(part.GlobalPosition.X / 512)}:{Math.Floor(part.GlobalPosition.Z / 512)}";
                 if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (mesh, new());
                 batch.Transforms.Add(part.GlobalTransform);
-                foreach (var leaf in Meshes(part)) leaf.Visible = false;
             }
+        }
         BatchCount = batches.Count;
-        foreach (var batch in batches.Values)
+        foreach (var key in _batches.Keys.Where(key => !batches.ContainsKey(key)).ToArray())
         {
-            using var multi = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = batch.Mesh, InstanceCount = batch.Transforms.Count };
+            var obsolete = _batches[key]; RemoveChild(obsolete); obsolete.QueueFree(); _batches.Remove(key);
+        }
+        foreach (var (key, batch) in batches)
+        {
+            if (!_batches.TryGetValue(key, out var node))
+            {
+                node = new MultiMeshInstance3D(); _batches[key] = node; AddChild(node);
+                using var created = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = batch.Mesh };
+                node.Multimesh = created;
+            }
+            using var multi = node.Multimesh;
+            if (multi.InstanceCount != batch.Transforms.Count) multi.InstanceCount = batch.Transforms.Count;
             for (int i = 0; i < batch.Transforms.Count; i++) multi.SetInstanceTransform(i, batch.Transforms[i]);
-            AddChild(new MultiMeshInstance3D { Multimesh = multi });
         }
     }
 }

@@ -8,6 +8,8 @@ namespace TransportSandbox;
 public sealed class ParkedTrain
 {
     public int Id;
+    public TrainRoute? Route;
+    public double Effort;
     public TrainPosition Position;
     public bool Supported = true;
     public VehiclePose[] Poses = Array.Empty<VehiclePose>();
@@ -36,7 +38,7 @@ public partial class TrainEditor : Node3D
     public readonly List<PosedVehicleVisual> Ghosts = new();
     public (ParkedTrain Train, bool Front, TrainPosition Combined)? AppendTarget { get; private set; }
     private string _ghostKey = "";
-    private record SavedParked(int Id, TrainPosition Position, bool Supported, VehiclePose[] Poses, int[] Gauges);
+    private record SavedParked(int Id, TrainPosition Position, bool Supported, VehiclePose[] Poses, int[] Gauges, TrainRoute? Route);
     private record Snapshot(TrainConsist[] Trains, int? Selected, SavedParked[] Parked);
     private bool _trackDirty;
     private double _trackTimer;
@@ -56,7 +58,7 @@ public partial class TrainEditor : Node3D
         return TrackGauge(train.Id) is { } gauge ? gauges.Contains(gauge) : gauges.Length > 0;
     }
     private Snapshot Capture() => new(Builder.Trains.Select(t => t.Copy()).ToArray(), Builder.Selected?.Id,
-        Parked.Select(p => new SavedParked(p.Id, p.Position, p.Supported, p.Poses, p.Visuals.Select(v => v.Gauge).ToArray())).ToArray());
+        Parked.Select(p => new SavedParked(p.Id, p.Position, p.Supported, p.Poses, p.Visuals.Select(v => v.Gauge).ToArray(), p.Route?.Copy())).ToArray());
     private static void RemoveVisuals(IEnumerable<PosedVehicleVisual> visuals)
     {
         foreach (var visual in visuals) { visual.GetParent()?.RemoveChild(visual); visual.QueueFree(); }
@@ -80,7 +82,7 @@ public partial class TrainEditor : Node3D
         foreach (var parked in Parked) RemoveVisuals(parked.Visuals);
         Parked.Clear(); Builder.Restore(snapshot.Trains, snapshot.Selected);
         foreach (var saved in snapshot.Parked)
-            Parked.Add(new() { Id = saved.Id, Position = saved.Position, Supported = saved.Supported, Poses = saved.Poses, Visuals = CreateVisuals(Builder.Get(saved.Id), saved.Poses, saved.Gauges) });
+            Parked.Add(new() { Id = saved.Id, Position = saved.Position, Supported = saved.Supported, Route = saved.Route, Poses = saved.Poses, Visuals = CreateVisuals(Builder.Get(saved.Id), saved.Poses, saved.Gauges) });
     }
     public bool Perform(string label, Func<bool> action)
     {
@@ -125,12 +127,13 @@ public partial class TrainEditor : Node3D
                 {
                     int survivor = before.Items.FindIndex(item => train.Items.Any(i => i.Id == item.Id));
                     double shift = survivor < 0 ? (before.Length - train.Length) / 2 : before.Offsets[survivor] - train.Offsets[train.Items.FindIndex(i => i.Id == before.Items[survivor].Id)];
-                    var position = Placement.Sample(parked.Position, shift).Position;
-                    var poses = Placement.Poses(train, position);
+                    var route = RouteFor(parked);
+                    var position = route.Sample(parked.Position, shift).Position;
+                    var poses = Placement.Poses(train, position, route.Sample);
                     if (Occupied(train, poses, Parked.Where(p => !affected.Contains(p)).Concat(plans))) throw new InvalidOperationException("Not enough free track: another train occupies this space.");
-                    plans.Add(new() { Id = parked.Id, Position = position, Poses = poses });
+                    plans.Add(new() { Id = parked.Id, Position = position, Poses = poses, Route = route });
                 }
-                catch (InvalidOperationException error) when (error.Message.StartsWith("Not enough") || error.Message.Contains("curve is too tight")) { removed.Add(parked); lifted = true; }
+                catch (InvalidOperationException error) when (error is RouteEnd || error.Message.StartsWith("Not enough") || error.Message.Contains("curve is too tight")) { removed.Add(parked); lifted = true; }
             }
             foreach (var parked in affected) { RemoveVisuals(parked.Visuals); Parked.Remove(parked); }
             foreach (var plan in plans)
@@ -275,7 +278,7 @@ public partial class TrainEditor : Node3D
         foreach (var parked in Parked)
             try
             {
-                var poses = Placement.Poses(Builder.Get(parked.Id), parked.Position);
+                var poses = Placement.Poses(Builder.Get(parked.Id), parked.Position, parked.Route == null ? null : parked.Route.Sample);
                 for (int i = 0; i < poses.Length; i++) parked.Visuals[i].Apply(poses[i]);
                 parked.Poses = poses; parked.Supported = true;
             }
@@ -285,7 +288,8 @@ public partial class TrainEditor : Node3D
     private void SyncInstances() => Instances.Sync(Parked.SelectMany(p => p.Visuals));
     public override void _Process(double delta)
     {
-        Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals).SelectMany(v => v.Exhausts()));
+        AdvanceMovement(delta);
+        Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort })));
         _trackTimer += delta;
         if (_trackDirty && _trackTimer >= .25) { _trackDirty = false; _trackTimer = 0; Revalidate(); }
         if (Placing)

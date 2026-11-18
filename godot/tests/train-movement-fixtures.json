@@ -1,0 +1,927 @@
+{
+  "routes": [
+    {
+      "seed": 1,
+      "nodes": [
+        {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            200
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            500
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            120,
+            8,
+            500
+          ],
+          "axis": [
+            0.3712768924432366,
+            0.024751792829549105,
+            0.9281922311080915
+          ]
+        },
+        {
+          "position": [
+            -100,
+            0,
+            0
+          ],
+          "axis": [
+            -0.447213595499958,
+            0,
+            -0.894427190999916
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": 1,
+          "a": 1,
+          "b": 2,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 66.66666666666667,
+          "bLength": 66.66666666666667
+        },
+        {
+          "id": 2,
+          "a": 2,
+          "b": 3,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 100,
+          "bLength": 100
+        },
+        {
+          "id": 3,
+          "a": 2,
+          "b": 4,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 107.73630358941739,
+          "bLength": 107.73630358941739
+        },
+        {
+          "id": 4,
+          "a": 2,
+          "b": 5,
+          "gauge": 1435,
+          "aSide": -1,
+          "bSide": -1,
+          "aLength": 74.53559924999298,
+          "bLength": 74.53559924999298
+        }
+      ],
+      "position": {
+        "edge": 1,
+        "u": 0.5,
+        "facing": 1
+      },
+      "samples": [
+        {
+          "distance": 50,
+          "position": {
+            "edge": 1,
+            "u": 0.75,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            150
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 150,
+          "position": {
+            "edge": 2,
+            "u": 0.16666666666666666,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            250
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 250,
+          "position": {
+            "edge": 2,
+            "u": 0.5,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            350
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 20,
+          "position": {
+            "edge": 1,
+            "u": 0.6,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            120.00000000000001
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": -80,
+          "position": {
+            "edge": 1,
+            "u": 0.09999999999999998,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            19.999999999999996
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 300,
+          "position": {
+            "edge": 2,
+            "u": 0.6666666666666666,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            400
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        }
+      ],
+      "clearance": 400
+    },
+    {
+      "seed": 42,
+      "nodes": [
+        {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            200
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            500
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            120,
+            8,
+            500
+          ],
+          "axis": [
+            0.3712768924432366,
+            0.024751792829549105,
+            0.9281922311080915
+          ]
+        },
+        {
+          "position": [
+            -100,
+            0,
+            0
+          ],
+          "axis": [
+            -0.447213595499958,
+            0,
+            -0.894427190999916
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": 1,
+          "a": 1,
+          "b": 2,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 66.66666666666667,
+          "bLength": 66.66666666666667
+        },
+        {
+          "id": 2,
+          "a": 2,
+          "b": 3,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 100,
+          "bLength": 100
+        },
+        {
+          "id": 3,
+          "a": 2,
+          "b": 4,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 107.73630358941739,
+          "bLength": 107.73630358941739
+        },
+        {
+          "id": 4,
+          "a": 2,
+          "b": 5,
+          "gauge": 1435,
+          "aSide": -1,
+          "bSide": -1,
+          "aLength": 74.53559924999298,
+          "bLength": 74.53559924999298
+        }
+      ],
+      "position": {
+        "edge": 1,
+        "u": 0.5,
+        "facing": 1
+      },
+      "samples": [
+        {
+          "distance": 50,
+          "position": {
+            "edge": 1,
+            "u": 0.75,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            150
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 150,
+          "position": {
+            "edge": 2,
+            "u": 0.16666666666666666,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            250
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 250,
+          "position": {
+            "edge": 2,
+            "u": 0.5,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            350
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 20,
+          "position": {
+            "edge": 1,
+            "u": 0.6,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            120.00000000000001
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": -80,
+          "position": {
+            "edge": 1,
+            "u": 0.09999999999999998,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            19.999999999999996
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 300,
+          "position": {
+            "edge": 2,
+            "u": 0.6666666666666666,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            0,
+            0,
+            400
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        }
+      ],
+      "clearance": 400
+    },
+    {
+      "seed": 65535,
+      "nodes": [
+        {
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            200
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            0,
+            0,
+            500
+          ],
+          "axis": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "position": [
+            120,
+            8,
+            500
+          ],
+          "axis": [
+            0.3712768924432366,
+            0.024751792829549105,
+            0.9281922311080915
+          ]
+        },
+        {
+          "position": [
+            -100,
+            0,
+            0
+          ],
+          "axis": [
+            -0.447213595499958,
+            0,
+            -0.894427190999916
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": 1,
+          "a": 1,
+          "b": 2,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 66.66666666666667,
+          "bLength": 66.66666666666667
+        },
+        {
+          "id": 2,
+          "a": 2,
+          "b": 3,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 100,
+          "bLength": 100
+        },
+        {
+          "id": 3,
+          "a": 2,
+          "b": 4,
+          "gauge": 1435,
+          "aSide": 1,
+          "bSide": -1,
+          "aLength": 107.73630358941739,
+          "bLength": 107.73630358941739
+        },
+        {
+          "id": 4,
+          "a": 2,
+          "b": 5,
+          "gauge": 1435,
+          "aSide": -1,
+          "bSide": -1,
+          "aLength": 74.53559924999298,
+          "bLength": 74.53559924999298
+        }
+      ],
+      "position": {
+        "edge": 1,
+        "u": 0.5,
+        "facing": 1
+      },
+      "samples": [
+        {
+          "distance": 50,
+          "position": {
+            "edge": 1,
+            "u": 0.75,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            150
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 150,
+          "position": {
+            "edge": 3,
+            "u": 0.1532608386521192,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            5.434037719828552,
+            0.3622691813219035,
+            249.6084832205379
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": 269.4419731785744
+        },
+        {
+          "distance": 250,
+          "position": {
+            "edge": 3,
+            "u": 0.4597825159563576,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            40.08477868489342,
+            2.6723185789928943,
+            343.1084630330434
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": 765.6288504726438
+        },
+        {
+          "distance": 20,
+          "position": {
+            "edge": 1,
+            "u": 0.6,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            120.00000000000001
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": -80,
+          "position": {
+            "edge": 1,
+            "u": 0.09999999999999998,
+            "facing": 1,
+            "routeIndex": 0
+          },
+          "point": [
+            0,
+            0,
+            19.999999999999996
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": null
+        },
+        {
+          "distance": 300,
+          "position": {
+            "edge": 3,
+            "u": 0.6130433546084768,
+            "facing": 1,
+            "routeIndex": 1
+          },
+          "point": [
+            63.274065100999316,
+            4.218271006733287,
+            387.375011779522
+          ],
+          "back": [
+            0,
+            0,
+            100
+          ],
+          "radius": 3231.4018950239474
+        }
+      ],
+      "clearance": 426.2412005554338
+    }
+  ],
+  "physics": [
+    {
+      "mode": "ho",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 13.907911111111112,
+      "distance": 130.0840801931929
+    },
+    {
+      "mode": "ho",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 13.907911111111112,
+      "distance": 269.16319130431134
+    },
+    {
+      "mode": "ho",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 0,
+      "distance": 286.68774233156506
+    },
+    {
+      "mode": "ho",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 13.907911111111112,
+      "distance": 130.0840801931929
+    },
+    {
+      "mode": "ho",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 13.907911111111112,
+      "distance": 269.16319130431134
+    },
+    {
+      "mode": "ho",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 0,
+      "distance": 286.68774233156506
+    },
+    {
+      "mode": "ho",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 13.907911111111112,
+      "distance": 130.0840801931929
+    },
+    {
+      "mode": "ho",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 13.907911111111112,
+      "distance": 269.16319130431134
+    },
+    {
+      "mode": "ho",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 0,
+      "distance": 286.68774233156506
+    },
+    {
+      "mode": "realistic",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 11.10138919772943,
+      "distance": 58.15907877476571
+    },
+    {
+      "mode": "realistic",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 17.45962731819835,
+      "distance": 203.42243270532944
+    },
+    {
+      "mode": "realistic",
+      "grade": 0,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 11.141372440673363,
+      "distance": 346.398360299571
+    },
+    {
+      "mode": "realistic",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 8.09370705955397,
+      "distance": 40.51576159434153
+    },
+    {
+      "mode": "realistic",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 12.978549805241116,
+      "distance": 149.2261994587688
+    },
+    {
+      "mode": "realistic",
+      "grade": 0.04,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 2.9874993180764866,
+      "distance": 229.02696571961022
+    },
+    {
+      "mode": "realistic",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 600,
+      "speed": 13.180298550481995,
+      "distance": 70.4793215750617
+    },
+    {
+      "mode": "realistic",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1200,
+      "speed": 21.219702358189153,
+      "distance": 244.6656633117345
+    },
+    {
+      "mode": "realistic",
+      "grade": -0.03,
+      "ids": [
+        "ge-809",
+        "atsf-coach",
+        "atsf-coach"
+      ],
+      "step": 1800,
+      "speed": 17.644816203951628,
+      "distance": 438.9670136793947
+    }
+  ]
+}

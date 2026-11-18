@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace TransportSandbox;
 
-public sealed record ExhaustOutlet(Vector3 Position, bool Steam, double? IdleRate = null);
+public sealed record ExhaustOutlet(Vector3 Position, bool Steam, double? IdleRate = null, double Effort = 0);
 public sealed class SmokeParticle
 {
     public Vector3 Position, Velocity;
@@ -16,6 +16,8 @@ public partial class MenuSmoke : Node3D
     public readonly List<SmokeParticle> Particles = new();
     public Camera3D Camera = null!;
     private readonly List<double> _carry = new();
+    private readonly List<double> _effort = new();
+    private readonly List<Vector3> _positions = new();
     private uint _sequence = 1;
     private MeshInstance3D _visual = null!;
     private double RandomValue()
@@ -40,6 +42,8 @@ public partial class MenuSmoke : Node3D
             _carry.Add(0);
         if (_carry.Count > Outlets.Count)
             _carry.RemoveRange(Outlets.Count, _carry.Count - Outlets.Count);
+        while (_effort.Count < Outlets.Count) { _positions.Add(Outlets[_effort.Count].Position); _effort.Add(0); }
+        if (_effort.Count > Outlets.Count) { _effort.RemoveRange(Outlets.Count, _effort.Count - Outlets.Count); _positions.RemoveRange(Outlets.Count, _positions.Count - Outlets.Count); }
         double dt = Math.Clamp(delta, 0, 0.1);
         for (int i = Particles.Count - 1; i >= 0; i--)
         {
@@ -58,12 +62,17 @@ public partial class MenuSmoke : Node3D
             var outlet = Outlets[i];
             var position = outlet.Position;
             bool steam = outlet.Steam;
+            _effort[i] += (Math.Clamp(outlet.Effort, 0, 1) - _effort[i]) * (1 - Math.Exp(-dt * 10));
+            double effort = _effort[i];
+            var velocity = (position - _positions[i]) / (float)Math.Max(dt, .001);
+            if (velocity.LengthSquared() > 80 * 80) velocity = Vector3.Zero;
+            _positions[i] = position;
             if (position.DistanceSquaredTo(Camera.GlobalPosition) >= 2500 * 2500)
             {
                 _carry[i] = 0;
                 continue;
             }
-            _carry[i] += dt * Math.Max(0, outlet.IdleRate ?? (steam ? 2.2 : 1.2));
+            _carry[i] += dt * Math.Max(0, (outlet.IdleRate ?? (steam ? 2.2 : 1.2)) + effort * (steam ? 31 : 18));
             int amount = (int)Math.Floor(_carry[i]);
             _carry[i] -= amount;
             for (int puff = 0; puff < amount; puff++)
@@ -73,14 +82,15 @@ public partial class MenuSmoke : Node3D
                 var p = new SmokeParticle { Position = position };
                 p.Position.X += (float)((RandomValue() - 0.5) * 0.14);
                 p.Position.Z += (float)((RandomValue() - 0.5) * 0.14);
-                p.Velocity.X = (float)((RandomValue() - 0.5) * 0.5);
-                p.Velocity.Y = (float)((steam ? 1.4 : 1) + RandomValue() * 0.5);
-                p.Velocity.Z = (float)((RandomValue() - 0.5) * 0.5);
-                p.Life = 2.4 + RandomValue() * 1.2;
-                p.Radius = 0.12 + RandomValue() * 0.1;
-                p.Density = steam ? 0.1 : 0.065;
-                p.Shade = steam ? 0.43 : 0.32;
-                p.Growth = steam ? 0.28 : 0.18;
+                p.Velocity = velocity * .12f;
+                p.Velocity.X += (float)((RandomValue() - 0.5) * 0.5);
+                p.Velocity.Y += (float)((steam ? 1.4 : 1) + effort * (steam ? 3 : 1.8) + RandomValue() * 0.5);
+                p.Velocity.Z += (float)((RandomValue() - 0.5) * 0.5);
+                p.Life = 2.4 + effort * .7 + RandomValue() * 1.2;
+                p.Radius = 0.12 + effort * .09 + RandomValue() * 0.1;
+                p.Density = (steam ? 0.1 : 0.065) + effort * (steam ? .44 : .24);
+                p.Shade = (steam ? 0.43 : 0.32) - effort * (steam ? .28 : .14);
+                p.Growth = (steam ? 0.28 : 0.18) + effort * .3;
                 p.Phase = RandomValue() * Math.Tau;
                 Particles.Add(p);
             }

@@ -56,6 +56,7 @@ public partial class TrainWindows : Node
         Interface.AddChild(Coupler);
         Editor.Changed += Change;
         Editor.Warning += Warn;
+        Editor.MotionChanged += RefreshMotion;
         Editor.TrainClicked += OpenTrainFromWorld;
         Editor.PlacementStarted += SuspendTrack;
         Manager.StackingChanged += StackChanged;
@@ -201,8 +202,7 @@ public partial class TrainWindows : Node
         view.Window.Body.AddChild(view.Overview);
         view.Preview = new();
         view.Overview.AddChild(view.Preview);
-        view.Run = Button(view.Overview, "", () => { }, "play", "Start train - train movement is not ported yet.");
-        view.Run.Disabled = true;
+        view.Run = Button(view.Overview, "", () => Editor.ToggleRunning(train.Id), "play", "Start train");
         var tools = new HBoxContainer();
         view.Overview.AddChild(tools);
         view.Follow = Button(tools, "", () => ToggleFollow(train.Id), "follow", "Follow train");
@@ -317,7 +317,17 @@ public partial class TrainWindows : Node
     private static void RefreshRunButton(TrainConsist train, TrainView view)
     {
         view.Run.Icon = UiSkin.Icon(train.Stopped ? "play" : "pause");
-        view.Run.TooltipText = (train.Stopped ? "Start train" : "Stop train") + " - train movement is not ported yet.";
+        view.Run.TooltipText = train.Running ? "Stop train" : "Start train";
+        view.Run.Disabled = !train.Placed;
+    }
+    private void RefreshMotion()
+    {
+        foreach (var (id, view) in Views)
+            if (Editor.Builder.Trains.FirstOrDefault(t => t.Id == id) is { } train)
+            {
+                RefreshRunButton(train, view);
+                if (train.Placed) view.Location.Text = FormattableString.Invariant($"{Math.Abs(train.Speed) * 3.6:F1} km/h - {(train.Running ? "Started" : train.Stopped ? "Stopped" : "Stopping")}");
+            }
     }
     private void RefreshCatalog()
     {
@@ -475,6 +485,7 @@ public partial class TrainWindows : Node
     {
         Editor.Changed -= Change;
         Editor.Warning -= Warn;
+        Editor.MotionChanged -= RefreshMotion;
         Editor.TrainClicked -= OpenTrainFromWorld;
         Editor.PlacementStarted -= SuspendTrack;
         Manager.StackingChanged -= StackChanged;
