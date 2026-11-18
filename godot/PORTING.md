@@ -13,11 +13,11 @@ The project now requires the .NET editor and .NET 8 SDK or newer. The editor bui
 - Gauge-aware signed-endpoint track graph: Bezier handles, parallel groups, split/merge, station grouping and junction restrictions.
 - Directed-edge router with a binary priority queue and bounded route cache. It is not yet connected to a train simulation.
 
-The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track editor work is in progress; consist editing, train simulation integration and train windows are not complete. Do not treat the project as feature complete.
+The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track/station editing and train building/parked placement are available. Moving-train simulation integration is not complete. Do not treat the project as feature complete.
 
 ## Gameplay UI
 
-`scripts/ui/GameHUD.cs` restores the centered bottom action bar: Build track opens the editor, while Vehicles and Trains remain disabled until their systems are ported. Track/Stations tabs use Material Design icons. The top controls provide camera switching, View options, Settings, copying the world seed and returning to the main menu. Copying the seed replaces browser URL sharing on desktop.
+`scripts/ui/GameHUD.cs` restores the centered bottom action bar: Build track opens the track editor, Vehicles opens the independent catalog, and Trains opens the fleet window. Track/Stations tabs use Material Design icons. The top controls provide camera switching, View options, Settings, copying the world seed and returning to the main menu. Copying the seed replaces browser URL sharing on desktop.
 
 `GameWindow.cs` is the reusable C# in-game window, independent of Godot's operating-system `Window` class. It provides title-bar dragging, resizing, closing, minimizing to a taskbar and rolling up. `WindowManager.cs` manages stacking, active styling, viewport bounds and modal input blocking. Build track, View options and Settings use this shared framework. Settings has a Gameplay submenu with the camera selector; C also switches camera mode. View options control contour intervals and hide trees when contours are enabled. Camera/view preferences persist in `user://game-ui.cfg`. Debug information is hidden by default and toggled with F3.
 
@@ -41,6 +41,20 @@ The startup checks cover window lifecycle, minimized restoration, roll-up, bound
 The track tools include the original world grid selector (Off, 1, 5, 10, 25 metres). G toggles snapping and restores the last nonzero spacing. The 80-cell translucent overlay follows the pointer on fixed world X/Z axes, hides over UI/in station mode/when disabled, and preserves placement height. Snap rounding matches JavaScript even at negative half-cell boundaries. Existing-node placement and Shift's outgoing straight alignment take priority.
 
 Selected parallel groups expose purple lateral spacing handles about 25 screen pixels outside their nodes. Selecting the anchor shows every non-anchor handle; selecting another member shows only its own. Dragging changes that node's offset only, ignoring Shift and world-grid snapping, with rails-only rendering restricted to its connected segments. Handles track the camera zoom. Deleting an anchor rebases the remaining offsets without moving the nodes. `--suite=grid` checks grid selection/toggling/rounding, snapping priority, native spacing dragging, rendering scope and group rebasing; `--hover=grid` adds a native visual fixture.
+
+## Train building and placement
+
+`TrainBuilder`, `TrainPlacement`, `TrainEditor` and `TrainWindows` port the browser building/placement workflow. A catalog click appends at the rear of the frontmost expanded train window only when its Edit train tab is open; otherwise it creates a new train and opens that editor. The catalog owns no train selection and filters by the common vehicle gauges, plus the placed train's actual track gauge. It retains the original per-model SVG thumbnails and a hovering/focused vehicle's rotating 3D preview.
+
+Each train has Viewport/Edit train tabs, horizontal front-to-rear cards, insertion gaps, drag-and-drop reorder/transfers, flip/remove controls, trash drop, Add vehicles, Place train, Reverse preview (R), and stopped-only pickup. Clicking a placed vehicle opens its viewport. The viewport and Follow train focus on the first vehicle; pan input stops following. Start train is explicitly disabled until the moving-train simulation is ported.
+
+Placement follows arc distance across compatible opposite-side connections, rejects ambiguous junctions, insufficient track, overly tight rigid sections and overlap with other trains, and shows translucent original models with valid/invalid tint and a cursor hint. R reverses the preview, Escape cancels without changing construction, hovering a stopped train's front/rear coupler previews attachment, and committing merges the incoming consist into it. Leading couplers snap within 5 m to station-run ends on their own track, including runs spanning split segments. Vehicle bodies, bogies, and the permanently coupled Rio Grande engine/tender follow independent source poses at real dimensions.
+
+Stopped consists remain on rails when edited, preserving the first surviving original car's location. An edit that runs out of free track or exceeds the curve clearance lifts the train for repositioning; other invalid edits roll back. Moving/started trains reject edits and pickup with a pointer warning. Editing/removing supporting rails updates the train or marks it unsupported without teleporting it.
+
+Placed models use merged material surfaces for reusable body/bogie templates and `MultiMesh` instances grouped in 512 m cells. Picking still tests the original model triangles. Idle diesel/steam exhaust uses the existing native smoke renderer. Draft/catalog viewports use private worlds; placed-train views share the live game world and update at the browser's viewport intervals.
+
+Refresh thumbnails and articulated-section metadata with `node scripts/export-godot-train-metadata.mjs` (also called by the full asset exporter). `node scripts/export-godot-train-fixtures.mjs` captures browser placement/walking/station/rigid-section fixtures. `--suite=train` checks those numerical fixtures and native catalog routing, construction, transfers, placement, attachment, edits, collision rejection, gauge filtering, station snapping and stopped-only pickup. Native captures support `--hover=train-edit`, `train-preview` and `train-viewport` with `--state=game`. Headless train tests drain queued node deletion and managed finalizers before quitting to release temporary preview/mesh resources while Godot's C# runtime is alive.
 
 ## Migration agreement
 
@@ -133,6 +147,6 @@ Station building now includes full-segment translucent platform previews, rail-h
 
 ## C# verification tools
 
-`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `hover`, `platform`, `grid`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
+`tests/runner.tscn` launches `tests/TestRunner.cs`. Pass `-- --suite=core`, `menu`, `terrain`, `startup`, `hover`, `platform`, `grid`, `train`, `benchmark` or `capture`; `all` runs the four correctness/integration suites. Each run has a timeout and a nonzero exit code on failure. The startup suite exercises the actual C# scene, model imports, terrain worker lifecycle, track construction, station placement, parallel-node continuation and rendering rebuilds.
 
 `tests/physics-fixtures.json` preserves 144 numerical cases captured from the previous GDScript physics helper before removal: realistic/HO, started/stopped, uphill/downhill/flat, several speeds and speed limits. It is a migration baseline, not evidence of full browser train-simulation integration.

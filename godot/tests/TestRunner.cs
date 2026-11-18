@@ -51,6 +51,11 @@ public partial class TestRunner : Node
                     await Menu();
                     await Terrain();
                     await Startup();
+                    await TrainPlacementChecks.Run(Check, Frame, this);
+                    await Frames();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    await Frames();
                     break;
                 case "core":
                     Core();
@@ -78,6 +83,15 @@ public partial class TestRunner : Node
                     GetTree().Root.Size = new(1280, 800);
                     await Frames();
                     await GridSpacingChecks.Run(Check, Frame, this);
+                    break;
+                case "train":
+                    GetTree().Root.Size = new(1280, 800);
+                    await Frames();
+                    await TrainPlacementChecks.Run(Check, Frame, this);
+                    await Frames();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    await Frames();
                     break;
                 case "capture":
                     await Capture();
@@ -513,7 +527,7 @@ public partial class TestRunner : Node
         var hud = main.HUD;
         var editor = main.TrackEditor;
         var manager = main.GameWindows;
-        Check(hud.VehiclesButton.Disabled && hud.TrainsButton.Disabled, "Unported train actions are visibly disabled");
+        Check(!hud.VehiclesButton.Disabled && !hud.TrainsButton.Disabled, "Ported vehicle catalog and fleet actions are enabled");
         Check(!hud.DebugPanel.Visible, "Debug information starts hidden");
         float width = GetTree().Root.Size.X, height = GetTree().Root.Size.Y;
         Check(Math.Abs(hud.ActionBar.Position.X + hud.ActionBar.Size.X / 2 - width / 2) < 1, "Action bar is centered horizontally");
@@ -633,6 +647,47 @@ public partial class TestRunner : Node
                         main.TrackEditor.Stations.Open(edge.Station);
                     }
                 }
+            }
+            if (_args.GetValueOrDefault("hover", "").StartsWith("train-"))
+            {
+                var point = main.Camera.Target;
+                for (int z = -200; z <= 200; z += 10)
+                    for (int x = -6; x <= 6; x += 3)
+                        point.Y = Math.Max(point.Y, (float)main.Generator.Sampler.Height(point.X + x, point.Z + z) + 3);
+                main.Camera.Position = point + new Vector3(80, 45, 100);
+                main.Camera.LookAt(point, Vector3.Up);
+                var a = main.TrackNetwork.AddNode(point - Vector3.Back * 200);
+                var b = main.TrackNetwork.AddNode(point + Vector3.Back * 200);
+                var edge = main.TrackNetwork.ConnectNodes(a, b)!;
+                main.TrackNetwork.AddStation(edge, 1);
+                main.TrackRenderer._Process(0);
+                main.TrainUI.CatalogClick("atsf-f7a");
+                main.TrainUI.CatalogClick("atsf-coach");
+                main.TrainUI.CatalogClick("atsf-pleasure-dome");
+                int id = main.Trains.Builder.Selected!.Id;
+                main.TrackEditor.SetEnabled(false);
+                main.Trains.StartPlacement(id);
+                main.Trains.SetProcess(false);
+                main.Trains.RefreshPreview(main.Camera.UnprojectPosition(point));
+                if (_args["hover"] != "train-preview")
+                    main.Trains.CommitPreview();
+                main.TrainUI.OpenTrain(id, _args["hover"] != "train-viewport");
+                if (_args["hover"] == "train-preview")
+                    main.Trains.StartPlacement(id);
+                main.TrainUI.Views[id].Window.SetBounds(new(870, 100, 380, 530));
+                if (_args["hover"] == "train-edit")
+                {
+                    main.TrainUI.CatalogWindow.Open();
+                    await Frames(2);
+                    main.TrainUI.CatalogButtons["atsf-f7a"].GrabFocus();
+                }
+                main.TrainUI._Process(.2);
+                main.TrainUI.SetProcess(_args["hover"] is "train-edit" or "train-viewport");
+                if (_args["hover"] == "train-preview")
+                    main.Trains.RefreshPreview(main.Camera.UnprojectPosition(point));
+                var timeout = Stopwatch.StartNew();
+                while ((main.TreeClearance.IsPending || main.World.PendingEarthworks > 0) && timeout.Elapsed.TotalSeconds < 15)
+                    await ToSignal(GetTree().CreateTimer(.05), SceneTreeTimer.SignalName.Timeout);
             }
         }
         else if (state != "menu")

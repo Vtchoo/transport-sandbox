@@ -39,7 +39,8 @@
 		"kind": "diesel",
 		"idleRate": 1.2
 	  }
-	]
+	],
+	"thumbnail": "res://assets/vehicles/thumbnails/atsf-f7a.svg"
   },
   {
 	"id": "atsf-coach",
@@ -62,7 +63,8 @@
 	"models": {
 	  "1435": "res://assets/vehicles/atsf-coach-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/atsf-coach.svg"
   },
   {
 	"id": "atsf-pleasure-dome",
@@ -85,7 +87,8 @@
 	"models": {
 	  "1435": "res://assets/vehicles/atsf-pleasure-dome-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/atsf-pleasure-dome.svg"
   },
   {
 	"id": "ge-809",
@@ -127,7 +130,8 @@
 		"kind": "diesel",
 		"idleRate": 1.2
 	  }
-	]
+	],
+	"thumbnail": "res://assets/vehicles/thumbnails/ge-809.svg"
   },
   {
 	"id": "drgw-consolidation",
@@ -169,7 +173,46 @@
 		],
 		"kind": "steam"
 	  }
-	]
+	],
+	"sections": [
+	  {
+		"offset": 3.5,
+		"definition": {
+		  "id": "drgw-consolidation-engine",
+		  "name": "Rio Grande · 2-8-0 engine",
+		  "kind": "locomotive",
+		  "length": 11.3,
+		  "width": 2.75,
+		  "height": 3.95,
+		  "bogieCenters": 5.1,
+		  "physics": {
+			"massKg": 60341,
+			"powerW": 700000,
+			"tractiveEffortN": 142608,
+			"maxSpeedMps": 12.5
+		  }
+		}
+	  },
+	  {
+		"offset": -5.75,
+		"definition": {
+		  "id": "drgw-consolidation-tender",
+		  "name": "Rio Grande · Coal tender",
+		  "kind": "coach",
+		  "length": 6.8,
+		  "width": 2.7,
+		  "height": 2.85,
+		  "bogieCenters": 4.1,
+		  "physics": {
+			"massKg": 32659,
+			"powerW": 0,
+			"tractiveEffortN": 0,
+			"maxSpeedMps": 12.5
+		  }
+		}
+	  }
+	],
+	"thumbnail": "res://assets/vehicles/thumbnails/drgw-consolidation.svg"
   },
   {
 	"id": "drgw-wood-baggage",
@@ -194,7 +237,8 @@
 	  "914": "res://assets/vehicles/drgw-wood-baggage-914.glb",
 	  "1435": "res://assets/vehicles/drgw-wood-baggage-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/drgw-wood-baggage.svg"
   },
   {
 	"id": "drgw-wood-coach",
@@ -219,7 +263,8 @@
 	  "914": "res://assets/vehicles/drgw-wood-coach-914.glb",
 	  "1435": "res://assets/vehicles/drgw-wood-coach-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/drgw-wood-coach.svg"
   },
   {
 	"id": "tgv-sud-est-power",
@@ -242,7 +287,8 @@
 	"models": {
 	  "1435": "res://assets/vehicles/tgv-sud-est-power-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/tgv-sud-est-power.svg"
   },
   {
 	"id": "tgv-sud-est-coach",
@@ -265,7 +311,8 @@
 	"models": {
 	  "1435": "res://assets/vehicles/tgv-sud-est-coach-1435.glb"
 	},
-	"exhausts": []
+	"exhausts": [],
+	"thumbnail": "res://assets/vehicles/thumbnails/tgv-sud-est-coach.svg"
   },
   {
 	"id": "ge-dash9",
@@ -307,6 +354,7 @@
 		"kind": "diesel",
 		"idleRate": 1.2
 	  }
-	]
+	],
+	"thumbnail": "res://assets/vehicles/thumbnails/ge-dash9.svg"
   }
 ]

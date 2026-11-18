@@ -62,5 +62,6 @@ for (const definition of VEHICLES) {
   catalog.push(entry);
 }
 await writeFile(new URL('catalog.json', directory), JSON.stringify(catalog, null, 2) + '\n');
+await import('./export-godot-train-metadata.mjs');
 await import('./export-godot-terrain-fixtures.mjs');
 console.log(`Exported ${catalog.length} vehicle definitions, all supported gauges, and terrain parity fixtures.`);

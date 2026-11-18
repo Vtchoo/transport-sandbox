@@ -8,6 +8,7 @@ namespace TransportSandbox;
 public partial class WindowManager : Control
 {
     public event Action<bool>? ModalChanged;
+    public event Action? StackingChanged;
     public readonly List<GameWindow> Windows = new();
     public GameWindow? Active
     {
@@ -67,6 +68,17 @@ public partial class WindowManager : Control
             MoveChild(window, -1);
         }
         MoveChild(Taskbar, -1);
+        StackingChanged?.Invoke();
+    }
+    public GameWindow? Topmost(Func<GameWindow, bool> predicate) => GetChildren().OfType<GameWindow>().LastOrDefault(w => w.Visible && predicate(w));
+    public void Unregister(GameWindow window)
+    {
+        window.Close();
+        Windows.Remove(window);
+        RemoveChild(window);
+        window.QueueFree();
+        Refresh();
+        StackingChanged?.Invoke();
     }
     public void Refresh()
     {
@@ -92,6 +104,7 @@ public partial class WindowManager : Control
             if (next != null)
                 Activate(next);
         }
+        StackingChanged?.Invoke();
     }
     private void LayoutWindows()
     {

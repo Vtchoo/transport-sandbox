@@ -36,6 +36,10 @@ public partial class MenuSmoke : Node3D
     }
     public void Advance(double delta)
     {
+        while (_carry.Count < Outlets.Count)
+            _carry.Add(0);
+        if (_carry.Count > Outlets.Count)
+            _carry.RemoveRange(Outlets.Count, _carry.Count - Outlets.Count);
         double dt = Math.Clamp(delta, 0, 0.1);
         for (int i = Particles.Count - 1; i >= 0; i--)
         {

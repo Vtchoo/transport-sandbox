@@ -17,6 +17,8 @@ public partial class Main : Node3D
     public TrackTreeClearance TreeClearance = null!;
     public WindowManager GameWindows = null!;
     public GameHUD HUD = null!;
+    public TrainEditor Trains = null!;
+    public TrainWindows TrainUI = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
     public JsonElement Catalog;
     public VehicleCatalog Vehicles = null!;
@@ -101,6 +103,29 @@ public partial class Main : Node3D
             PreferencesFile = HudSettingsFile
         };
         Interface.AddChild(HUD);
+        Trains = new()
+        {
+            Network = TrackNetwork,
+            Catalog = Vehicles,
+            Camera = Camera,
+            Windows = GameWindows
+        };
+        AddChild(Trains);
+        TrainUI = new()
+        {
+            Editor = Trains,
+            Manager = GameWindows,
+            TrackEditor = TrackEditor,
+            Interface = Interface
+        };
+        AddChild(TrainUI);
+        HUD.VehiclesButton.Disabled = HUD.TrainsButton.Disabled = false;
+        HUD.VehiclesButton.TooltipText = "Vehicle catalog";
+        HUD.VehiclesButton.ToggleMode = true;
+        HUD.TrainsButton.TooltipText = "Trains";
+        HUD.VehiclesButton.Pressed += TrainUI.ToggleCatalog;
+        HUD.TrainsButton.Pressed += TrainUI.OpenFleet;
+        TrainUI.CatalogWindow.StateChanged += () => HUD.VehiclesButton.SetPressedNoSignal(TrainUI.CatalogWindow.Visible && !TrainUI.CatalogWindow.IsCollapsed);
         Interface.MoveChild(GameWindows, -1);
         HUD.MainMenuRequested += () => GetTree().ReloadCurrentScene();
     }
