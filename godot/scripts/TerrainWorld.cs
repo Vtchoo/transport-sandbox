@@ -60,18 +60,12 @@ public partial class TerrainWorld : Node3D
             var mesh = new ArrayMesh();
             mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, data["arrays"].AsGodotArray());
             holder.AddChild(new MeshInstance3D { Mesh = mesh, MaterialOverride = _terrainMaterial });
-            var transforms = data["trees"].AsGodotArray();
-            if (transforms.Count != 0)
+            var entries = data["trees"].AsFloat32Array();
+            if (entries.Length != 0)
             {
                 var treeData = new List<TreeData>();
-                foreach (var item in transforms)
-                {
-                    var transform = item.AsTransform3D();
-                    // Preserve existing native placement while sharing the original tree meshes.
-                    float scale = transform.Basis.Y.Length();
-                    treeData.Add(new(transform.Origin.X, transform.Origin.Y, transform.Origin.Z,
-                        scale * 8, scale * 2.4f, transform.Basis.GetEuler().Y, 1));
-                }
+                for (int i = 0; i < entries.Length; i += Terrain.Vegetation.Stride)
+                    treeData.Add(new(entries[i], entries[i + 1], entries[i + 2], entries[i + 3], entries[i + 4], entries[i + 5], (int)entries[i + 6]));
                 var trees = TreeScenery.Create(treeData);
                 trees.Visible = !_contours;
                 holder.AddChild(trees);

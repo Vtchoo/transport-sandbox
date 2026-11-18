@@ -288,7 +288,21 @@ public partial class TestRunner : Node
                 var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
                 Check(vertices.Length == Integer(reference, "vertexCount") && indices.Length == Integer(reference, "indexCount"), "Chunk buffer counts match browser");
                 if (Integer(reference, "segments") < 64)
-                    Check(data["trees"].AsGodotArray().Count == 0, "Distant tiles skip vegetation");
+                    Check(data["trees"].AsFloat32Array().Length == 0, "Distant tiles skip vegetation");
+                else
+                {
+                    var vegetation = JsonData.Read("res://tests/vegetation-fixtures.json").GetProperty("cases");
+                    foreach (var sample in vegetation.EnumerateArray())
+                    {
+                        if (Integer(sample, "x") != key.X || Integer(sample, "z") != key.Y ||
+                            sample.GetProperty("settings").GetProperty("seed").GetString() != generator.SeedText) continue;
+                        var actual = data["trees"].AsFloat32Array();
+                        var expected = sample.GetProperty("trees");
+                        bool identical = actual.Length == expected.GetArrayLength();
+                        for (int i = 0; identical && i < actual.Length; i++) identical = actual[i] == expected[i].GetSingle();
+                        Check(identical, "Parallel chunk uploads preserve original natural-tree data at both near LODs");
+                    }
+                }
                 foreach (var triangle in reference.GetProperty("triangles").EnumerateArray())
                 {
                     int cursor = Integer(triangle, "index") * 3;

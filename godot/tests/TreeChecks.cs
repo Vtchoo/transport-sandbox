@@ -9,6 +9,20 @@ public static class TreeChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        var vegetation = JsonData.Read("res://tests/vegetation-fixtures.json");
+        foreach (var sample in vegetation.GetProperty("cases").EnumerateArray())
+        {
+            var settings = JsonData.Settings(sample.GetProperty("settings"));
+            var sampler = new Terrain.TerrainSampler(settings.Seed, settings.MountainHeight, settings.HorizontalScale, settings.SeaLevel);
+            int x = sample.GetProperty("x").GetInt32(), z = sample.GetProperty("z").GetInt32();
+            var actual = Terrain.Vegetation.Generate(sampler, x, z);
+            var expected = sample.GetProperty("trees");
+            check(actual.Length == expected.GetArrayLength(), "Natural-tree count matches original");
+            bool identical = actual.Length == expected.GetArrayLength();
+            for (int i = 0; identical && i < actual.Length; i++)
+                identical = actual[i] == expected[i].GetSingle();
+            check(identical, $"All natural-tree positions, dimensions, yaws and species match original ({settings.Seed}, {x}, {z})");
+        }
         var reference = JsonData.Read("res://tests/tree-fixtures.json");
         var geometry = reference.GetProperty("geometry");
         void Mesh(ArrayMesh mesh, JsonElement expected)

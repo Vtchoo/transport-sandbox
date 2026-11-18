@@ -83,7 +83,7 @@ public partial class GameWindow : Control
         title.MouseFilter = MouseFilterEnum.Ignore;
         Button Chrome(string icon, string tooltip, Action action)
         {
-            var button = new Button { Icon = UiSkin.Icon(icon), TooltipText = tooltip, CustomMinimumSize = new(25, 24), ExpandIcon = true };
+            var button = new Button { Icon = UiSkin.Icon(icon), TooltipText = tooltip, CustomMinimumSize = new(25, 24), ExpandIcon = true, IconAlignment = HorizontalAlignment.Center, VerticalIconAlignment = VerticalAlignment.Center };
             button.AddThemeConstantOverride("icon_max_width", 16);
             button.AddThemeStyleboxOverride("normal", UiSkin.Box("203b31", "94a67b66", 2, 0, 0));
             button.AddThemeStyleboxOverride("hover", UiSkin.Box("66744d", "94a67b66", 2, 0, 0));
@@ -135,6 +135,8 @@ public partial class GameWindow : Control
         _grip = new()
         {
             Icon = UiSkin.Icon("resize"),
+            IconAlignment = HorizontalAlignment.Center,
+            VerticalIconAlignment = VerticalAlignment.Center,
             Flat = true,
             ExpandIcon = true,
             MouseDefaultCursorShape = CursorShape.Fdiagsize

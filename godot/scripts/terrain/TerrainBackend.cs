@@ -59,15 +59,12 @@ public partial class TerrainBackend : RefCounted
             arrays[(int)Mesh.ArrayType.Normal] = data.Normals;
             arrays[(int)Mesh.ArrayType.Color] = data.Colors;
             arrays[(int)Mesh.ArrayType.Index] = data.Indices;
-            var trees = new Godot.Collections.Array<Transform3D>();
-            foreach (var tree in data.Trees)
-                trees.Add(tree);
             results.Add(new()
             {
                 ["key"] = key,
                 ["segments"] = data.Segments,
                 ["arrays"] = arrays,
-                ["trees"] = trees
+                ["trees"] = data.Trees
             });
         }
         foreach (var key in completed)
@@ -91,7 +88,7 @@ public partial class TerrainBackend : RefCounted
     }
 
     private sealed record ChunkData(int Segments, Vector3[] Vertices, Vector3[] Normals,
-        Color[] Colors, int[] Indices, Transform3D[] Trees);
+        Color[] Colors, int[] Indices, float[] Trees);
 
     private static ChunkData Build(TerrainSampler sampler, Vector2I key, int segments, CancellationToken token)
     {
@@ -160,23 +157,8 @@ public partial class TerrainBackend : RefCounted
                     Triangle(next, target, target + 1);
                 }
             }
-        // Retain the existing native vegetation until its visual subsystem is ported.
-        // Match browser scheduling: no vegetation work for distant (<64) terrain tiles.
-        var trees = new List<Transform3D>();
-        if (segments >= 64)
-            for (int i = 0; i < 100; i++)
-            {
-                token.ThrowIfCancellationRequested();
-                uint hx = sampler.Hash(key.X, key.Y, i * 3), hz = sampler.Hash(key.X, key.Y, i * 3 + 1);
-                double x = hx / 4294967296.0 * 512, z = hz / 4294967296.0 * 512;
-                double wx = key.X * 512.0 + x, wz = key.Y * 512.0 + z, y = sampler.Height(wx, wz);
-                if (y < 6 || y > 1250 || Math.Abs(sampler.Height(wx + 3, wz) - y) > 2)
-                    continue;
-                if (sampler.Fbm(wx / 500, wz / 500, 501, 2) < -0.1)
-                    continue;
-                float scale = (float)(0.6 + sampler.Hash(key.X, key.Y, i * 3 + 2) / 4294967296.0);
-                trees.Add(new(new Basis(Vector3.Up, (float)(hx * 0.00001)).Scaled(Vector3.One * scale), new((float)x, (float)y, (float)z)));
-            }
-        return new(segments, vertices, normals, colors, indices, trees.ToArray());
+        // Match browser scheduling: distant tiles omit vegetation, near LODs share identical data.
+        var trees = segments >= 64 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
+        return new(segments, vertices, normals, colors, indices, trees);
     }
 }

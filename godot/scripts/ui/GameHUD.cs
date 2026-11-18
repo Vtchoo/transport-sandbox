@@ -222,6 +222,7 @@ public partial class GameHUD : Control
         foreach (var (button, text) in new[] { (BuildButton, "Build track"), (VehiclesButton, "Vehicles"), (TrainsButton, "Trains") })
         {
             button.Text = viewport.X < 460 ? "" : text;
+            button.IconAlignment = viewport.X < 460 ? HorizontalAlignment.Center : HorizontalAlignment.Left;
             if (viewport.X < 460 && !button.Disabled)
                 button.TooltipText = text;
         }
@@ -231,6 +232,7 @@ public partial class GameHUD : Control
         foreach (var (button, text) in _topLabels)
         {
             button.Text = compact ? "" : text;
+            button.IconAlignment = compact ? HorizontalAlignment.Center : HorizontalAlignment.Left;
             button.TooltipText = text;
         }
         _top.Size = _top.GetCombinedMinimumSize();
