@@ -1,0 +1,451 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace TransportSandbox.Tests;
+
+/// <summary>Native C# parity/integration runner. Launch tests/runner.tscn -- --suite=all.</summary>
+public partial class TestRunner : Node
+{
+    private int _failures;
+    private bool _finished;
+    private readonly Dictionary<string, string> _args = new();
+    private void Check(bool condition, string message)
+    {
+        if (condition)
+            return;
+        _failures++;
+        GD.PushError("FAIL: " + message);
+    }
+    private static double Number(JsonElement element, string key) => element.GetProperty(key).GetDouble();
+    private static int Integer(JsonElement element, string key) => element.GetProperty(key).GetInt32();
+    private async Task Frame() => await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+    private async Task Frames(int count = 4)
+    {
+        for (int i = 0; i < count; i++)
+            await Frame();
+    }
+    public override async void _Ready()
+    {
+        foreach (string argument in OS.GetCmdlineUserArgs())
+        {
+            var parts = argument.TrimStart('-').Split('=', 2);
+            if (parts.Length == 2)
+                _args[parts[0]] = parts[1];
+        }
+        GetTree().CreateTimer(45).Timeout += () => { if (!_finished) { GD.PushError("C# test/capture timed out"); GetTree().Quit(1); } };
+        try
+        {
+            string suite = _args.GetValueOrDefault("suite", "all");
+            switch (suite)
+            {
+                case "all":
+                    Core();
+                    await Menu();
+                    await Terrain();
+                    await Startup();
+                    break;
+                case "core":
+                    Core();
+                    break;
+                case "menu":
+                    await Menu();
+                    break;
+                case "terrain":
+                    await Terrain();
+                    break;
+                case "startup":
+                    await Startup();
+                    break;
+                case "capture":
+                    await Capture();
+                    break;
+                case "benchmark":
+                    await Benchmark();
+                    break;
+                default:
+                    throw new ArgumentException("Unknown suite: " + suite);
+            }
+            _finished = true;
+            GD.Print($"C# {suite}: {(_failures == 0 ? "PASS" : $"{_failures} failures")}");
+            GetTree().Quit(_failures == 0 ? 0 : 1);
+        }
+        catch (Exception error) { _finished = true; GD.PushError(error.ToString()); GetTree().Quit(1); }
+    }
+    private void Core()
+    {
+        TreeChecks.Run(Check);
+        var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");
+        foreach (var reference in fixtures.GetProperty("cases").EnumerateArray())
+        {
+            var generator = new TerrainGenerator(JsonData.Settings(reference.GetProperty("settings")));
+            Check(generator.Seed == reference.GetProperty("seedHash").GetUInt32(), "UTF-16 seed hash matches TypeScript");
+            foreach (var sample in reference.GetProperty("samples").EnumerateArray())
+                Check(Math.Abs(generator.Height(Number(sample, "x"), Number(sample, "z")) - Number(sample, "height")) < 0.000001, "Seeded height matches TypeScript");
+            var camera = new WorldCamera();
+            AddChild(camera);
+            camera.ResetWorld(generator);
+            var expected = reference.GetProperty("camera");
+            Check(camera.Target.DistanceTo(JsonData.Vector(expected.GetProperty("target"))) < 0.001, "Startup camera target matches browser");
+            Check(camera.Position.DistanceTo(JsonData.Vector(expected.GetProperty("position"))) < 0.001, "Startup camera orbit matches browser");
+            camera.Free();
+            generator.Backend.Dispose();
+        }
+        var network = new TrackNetwork();
+        var a = network.AddNode(Vector3.Zero);
+        var b = network.AddNode(new(0, 0, 100));
+        var c = network.AddNode(new(50, 0, 200));
+        var d = network.AddNode(new(-50, 0, 200));
+        var ab = network.ConnectNodes(a, b)!;
+        var bc = network.ConnectNodes(b, c, 1)!;
+        var bd = network.ConnectNodes(b, d, 1)!;
+        Check(!network.CanMerge(b.Id), "Junction cannot be merged");
+        Check(network.Continuations(bc, -1).Count == 1, "Same-side branch is not a legal U-turn");
+        var router = new RailRouter();
+        router.Rebuild(network);
+        Check(router.Route(ab.Id * 2 + 1, bc.Id).SequenceEqual(new[] { ab.Id * 2 + 1, bc.Id * 2 + 1 }), "Directed route crosses junction");
+        Check(router.Route(bc.Id * 2, bd.Id).Length == 0, "Router rejects same-side U-turn");
+        var cached = router.Route(ab.Id * 2 + 1, bc.Id);
+        cached[0] = -999;
+        Check(router.Route(ab.Id * 2 + 1, bc.Id)[0] == ab.Id * 2 + 1, "Route results do not mutate cache");
+        var original = network.Controls(ab);
+        var node = network.Split(ab, 0.35f)!;
+        Check(node != null, "Split creates node");
+        var split = network.Incident(node!.Id);
+        for (int i = 0; i <= 20; i++)
+        {
+            float t = i / 20f;
+            var p = t <= 0.35f ? network.Point(split[0], t / 0.35f) : network.Point(split[1], (t - 0.35f) / 0.65f);
+            Check(p.DistanceTo(TrackNetwork.Bezier(original, t)) < 0.0001, "De Casteljau preserves curve");
+        }
+        Check(network.CanMerge(node.Id), "Two opposite connections can merge");
+        var merged = network.Merge(node.Id) ?? throw new Exception("Merge failed");
+        Check(!network.Nodes.ContainsKey(node.Id), "Merge removes only intermediate node");
+        var narrow = network.AddNode(new(0, 0, -100), 914);
+        Check(network.ConnectNodes(narrow, a) == null, "Gauge mismatch rejected");
+        var parallel = network.AddParallel(a, 1);
+        network.SetDirection(a, new(1, 0, 1));
+        Check(Math.Abs((parallel.Position - a.Position).Dot(a.Axis)) < 0.0001, "Parallel alignment preserved");
+        var end = network.AddNode(parallel.Position + parallel.Axis * 100);
+        var parallelEdge = network.ConnectNodes(parallel, end)!;
+        network.SetHandle(merged, a.Id, a.Position + a.Axis * merged.SideA * 23);
+        Check(Math.Abs(parallelEdge.LengthA - 23) < 0.001, "Parallel handle lengths remain synchronized");
+        var third = network.AddParallel(a, -1);
+        int group = third.Group;
+        network.DeleteNode(parallel.Id);
+        Check(network.Groups.ContainsKey(group) && a.Group == group && third.Group == group, "Deleting group member preserves others");
+        var station = new TrackNetwork();
+        var s0 = station.AddNode(Vector3.Zero);
+        var s1 = station.AddNode(new(0, 0, 100));
+        var edge = station.ConnectNodes(s0, s1)!;
+        Check(station.AddStation(edge, 1) && station.AddStation(edge, -1), "Both platform sides share station");
+        Check(!station.CanExtend(s0, 1) && station.CanExtend(s0, -1), "Station-facing side rejects junction");
+        var cars = new[] { new VehiclePhysics(120000, 3000000, 300000, 40), new VehiclePhysics(40000, 0, 0, 50) };
+        foreach (var test in JsonData.Read("res://tests/physics-fixtures.json").EnumerateArray())
+        {
+            var result = TrainPhysics.Step(cars, Number(test, "speed"), test.GetProperty("started").GetBoolean(), Number(test, "grade"), test.GetProperty("ho").GetBoolean(), Number(test, "dt"), Number(test, "limit"));
+            var expected = test.GetProperty("result");
+            Check(Math.Abs(result.Speed - Number(expected, "speed")) < 1e-10 && Math.Abs(result.Distance - Number(expected, "distance")) < 1e-10 && Math.Abs(result.Effort - Number(expected, "effort")) < 1e-10, "Physics matches previous implementation");
+        }
+        Check(Math.Abs(TrainPhysics.CurveLimit(100, true) / TrainPhysics.CurveLimit(100, false) - 3) < 1e-10, "HO corner speed scaling preserved");
+    }
+    private async Task Menu()
+    {
+        foreach (var reference in JsonData.Read("res://tests/menu-fixtures.json").EnumerateArray())
+        {
+            var diorama = new MenuDiorama { Preset = Integer(reference, "preset") };
+            AddChild(diorama);
+            diorama.SetProcess(false);
+            diorama.Smoke.SetProcess(false);
+            Check(diorama.Composition.Vehicles.Select(item => item.Id).SequenceEqual(reference.GetProperty("cars").EnumerateArray().Select(e => e.GetString())), "Menu compositions match source");
+            Check(diorama.Composition.Gauge == Number(reference, "gauge"), "Menu gauges match source");
+            Check(Math.Abs(diorama.Train.Length - Number(reference, "length")) < 1e-6, "Menu coupler spacing matches source");
+            Check(diorama.Track.Network == diorama.Network && diorama.Network.Edges.Count == 1, "Menu uses gameplay track graph and renderer");
+            Check(diorama.Network.Edges.Values.Single().Station != 0, "Menu platform is a gameplay station");
+            foreach (var vehicle in diorama.Train.Vehicles)
+            {
+                Check(vehicle.Scale == Vector3.One && vehicle.Model.Scale == Vector3.One, "Catalog vehicle dimensions are not rescaled");
+                Check(vehicle.Model.SceneFilePath == vehicle.Definition.Models[diorama.Composition.Gauge], "Menu instantiates catalog models");
+            }
+            if (diorama.Composition.Id == "tgv-sud-est")
+                Check(diorama.Train.Vehicles.Last().Reversed, "TGV rear power car faces outward");
+            foreach (var camera in reference.GetProperty("cameras").EnumerateArray())
+            {
+                diorama.UpdateCamera(Number(camera, "time"), Number(camera, "aspect"));
+                var q = camera.GetProperty("quaternion");
+                var rotation = new Quaternion(q[0].GetSingle(), q[1].GetSingle(), q[2].GetSingle(), q[3].GetSingle());
+                Check(diorama.Camera.Position.DistanceTo(JsonData.Vector(camera.GetProperty("position"))) < 0.00001, "Menu framing and drift match source");
+                Check(diorama.Camera.Quaternion.AngleTo(rotation) < 0.001, "Menu look direction matches source");
+            }
+            Check(diorama.Camera.Fov == 38 && diorama.Camera.Far == 1800, "Menu lens matches source");
+            for (int i = 0; i < 60; i++)
+                diorama.Smoke.Advance(1.0 / 60);
+            var smoke = reference.GetProperty("smoke");
+            Check(diorama.Smoke.Particles.Count == smoke.GetArrayLength(), "Idle exhaust count matches source");
+            for (int i = 0; i < Math.Min(smoke.GetArrayLength(), diorama.Smoke.Particles.Count); i++)
+            {
+                var particle = diorama.Smoke.Particles[i];
+                var expected = smoke[i];
+                Check(particle.Position.DistanceTo(JsonData.Vector(expected.GetProperty("position")) + Vector3.Up * TrackRenderer.RailHeadHeight) < 0.0001, "Idle exhaust movement matches source at the native railhead height");
+                foreach (var (key, value) in new[] { ("life", particle.Life), ("radius", particle.Radius), ("density", particle.Density), ("shade", particle.Shade), ("growth", particle.Growth), ("phase", particle.Phase) })
+                    Check(Math.Abs(value - Number(expected, key)) < 1e-6, "Exhaust " + key + " matches source");
+            }
+            diorama.Free();
+        }
+        // A new definition works without editing MenuDiorama or exporting a scene.
+        var extra = new MenuDiorama
+        {
+            Preset = 0,
+            Definitions = new[] {
+            new ConsistDefinition("extra-ge", 1435, new[] { new ConsistItem("ge-809"), new ConsistItem("atsf-coach", true) }) }
+        };
+        AddChild(extra);
+        extra.SetProcess(false);
+        extra.Smoke.SetProcess(false);
+        Check(extra.Train.Vehicles.Count == 2 && extra.Composition.Id == "extra-ge", "Additional menu consists use data-driven assembly");
+        Check(extra.Smoke.Outlets.Count == 1, "Exhaust comes from actual vehicles");
+        extra.Free();
+        bool rejected = false;
+        try
+        {
+            _ = ConsistVisual.Create(VehicleCatalog.Load(), new("bad", 914, new[] { new ConsistItem("atsf-f7a") }));
+        }
+        catch (ArgumentException) { rejected = true; }
+        Check(rejected, "Menu consist rejects incompatible gauges");
+        GetTree().Root.Size = new(1280, 800);
+        const string preferences = "res://.godot/menu-test-preferences.cfg";
+        if (FileAccess.FileExists(preferences))
+            DirAccess.RemoveAbsolute(preferences);
+        var ui = new MenuUI { SettingsFile = preferences };
+        AddChild(ui);
+        Check(ui.ChosenSettings().Physics == "ho", "Recommended uses HO");
+        ui.OpenSetup();
+        Check(ui.Dialog.Visible && ui.Shade.Visible, "Start opens modal");
+        ui.Custom.ButtonPressed = true;
+        ui.SeedInput.Text = "  a reproducible world  ";
+        ui.Relief.Value = 2400;
+        ui.Landform.Select(2);
+        ui.Physics.Select(1);
+        Check(ui.Advanced.Visible && ui.ChosenSettings() == new WorldSettings("a reproducible world", 2400, 2, 0, "realistic"), "Advanced settings preserved");
+        ui.Recommended.ButtonPressed = true;
+        Check(!ui.Advanced.Visible && ui.ChosenSettings() == new WorldSettings(), "Recommended ignores advanced values");
+        ui.Custom.ButtonPressed = true;
+        await Frames();
+        float bottom = ui.Launch.GlobalPosition.Y + ui.Launch.Size.Y;
+        ui.Recommended.ButtonPressed = true;
+        await Frames();
+        Check(Math.Abs(ui.Launch.GlobalPosition.Y + ui.Launch.Size.Y - bottom) < 1, "Start footer stays pinned");
+        ui.Custom.ButtonPressed = true;
+        ui.CloseSetup();
+        ui.OpenSetup();
+        Check(ui.SeedInput.Text == "  a reproducible world  ", "Closing preserves unsubmitted values");
+        ui.SeedInput.Text = "  ";
+        Check(ui.ChosenSettings().Seed == "the-long-way-home", "Blank seed fallback preserved");
+        ui.SeedInput.Text = "saved-seed";
+        ui.SavePreferences(true);
+        ui.Free();
+        var restored = new MenuUI { SettingsFile = preferences };
+        AddChild(restored);
+        Check(restored.SeedInput.Text == "saved-seed" && restored.Relief.Value == 2400, "World options persist");
+        Check(restored.Recommended.ButtonPressed, "New launch defaults recommended");
+        restored.Free();
+    }
+    private async Task Terrain()
+    {
+        var fixture = JsonData.Read("res://tests/terrain-chunk-fixtures.json");
+        var generator = new TerrainGenerator(JsonData.Settings(fixture.GetProperty("settings")));
+        var pending = new Dictionary<Vector2I, JsonElement>();
+        foreach (var reference in fixture.GetProperty("chunks").EnumerateArray())
+        {
+            var key = new Vector2I(Integer(reference, "x"), Integer(reference, "z"));
+            pending[key] = reference;
+            generator.Backend.Request(key, Integer(reference, "segments"));
+        }
+        var timer = Stopwatch.StartNew();
+        while (pending.Count != 0 && timer.Elapsed.TotalSeconds < 20)
+        {
+            foreach (var data in generator.Backend.Poll())
+            {
+                Check(!data.ContainsKey("error"), "Parallel chunk succeeds");
+                if (data.ContainsKey("error"))
+                    continue;
+                var key = data["key"].AsVector2I();
+                var reference = pending[key];
+                pending.Remove(key);
+                var arrays = data["arrays"].AsGodotArray();
+                var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+                var normals = arrays[(int)Mesh.ArrayType.Normal].AsVector3Array();
+                var colors = arrays[(int)Mesh.ArrayType.Color].AsColorArray();
+                var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
+                Check(vertices.Length == Integer(reference, "vertexCount") && indices.Length == Integer(reference, "indexCount"), "Chunk buffer counts match browser");
+                if (Integer(reference, "segments") < 64)
+                    Check(data["trees"].AsGodotArray().Count == 0, "Distant tiles skip vegetation");
+                foreach (var triangle in reference.GetProperty("triangles").EnumerateArray())
+                {
+                    int cursor = Integer(triangle, "index") * 3;
+                    var source = triangle.GetProperty("vertices");
+                    Check(indices[cursor] == source[0].GetInt32() && indices[cursor + 1] == source[2].GetInt32() && indices[cursor + 2] == source[1].GetInt32(), "Topology matches with Godot winding");
+                }
+                foreach (var sample in reference.GetProperty("samples").EnumerateArray())
+                {
+                    int index = Integer(sample, "index");
+                    Check(vertices[index].DistanceTo(JsonData.Vector(sample.GetProperty("position"))) < 0.0001, "Chunk heights/skirt match browser");
+                    Check(normals[index].DistanceTo(JsonData.Vector(sample.GetProperty("normal"))) < 0.00001, "Chunk normals match browser");
+                    var color = colors[index].SrgbToLinear();
+                    var expected = sample.GetProperty("color");
+                    Check(Math.Abs(color.R - expected[0].GetDouble()) < 1e-6 && Math.Abs(color.G - expected[1].GetDouble()) < 1e-6 && Math.Abs(color.B - expected[2].GetDouble()) < 1e-6, "Terrain colors match browser");
+                }
+            }
+            await ToSignal(GetTree().CreateTimer(0.001), SceneTreeTimer.SignalName.Timeout);
+        }
+        Check(pending.Count == 0, "All parallel chunks complete");
+        generator.Backend.Shutdown();
+        generator.Backend.Dispose();
+        generator = new(JsonData.Settings(fixture.GetProperty("settings")));
+        var c = fixture.GetProperty("camera");
+        var camera = new Camera3D { Position = new((float)Number(c, "x"), (float)Number(c, "y"), (float)Number(c, "z")) };
+        AddChild(camera);
+        var world = new TerrainWorld { Generator = generator, Camera = camera };
+        AddChild(world);
+        world.SetProcess(false);
+        world._Process(0);
+        var tiles = fixture.GetProperty("tiles");
+        Check(world.Wanted.Count == tiles.GetArrayLength(), "Browser view radius preserved");
+        foreach (var tile in tiles.EnumerateArray())
+        {
+            var key = new Vector2I(Integer(tile, "x"), Integer(tile, "z"));
+            Check(world.Wanted.TryGetValue(key, out var actual) && actual.Segments == Integer(tile, "segments"), "Altitude-aware LOD matches browser");
+        }
+        var ordered = world.Wanted.Keys.ToArray();
+        for (int i = 0; i < 9; i++)
+            Check(ordered[i] == new Vector2I(Integer(tiles[i], "x"), Integer(tiles[i], "z")), "Nearby work prioritized like browser");
+        world.Free();
+        camera.Free();
+    }
+    private async Task Startup()
+    {
+        var main = GD.Load<PackedScene>("res://scenes/main.tscn").Instantiate<Main>();
+        main.MenuSettingsFile = "res://.godot/startup-test-preferences.cfg";
+        AddChild(main);
+        await Frame();
+        Check(main.Catalog.GetArrayLength() == 10, "All catalog definitions present");
+        foreach (var definition in main.Catalog.EnumerateArray())
+            foreach (var model in definition.GetProperty("models").EnumerateObject())
+            {
+                var vehicle = GD.Load<PackedScene>(model.Value.GetString()!).Instantiate();
+                Check(vehicle is Node3D, "Vehicle GLB imports");
+                vehicle.Free();
+            }
+        main.ShowSetup();
+        main.MenuUI.SeedInput.Text = "native-startup-check";
+        main.MenuUI.Relief.Value = 800;
+        main.MenuUI.Physics.Select(1);
+        main.StartWorld(true);
+        Check(main.Camera.Enabled && main.Generator.SeedText == "native-startup-check", "Advanced world starts");
+        Check(main.World.GetMeta("physics_mode").AsString() == "realistic", "Physics option preserved");
+        Check(main.Camera.Target.X == 600 && main.Camera.Target.Z == 900 && main.Camera.Distance == 1100 && main.Camera.Fov == 65, "Browser startup framing preserved");
+        var timer = Stopwatch.StartNew();
+        while (main.World.Chunks.Count == 0 && timer.Elapsed.TotalSeconds < 20)
+            await ToSignal(GetTree().CreateTimer(0.05), SceneTreeTimer.SignalName.Timeout);
+        Check(main.World.Chunks.Count > 0, "Workers generate scene chunks");
+        main.World.ShowContours(true);
+        foreach (var chunk in main.World.Chunks.Values)
+            if (chunk.GetNodeOrNull<TreeChunk>("Trees") is { } trees)
+                Check(!trees.Visible, "Contours hide trees");
+        main.World.ShowContours(false);
+        // Exercise the converted editor/controller and renderer, not only the graph model.
+        var editor = main.TrackEditor;
+        editor.SetEnabled(true);
+        var p = main.Camera.Target + Vector3.Up;
+        Check(editor.Place(p) && editor.Place(p + new Vector3(0, 0, 100)), "Continuous track placement works");
+        Check(main.TrackNetwork.Edges.Count == 1 && editor.Source != 0, "Second click connects and continues");
+        editor.Cancel();
+        Check(editor.Source == 0, "Cancel ends construction");
+        var edge = main.TrackNetwork.Edges.Values.First();
+        Check(main.TrackNetwork.AddStation(edge, 1), "Station placement works");
+        await Frames();
+        Check(main.TrackRenderer.Holders.Count == 1, "Track renderer rebuilds");
+        editor.BeginFrom(edge.B, 1);
+        editor.Parallel(edge.A, 1);
+        Check(main.TrackNetwork.Edges.Count == 2, "Parallel action connects during construction");
+        editor.Cancel();
+        editor.SetEnabled(false);
+        main.Free();
+        await Frame();
+    }
+    private async Task Capture()
+    {
+        int preset = int.Parse(_args.GetValueOrDefault("preset", "2"));
+        var main = new Main { MenuPresetOverride = preset, MenuSettingsFile = "res://.godot/menu-review/preferences.cfg" };
+        AddChild(main);
+        main.MenuScene.SetProcess(false);
+        main.MenuScene.Smoke.SetProcess(false);
+        var root = GetTree().Root;
+        main.MenuScene.UpdateCamera(0, root.Size.X / (double)root.Size.Y);
+        string state = _args.GetValueOrDefault("state", "menu");
+        if (state != "menu")
+            main.ShowSetup();
+        if (state == "advanced")
+            main.MenuUI.Custom.ButtonPressed = true;
+        for (int i = 0; i < 4; i++)
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        string prefix = $"res://.godot/menu-review/godot-{preset}-{root.Size.X}x{root.Size.Y}-{state}";
+        using var image = root.GetTexture().GetImage();
+        image.SavePng(prefix + ".png");
+        object Rect(Control control) => new
+        {
+            x = control.Position.X,
+            y = control.Position.Y,
+            width = control.Size.X,
+            height = control.Size.Y
+        };
+        using (var file = FileAccess.Open(prefix + ".json", FileAccess.ModeFlags.Write))
+            file.StoreString(JsonSerializer.Serialize(new
+            {
+                title = Rect(main.MenuUI.Title),
+                start = Rect(main.MenuUI.StartButton)
+            }));
+        GD.Print("Captured " + prefix + ".png");
+        main.Free();
+        await Frame();
+    }
+    private async Task Benchmark()
+    {
+        var generator = new TerrainGenerator();
+        double sum = 0;
+        for (int run = 0; run < 4; run++)
+        {
+            var timer = Stopwatch.StartNew();
+            for (int i = 0; i < 10000; i++)
+                sum += generator.Height(600 + i % 100 * 8, 900 + i / 100 * 8);
+            GD.Print("C# 10000 heights ms: ", timer.Elapsed.TotalMilliseconds);
+        }
+        Check(Math.Abs(sum - 11039133.493746432) < 0.0001, "Benchmark checksum matches original implementation");
+        int completed = 0, submitted = 0, limit = generator.Backend.WorkerLimit();
+        double first = -1;
+        var clock = Stopwatch.StartNew();
+        while (completed < 25)
+        {
+            while (submitted < 25 && submitted - completed < limit)
+            {
+                generator.Backend.Request(new(submitted % 5, submitted / 5), 64);
+                submitted++;
+            }
+            foreach (var data in generator.Backend.Poll())
+            {
+                Check(!data.ContainsKey("error"), "Benchmark worker succeeds");
+                completed++;
+                if (first < 0)
+                    first = clock.Elapsed.TotalMilliseconds;
+            }
+            await ToSignal(GetTree().CreateTimer(0.001), SceneTreeTimer.SignalName.Timeout);
+        }
+        GD.Print($"Parallel chunks: workers={limit} first_ms={first:F2} 25_chunks_ms={clock.Elapsed.TotalMilliseconds:F2}");
+        generator.Backend.Shutdown();
+        generator.Backend.Dispose();
+    }
+}

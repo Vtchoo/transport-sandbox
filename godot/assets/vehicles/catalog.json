@@ -1,0 +1,312 @@
+[
+  {
+	"id": "atsf-f7a",
+	"name": "Santa Fe F7A · Warbonnet",
+	"kind": "locomotive",
+	"length": 15.4432,
+	"bodyLength": 14.4,
+	"width": 2.9972,
+	"height": 4.5,
+	"bogieCenters": 9.144,
+	"exhaust": {
+	  "position": [
+		0,
+		4.34,
+		0.2
+	  ],
+	  "kind": "diesel",
+	  "idleRate": 1.2
+	},
+	"physics": {
+	  "massKg": 104326,
+	  "powerW": 1118550,
+	  "tractiveEffortN": 251326,
+	  "maxSpeedMps": 45.599
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/atsf-f7a-1435.glb"
+	},
+	"exhausts": [
+	  {
+		"position": [
+		  0,
+		  4.34,
+		  0.2
+		],
+		"kind": "diesel",
+		"idleRate": 1.2
+	  }
+	]
+  },
+  {
+	"id": "atsf-coach",
+	"name": "Santa Fe · Streamlined coach",
+	"kind": "coach",
+	"length": 25.908,
+	"bodyLength": 24.6,
+	"width": 3.048,
+	"height": 4.04,
+	"bogieCenters": 18.288,
+	"physics": {
+	  "massKg": 56800,
+	  "powerW": 0,
+	  "tractiveEffortN": 0,
+	  "maxSpeedMps": 45.599
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/atsf-coach-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "atsf-pleasure-dome",
+	"name": "Santa Fe · Pleasure Dome lounge",
+	"kind": "dome",
+	"length": 25.7048,
+	"bodyLength": 24.4,
+	"width": 3.048,
+	"height": 4.72,
+	"bogieCenters": 18.288,
+	"physics": {
+	  "massKg": 75000,
+	  "powerW": 0,
+	  "tractiveEffortN": 0,
+	  "maxSpeedMps": 45.599
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/atsf-pleasure-dome-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "ge-809",
+	"name": "GE 809 · Wide-cab demonstrator",
+	"kind": "locomotive",
+	"length": 20.2184,
+	"bodyLength": 19.2,
+	"width": 3.0861,
+	"height": 4.6863,
+	"bogieCenters": 11.9888,
+	"exhaust": {
+	  "position": [
+		0,
+		4.6,
+		-1.65
+	  ],
+	  "kind": "diesel",
+	  "idleRate": 1.2
+	},
+	"physics": {
+	  "massKg": 127006,
+	  "powerW": 2908230,
+	  "tractiveEffortN": 304704,
+	  "maxSpeedMps": 31.2928
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/ge-809-1435.glb"
+	},
+	"exhausts": [
+	  {
+		"position": [
+		  0,
+		  4.6,
+		  -1.65
+		],
+		"kind": "diesel",
+		"idleRate": 1.2
+	  }
+	]
+  },
+  {
+	"id": "drgw-consolidation",
+	"name": "Rio Grande · 2-8-0 + tender",
+	"kind": "locomotive",
+	"length": 18.3,
+	"bodyLength": 17.6,
+	"width": 2.75,
+	"height": 3.95,
+	"bogieCenters": 14,
+	"runningGear": "steam",
+	"exhaust": {
+	  "position": [
+		0,
+		3.97,
+		3.65
+	  ]
+	},
+	"physics": {
+	  "massKg": 93200,
+	  "powerW": 700000,
+	  "tractiveEffortN": 142608,
+	  "maxSpeedMps": 12.5
+	},
+	"gauges": [
+	  914,
+	  1435
+	],
+	"models": {
+	  "914": "res://assets/vehicles/drgw-consolidation-914.glb",
+	  "1435": "res://assets/vehicles/drgw-consolidation-1435.glb"
+	},
+	"exhausts": [
+	  {
+		"position": [
+		  0,
+		  3.97,
+		  7.15
+		],
+		"kind": "steam"
+	  }
+	]
+  },
+  {
+	"id": "drgw-wood-baggage",
+	"name": "Rio Grande · Wooden baggage car",
+	"kind": "coach",
+	"length": 15.2,
+	"bodyLength": 13.2,
+	"width": 2.65,
+	"height": 3.85,
+	"bogieCenters": 10.2,
+	"physics": {
+	  "massKg": 20000,
+	  "powerW": 0,
+	  "tractiveEffortN": 0,
+	  "maxSpeedMps": 12.5
+	},
+	"gauges": [
+	  914,
+	  1435
+	],
+	"models": {
+	  "914": "res://assets/vehicles/drgw-wood-baggage-914.glb",
+	  "1435": "res://assets/vehicles/drgw-wood-baggage-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "drgw-wood-coach",
+	"name": "Rio Grande · Wooden passenger coach",
+	"kind": "coach",
+	"length": 15.2,
+	"bodyLength": 13.2,
+	"width": 2.65,
+	"height": 3.85,
+	"bogieCenters": 10.2,
+	"physics": {
+	  "massKg": 24000,
+	  "powerW": 0,
+	  "tractiveEffortN": 0,
+	  "maxSpeedMps": 12.5
+	},
+	"gauges": [
+	  914,
+	  1435
+	],
+	"models": {
+	  "914": "res://assets/vehicles/drgw-wood-coach-914.glb",
+	  "1435": "res://assets/vehicles/drgw-wood-coach-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "tgv-sud-est-power",
+	"name": "TGV Sud-Est power car",
+	"kind": "locomotive",
+	"length": 19,
+	"bodyLength": 18.65,
+	"width": 2.81,
+	"height": 4.1,
+	"bogieCenters": 14,
+	"physics": {
+	  "massKg": 68000,
+	  "powerW": 3225000,
+	  "tractiveEffortN": 110000,
+	  "maxSpeedMps": 75
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/tgv-sud-est-power-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "tgv-sud-est-coach",
+	"name": "TGV Sud-Est passenger coach",
+	"kind": "coach",
+	"length": 20.275,
+	"bodyLength": 19.975,
+	"width": 2.904,
+	"height": 3.42,
+	"bogieCenters": 16.2,
+	"physics": {
+	  "massKg": 31125,
+	  "powerW": 0,
+	  "tractiveEffortN": 0,
+	  "maxSpeedMps": 75
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/tgv-sud-est-coach-1435.glb"
+	},
+	"exhausts": []
+  },
+  {
+	"id": "ge-dash9",
+	"name": "GE Dash 9 · SketchUp prototype",
+	"kind": "locomotive",
+	"length": 22.301200867,
+	"bodyLength": 22.301200867,
+	"width": 3.124200106,
+	"height": 4.698999882,
+	"bogieCenters": 16.1544,
+	"exhaust": {
+	  "position": [
+		0,
+		4.748999882,
+		0
+	  ],
+	  "kind": "diesel",
+	  "idleRate": 1.2
+	},
+	"physics": {
+	  "massKg": 181437,
+	  "powerW": 3281080,
+	  "tractiveEffortN": 600000,
+	  "maxSpeedMps": 31.2928
+	},
+	"gauges": [
+	  1435
+	],
+	"models": {
+	  "1435": "res://assets/vehicles/ge-dash9-1435.glb"
+	},
+	"exhausts": [
+	  {
+		"position": [
+		  0,
+		  4.748999882,
+		  0
+		],
+		"kind": "diesel",
+		"idleRate": 1.2
+	  }
+	]
+  }
+]

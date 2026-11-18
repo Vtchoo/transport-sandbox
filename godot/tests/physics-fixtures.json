@@ -1,0 +1,938 @@
+[
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.998235342841677,
+      "effort": 0.0,
+      "speed": 9.96470685683354
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.998235342841677,
+      "effort": 0.0,
+      "speed": 9.96470685683354
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.49808974328313,
+      "effort": 0.0,
+      "speed": 34.9617948656627
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.49808974328313,
+      "effort": 0.0,
+      "speed": 34.9617948656627
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.996847609351111,
+      "effort": 0.0,
+      "speed": 9.93695218702223
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.996847609351111,
+      "effort": 0.0,
+      "speed": 9.93695218702223
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.49670200979257,
+      "effort": 0.0,
+      "speed": 34.9340401958514
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.49670200979257,
+      "effort": 0.0,
+      "speed": 34.9340401958514
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.995459875860545,
+      "effort": 0.0,
+      "speed": 9.9091975172109
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.995459875860545,
+      "effort": 0.0,
+      "speed": 9.9091975172109
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.495314276302,
+      "effort": 0.0,
+      "speed": 34.9062855260401
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.495314276302,
+      "effort": 0.0,
+      "speed": 34.9062855260401
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.00999168113207547,
+      "effort": 1.0,
+      "speed": 0.199833622641509
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.00999168113207547,
+      "effort": 1.0,
+      "speed": 0.199833622641509
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.998235342841677,
+      "effort": 0.0,
+      "speed": 9.96470685683354
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.00855373906809,
+      "effort": 1.0,
+      "speed": 10.1710747813618
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.49808974328313,
+      "effort": 0.0,
+      "speed": 34.9617948656627
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.50322788344486,
+      "effort": 1.0,
+      "speed": 35.0645576688972
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.00860394764150943,
+      "effort": 1.0,
+      "speed": 0.172078952830189
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.00860394764150943,
+      "effort": 1.0,
+      "speed": 0.172078952830189
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.996847609351111,
+      "effort": 0.0,
+      "speed": 9.93695218702223
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.00716600557753,
+      "effort": 1.0,
+      "speed": 10.1433201115505
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.49670200979257,
+      "effort": 0.0,
+      "speed": 34.9340401958514
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.50184014995429,
+      "effort": 1.0,
+      "speed": 35.0368029990859
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0072162141509434,
+      "effort": 1.0,
+      "speed": 0.144324283018868
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0072162141509434,
+      "effort": 1.0,
+      "speed": 0.144324283018868
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.995459875860545,
+      "effort": 0.0,
+      "speed": 9.9091975172109
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.00577827208696,
+      "effort": 1.0,
+      "speed": 10.1155654417392
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.495314276302,
+      "effort": 0.0,
+      "speed": 34.9062855260401
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": false,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.50045241646373,
+      "effort": 0.999999999999971,
+      "speed": 35.0090483292745
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0,
+      "effort": 0.0,
+      "speed": 0.0
+    },
+    "speed": 0.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": false
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 0.848,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 0.848,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.07806000884434,
+      "effort": 1.0,
+      "speed": 11.5612001768868
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": -0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 1.0,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 1.0,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.07806000884434,
+      "effort": 1.0,
+      "speed": 11.5612001768868
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.0,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 1.0,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 0.0780600088443396,
+      "effort": 1.0,
+      "speed": 1.56120017688679
+    },
+    "speed": 0.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 0.972405660377359,
+      "effort": 0.0,
+      "speed": 9.44811320754717
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 1.07806000884434,
+      "effort": 1.0,
+      "speed": 11.5612001768868
+    },
+    "speed": 10.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 8.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  },
+  {
+    "dt": 0.1,
+    "grade": 0.03,
+    "ho": true,
+    "limit": 50.0,
+    "result": {
+      "distance": 3.47240566037736,
+      "effort": 0.0,
+      "speed": 34.4481132075472
+    },
+    "speed": 35.0,
+    "started": true
+  }
+]
