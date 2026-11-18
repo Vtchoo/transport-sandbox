@@ -351,6 +351,7 @@ public partial class TestRunner : Node
         world.Free();
         camera.Free();
         await EarthworkMeshChecks.Run(Check, Frame);
+        await TerrainCacheChecks.Run(Check, Frame, this);
     }
     private async Task Startup()
     {

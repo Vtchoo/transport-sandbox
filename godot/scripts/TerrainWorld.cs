@@ -14,6 +14,12 @@ public partial class TerrainWorld : Node3D
     public readonly Dictionary<Vector2I, Node3D> Chunks = new();
     public readonly Dictionary<Vector2I, TerrainTile> Wanted = new();
     private readonly HashSet<Vector2I> _tasks = new();
+    public TerrainMeshCache MeshCache { get; } = new();
+    public long SubmittedJobs
+    {
+        get; private set;
+    }
+    public int ActiveJobs => _tasks.Count;
     private Vector3I _cell = new(int.MaxValue, 0, 0);
     private ShaderMaterial _terrainMaterial = null!;
     private MeshInstance3D _water = null!;
@@ -31,10 +37,18 @@ public partial class TerrainWorld : Node3D
         _clearance = field;
         Generator.Earthworks = field;
         _terrainRevision++;
-        foreach (var key in Wanted.Keys)
+        var affected = new HashSet<Vector2I>();
+        foreach (var key in Wanted.Keys.Concat(Chunks.Keys).Concat(MeshCache.Chunks).Distinct())
             if (previous?.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, Generator.Sampler.Height) == true ||
                 field.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, Generator.Sampler.Height))
-                _dirtyChunks.Add(key);
+                affected.Add(key);
+        MeshCache.AdvanceRevision(_terrainRevision, affected.Contains);
+        foreach (var key in affected)
+        if (Wanted.ContainsKey(key))
+            _dirtyChunks.Add(key);
+        foreach (var (key, holder) in Chunks)
+            if (!affected.Contains(key))
+                holder.SetMeta("earthwork_revision", _terrainRevision);
         foreach (var (key, holder) in Chunks)
             RefreshTrees(key, holder);
     }
@@ -95,31 +109,24 @@ public partial class TerrainWorld : Node3D
                 continue;
             }
             int segments = data["segments"].AsInt32();
-            if (!Wanted.TryGetValue(key, out var tile) || tile.Segments != segments || data["revision"].AsInt64() != _terrainRevision)
+            if (data["revision"].AsInt64() != _terrainRevision)
                 continue;
-            if (Chunks.TryGetValue(key, out var previous))
-                previous.QueueFree();
-            _visibleTrees.Remove(key);
-            var holder = new Node3D { Position = new(key.X * Chunk, 0, key.Y * Chunk) };
+            var arrays = data["arrays"].AsGodotArray();
             var mesh = new ArrayMesh();
-            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, data["arrays"].AsGodotArray());
-            holder.AddChild(new MeshInstance3D { Mesh = mesh, MaterialOverride = _terrainMaterial });
+            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
             var entries = data["trees"].AsFloat32Array();
-            if (entries.Length != 0)
+            var trees = new TreeData[entries.Length / Terrain.Vegetation.Stride];
+            for (int i = 0; i < trees.Length; i++)
             {
-                var treeData = new List<TreeData>();
-                for (int i = 0; i < entries.Length; i += Terrain.Vegetation.Stride)
-                    treeData.Add(new(entries[i], entries[i + 1], entries[i + 2], entries[i + 3], entries[i + 4], entries[i + 5], (int)entries[i + 6]));
-                _naturalTrees[key] = treeData.ToArray();
+                int offset = i * Terrain.Vegetation.Stride;
+                trees[i] = new(entries[offset], entries[offset + 1], entries[offset + 2], entries[offset + 3], entries[offset + 4], entries[offset + 5], (int)entries[offset + 6]);
             }
+            long bytes = 2L * (arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array().LongLength * 40 + arrays[(int)Mesh.ArrayType.Index].AsInt32Array().LongLength * 4) + entries.LongLength * 4;
+            var cached = new CachedTerrainMesh(mesh, trees, bytes);
+            if (Wanted.TryGetValue(key, out var tile) && tile.Segments == segments)
+                Mount(key, segments, cached);
             else
-                _naturalTrees[key] = Array.Empty<TreeData>();
-            RefreshTrees(key, holder);
-            AddChild(holder);
-            holder.SetMeta("segments", segments);
-            holder.SetMeta("earthwork_revision", _terrainRevision);
-            Chunks[key] = holder;
-            _dirtyChunks.Remove(key);
+                MeshCache.Store(new(key, segments, _terrainRevision), cached);
         }
         foreach (var (key, holder) in Chunks)
             if (holder.GetNodeOrNull<TreeChunk>("Trees") is { } trees)
@@ -134,27 +141,61 @@ public partial class TerrainWorld : Node3D
         if (cell != _cell)
         {
             _cell = cell;
-            Wanted.Clear();
-            foreach (var tile in WantedTiles(Generator, Camera.Position))
-                Wanted[tile.Key] = tile;
-            _dirtyChunks.RemoveWhere(key => !Wanted.ContainsKey(key));
-            foreach (var key in Chunks.Keys.ToArray())
-                if (!Wanted.ContainsKey(key))
-                {
-                    Chunks[key].QueueFree();
-                    Chunks.Remove(key);
-                    _naturalTrees.Remove(key);
-                    _visibleTrees.Remove(key);
-                }
+            SetWantedTiles(WantedTiles(Generator, Camera.Position));
         }
         foreach (var (key, tile) in Wanted)
         {
-            if (_tasks.Count >= WorkerLimit)
-                break;
-            if (_tasks.Contains(key) || !_dirtyChunks.Contains(key) && Chunks.TryGetValue(key, out var holder) && holder.GetMeta("segments").AsInt32() == tile.Segments)
+            if (!_dirtyChunks.Contains(key) && Chunks.TryGetValue(key, out var holder) && holder.GetMeta("segments").AsInt32() == tile.Segments)
+                continue;
+            if (MeshCache.TryTake(new(key, tile.Segments, _terrainRevision), out var cached))
+            {
+                Mount(key, tile.Segments, cached);
+                continue;
+            }
+            if (_tasks.Contains(key) || _tasks.Count >= WorkerLimit)
                 continue;
             _tasks.Add(key);
+            SubmittedJobs++;
             Generator.Backend.Request(key, tile.Segments, _clearance, _terrainRevision);
+        }
+    }
+    private void Retire(Vector2I key, Node3D holder)
+    {
+        long revision = holder.GetMeta("earthwork_revision").AsInt64();
+        if (revision == _terrainRevision)
+            MeshCache.Store(new(key, holder.GetMeta("segments").AsInt32(), revision),
+                new((ArrayMesh)holder.GetChild<MeshInstance3D>(0).Mesh, _naturalTrees[key], holder.GetMeta("cache_bytes").AsInt64()));
+        holder.QueueFree();
+    }
+    private void Mount(Vector2I key, int segments, CachedTerrainMesh entry)
+    {
+        if (Chunks.TryGetValue(key, out var previous))
+            Retire(key, previous);
+        _visibleTrees.Remove(key);
+        _naturalTrees[key] = entry.Trees;
+        var holder = new Node3D { Position = new(key.X * Chunk, 0, key.Y * Chunk) };
+        holder.AddChild(new MeshInstance3D { Mesh = entry.Mesh, MaterialOverride = _terrainMaterial });
+        RefreshTrees(key, holder);
+        AddChild(holder);
+        holder.SetMeta("segments", segments);
+        holder.SetMeta("earthwork_revision", _terrainRevision);
+        holder.SetMeta("cache_bytes", entry.EstimatedBytes);
+        Chunks[key] = holder;
+        _dirtyChunks.Remove(key);
+    }
+    internal void SetWantedTiles(IEnumerable<TerrainTile> tiles)
+    {
+        Wanted.Clear();
+        foreach (var tile in tiles)
+            Wanted[tile.Key] = tile;
+        _dirtyChunks.RemoveWhere(key => !Wanted.ContainsKey(key));
+        foreach (var key in Chunks.Keys.ToArray())
+        if (!Wanted.ContainsKey(key))
+        {
+            Retire(key, Chunks[key]);
+            Chunks.Remove(key);
+            _naturalTrees.Remove(key);
+            _visibleTrees.Remove(key);
         }
     }
     public static TerrainTile[] WantedTiles(TerrainGenerator generator, Vector3 camera)
@@ -188,5 +229,6 @@ public partial class TerrainWorld : Node3D
         _stopping = true;
         Generator.Backend.Shutdown();
         _tasks.Clear();
+        MeshCache.Clear();
     }
 }
