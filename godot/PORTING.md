@@ -13,7 +13,17 @@ The project now requires the .NET editor and .NET 8 SDK or newer. The editor bui
 - Gauge-aware signed-endpoint track graph: Bezier handles, parallel groups, split/merge, station grouping and junction restrictions.
 - Directed-edge router with a binary priority queue and bounded route cache. It is not yet connected to a train simulation.
 
-The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track editor work is in progress; consist editing, train simulation integration and game windows are not complete. Do not treat the project as feature complete.
+The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track editor work is in progress; consist editing, train simulation integration and train windows are not complete. Do not treat the project as feature complete.
+
+## Gameplay UI
+
+`scripts/ui/GameHUD.cs` restores the centered bottom action bar: Build track opens the editor, while Vehicles and Trains remain disabled until their systems are ported. Track/Stations tabs use Material Design icons. The top controls provide camera switching, View options, Settings, copying the world seed and returning to the main menu. Copying the seed replaces browser URL sharing on desktop.
+
+`GameWindow.cs` is the reusable C# in-game window, independent of Godot's operating-system `Window` class. It provides title-bar dragging, resizing, closing, minimizing to a taskbar and rolling up. `WindowManager.cs` manages stacking, active styling, viewport bounds and modal input blocking. Build track, View options and Settings use this shared framework. Settings has a Gameplay submenu with the camera selector; C also switches camera mode. View options control contour intervals and hide trees when contours are enabled. Camera/view preferences persist in `user://game-ui.cfg`. Debug information is hidden by default and toggled with F3.
+
+The menu's New game dialog also uses `GameWindow`, including its modal input handling, focus loop, dragging and resizing. `Collapsible` and `Minimizable` independently hide the corresponding buttons and guard their actions; both are disabled for New game. They can also be changed at runtime. Modal windows default to both disabled when created through `WindowManager.Create`. The shared optional footer keeps Start game fixed while advanced settings scroll; setup values and window bounds retain their existing persistence.
+
+The startup checks cover window lifecycle, minimized restoration, roll-up, bounds, editor/HUD synchronization, modal camera blocking, view options, camera switching, debug visibility and narrow-screen layout. GPU captures were reviewed at 1280x800 and 700x800. `compare-godot-menu.mjs` accepts `game`, `build`, `view` and `settings` states in addition to the menu/setup states. Terrain rendering remains a separate unfinished migration.
 
 ## Migration agreement
 

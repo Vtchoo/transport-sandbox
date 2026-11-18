@@ -225,7 +225,11 @@ public partial class TestRunner : Node
         AddChild(ui);
         Check(ui.ChosenSettings().Physics == "ho", "Recommended uses HO");
         ui.OpenSetup();
-        Check(ui.Dialog.Visible && ui.Shade.Visible, "Start opens modal");
+        Check(ui.Dialog.Visible && ui.Windows.HasModal, "Start opens modal");
+        Check(!ui.Dialog.Collapsible && !ui.Dialog.Minimizable, "New game hides collapse and minimize controls");
+        ui.Dialog.Minimize();
+        ui.Dialog.ToggleCollapsed();
+        Check(ui.Dialog.Visible && !ui.Dialog.IsMinimized && !ui.Dialog.IsCollapsed, "Disabled window actions are guarded");
         ui.Custom.ButtonPressed = true;
         ui.SeedInput.Text = "  a reproducible world  ";
         ui.Relief.Value = 2400;
@@ -330,6 +334,9 @@ public partial class TestRunner : Node
     private async Task Startup()
     {
         var main = GD.Load<PackedScene>("res://scenes/main.tscn").Instantiate<Main>();
+        main.HudSettingsFile = "res://.godot/hud-test-preferences.cfg";
+        if (FileAccess.FileExists(main.HudSettingsFile))
+            DirAccess.RemoveAbsolute(main.HudSettingsFile);
         main.MenuSettingsFile = "res://.godot/startup-test-preferences.cfg";
         AddChild(main);
         await Frame();
@@ -349,6 +356,8 @@ public partial class TestRunner : Node
         Check(main.Camera.Enabled && main.Generator.SeedText == "native-startup-check", "Advanced world starts");
         Check(main.World.GetMeta("physics_mode").AsString() == "realistic", "Physics option preserved");
         Check(main.Camera.Target.X == 600 && main.Camera.Target.Z == 900 && main.Camera.Distance == 1100 && main.Camera.Fov == 65, "Browser startup framing preserved");
+        await Frames();
+        await CheckHUD(main);
         var timer = Stopwatch.StartNew();
         while (main.World.Chunks.Count == 0 && timer.Elapsed.TotalSeconds < 20)
             await ToSignal(GetTree().CreateTimer(0.05), SceneTreeTimer.SignalName.Timeout);
@@ -401,6 +410,59 @@ public partial class TestRunner : Node
         main.Free();
         await Frame();
     }
+    private async Task CheckHUD(Main main)
+    {
+        var hud = main.HUD;
+        var editor = main.TrackEditor;
+        var manager = main.GameWindows;
+        Check(hud.VehiclesButton.Disabled && hud.TrainsButton.Disabled, "Unported train actions are visibly disabled");
+        Check(!hud.DebugPanel.Visible, "Debug information starts hidden");
+        float width = GetTree().Root.Size.X, height = GetTree().Root.Size.Y;
+        Check(Math.Abs(hud.ActionBar.Position.X + hud.ActionBar.Size.X / 2 - width / 2) < 1, "Action bar is centered horizontally");
+        Check(Math.Abs(height - hud.ActionBar.Position.Y - hud.ActionBar.Size.Y - 46) < 1, "Action bar keeps the browser bottom offset");
+        hud.BuildButton.ButtonPressed = true;
+        Check(editor.Enabled && editor.Toolbar.Visible && manager.Active == editor.Toolbar, "Build track opens and activates its reusable window");
+        editor.Toolbar.Close();
+        Check(!editor.Enabled && !hud.BuildButton.ButtonPressed, "Closing build window synchronizes its action button");
+        hud.BuildButton.ButtonPressed = true;
+        editor.Toolbar.Minimize();
+        Check(editor.Toolbar.IsMinimized && !editor.Enabled && manager.Taskbar.GetChildCount() == 1, "Minimizing a build window suspends the tool and creates a taskbar button");
+        ((Button)manager.Taskbar.GetChild(0)).EmitSignal(Button.SignalName.Pressed);
+        Check(editor.Toolbar.Visible && editor.Enabled && hud.BuildButton.ButtonPressed, "Taskbar restores the window and tool");
+        editor.Toolbar.ToggleCollapsed();
+        Check(editor.Toolbar.IsCollapsed && editor.Toolbar.Size.Y == 34, "Windows roll up to their title bar");
+        editor.Toolbar.ToggleCollapsed();
+        editor.Toolbar.SetBounds(new(-999, -999, 5000, 5000));
+        Check(editor.Toolbar.Position.X >= 8 && editor.Toolbar.Position.Y >= 8 && editor.Toolbar.Size.X <= width - 16, "Window resizing is constrained to the viewport");
+        editor.Toolbar.SetBounds(new(24, 85, 330, 460));
+        hud.ViewButton.EmitSignal(Button.SignalName.Pressed);
+        Check(manager.Active == hud.ViewWindow && hud.ViewWindow.Visible, "View opens a separate stacked window");
+        hud.Contours.ButtonPressed = true;
+        hud.ContourInterval.Select(2);
+        hud.ContourInterval.EmitSignal(OptionButton.SignalName.ItemSelected, 2L);
+        Check(hud.ContourLegend.Text.Contains("100 m"), "View settings update contour interval legend");
+        hud.Contours.ButtonPressed = false;
+        hud.OpenSettings();
+        Check(manager.HasModal && main.Camera.InputBlocked, "Modal settings block world camera input");
+        hud.SettingsWindow.Close();
+        Check(!manager.HasModal && !main.Camera.InputBlocked, "Closing settings releases camera input");
+        bool previous = main.Camera.FreeMode;
+        hud.CameraButton.EmitSignal(Button.SignalName.Pressed);
+        Check(main.Camera.FreeMode != previous && hud.CameraMode.Selected == 1, "Camera button and settings stay synchronized");
+        main.Camera.SetFreeMode(false);
+        hud._UnhandledInput(new InputEventKey { Keycode = Key.F3, Pressed = true });
+        Check(hud.DebugPanel.Visible, "F3 shows debug information");
+        hud._UnhandledInput(new InputEventKey { Keycode = Key.F3, Pressed = true });
+        Check(!hud.DebugPanel.Visible, "F3 hides debug information");
+        hud.ViewWindow.Close();
+        editor.SetEnabled(false);
+        GetTree().Root.Size = new(400, 700);
+        await Frames();
+        Check(hud.ActionBar.GetGlobalRect().Position.X >= 0 && hud.ActionBar.GetGlobalRect().End.X <= 400, "Action bar fits a narrow viewport");
+        GetTree().Root.Size = new((int)width, (int)height);
+        await Frames();
+        Check(hud.BuildButton.Text == "Build track" && hud.SettingsButton.Text == "Settings", "HUD labels restore after resizing back to desktop");
+    }
     private async Task Capture()
     {
         int preset = int.Parse(_args.GetValueOrDefault("preset", "2"));
@@ -411,7 +473,25 @@ public partial class TestRunner : Node
         var root = GetTree().Root;
         main.MenuScene.UpdateCamera(0, root.Size.X / (double)root.Size.Y);
         string state = _args.GetValueOrDefault("state", "menu");
-        if (state != "menu")
+        bool gameplay = new[] { "game", "build", "view", "settings" }.Contains(state);
+        if (gameplay)
+        {
+            main.HudSettingsFile = "res://.godot/menu-review/hud-preferences.cfg";
+            if (FileAccess.FileExists(main.HudSettingsFile))
+                DirAccess.RemoveAbsolute(main.HudSettingsFile);
+            main.StartWorld(false);
+            main.Camera.SetProcess(false);
+            var timer = Stopwatch.StartNew();
+            while ((main.World.Wanted.Count == 0 || main.World.Chunks.Count < main.World.Wanted.Count) && timer.Elapsed.TotalSeconds < 15)
+                await ToSignal(GetTree().CreateTimer(.05), SceneTreeTimer.SignalName.Timeout);
+            if (state == "build")
+                main.HUD.BuildButton.ButtonPressed = true;
+            if (state == "view")
+                main.HUD.ViewWindow.Open();
+            if (state == "settings")
+                main.HUD.OpenSettings();
+        }
+        else if (state != "menu")
             main.ShowSetup();
         if (state == "advanced")
             main.MenuUI.Custom.ButtonPressed = true;
@@ -431,7 +511,8 @@ public partial class TestRunner : Node
             file.StoreString(JsonSerializer.Serialize(new
             {
                 title = Rect(main.MenuUI.Title),
-                start = Rect(main.MenuUI.StartButton)
+                start = Rect(main.MenuUI.StartButton),
+                actions = gameplay ? Rect(main.HUD.ActionBar) : null
             }));
         GD.Print("Captured " + prefix + ".png");
         main.Free();

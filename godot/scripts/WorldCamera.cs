@@ -6,6 +6,8 @@ namespace TransportSandbox;
 public partial class WorldCamera : Camera3D
 {
     public event Action? ManuallyPanned;
+    public event Action? ModeChanged;
+    public bool InputBlocked;
     public Vector3 Target;
     public float Distance = 160, Yaw = -0.65f, Pitch = 0.65f;
     public bool FreeMode, Enabled;
@@ -53,7 +55,7 @@ public partial class WorldCamera : Camera3D
     }
     public override void _Process(double delta)
     {
-        if (!Enabled)
+        if (!Enabled || InputBlocked)
             return;
         float dt = (float)delta;
         var move = Vector3.Zero;
@@ -90,13 +92,11 @@ public partial class WorldCamera : Camera3D
     }
     public override void _UnhandledInput(InputEvent input)
     {
-        if (!Enabled)
+        if (!Enabled || InputBlocked)
             return;
         if (input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.C })
         {
-            FreeMode = !FreeMode;
-            if (!FreeMode)
-                Target = Position - OrbitDirection() * Distance;
+            SetFreeMode(!FreeMode);
         }
         if (input is InputEventMouseMotion motion)
         {
@@ -118,6 +118,15 @@ public partial class WorldCamera : Camera3D
             if (mouse.ButtonIndex == MouseButton.WheelDown)
                 Distance = Math.Min(4500, Distance * 1.15f);
         }
+    }
+    public void SetFreeMode(bool free)
+    {
+        if (FreeMode == free)
+            return;
+        FreeMode = free;
+        if (!FreeMode)
+            Target = Position - OrbitDirection() * Distance;
+        ModeChanged?.Invoke();
     }
     public Vector3 GroundPoint(TerrainGenerator generator)
     {

@@ -14,6 +14,9 @@ public partial class Main : Node3D
     public TrackNetwork TrackNetwork = null!;
     public TrackRenderer TrackRenderer = null!;
     public TrackEditor TrackEditor = null!;
+    public WindowManager GameWindows = null!;
+    public GameHUD HUD = null!;
+    public string HudSettingsFile = "user://game-ui.cfg";
     public JsonElement Catalog;
     public VehicleCatalog Vehicles = null!;
     public int MenuPresetOverride = -1;
@@ -70,30 +73,28 @@ public partial class Main : Node3D
             Camera = Camera
         };
         AddChild(TrackRenderer);
+        GameWindows = new();
+        Interface.AddChild(GameWindows);
         TrackEditor = new()
         {
             Network = TrackNetwork,
             Renderer = TrackRenderer,
             Camera = Camera,
             Generator = Generator,
-            Interface = Interface
+            Interface = Interface,
+            Windows = GameWindows
         };
         AddChild(TrackEditor);
-        var actions = new HBoxContainer();
-        actions.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.CenterBottom);
-        actions.OffsetLeft = -110;
-        actions.OffsetRight = 110;
-        actions.OffsetTop = -65;
-        actions.OffsetBottom = -17;
-        Interface.AddChild(actions);
-        var build = new Button { Text = "Build track", CustomMinimumSize = new(220, 48), ToggleMode = true };
-        build.Toggled += TrackEditor.SetEnabled;
-        actions.AddChild(build);
-        var panel = new HBoxContainer { Position = new(20, 20) };
-        Interface.AddChild(panel);
-        var contours = new CheckButton { Text = "Terrain contours" };
-        contours.Toggled += World.ShowContours;
-        panel.AddChild(contours);
-        panel.AddChild(new Label { Text = "  WASD pan · Middle drag orbit · Right drag pan · Wheel zoom · C free camera · Q/E height" });
+        HUD = new()
+        {
+            Camera = Camera,
+            World = World,
+            Editor = TrackEditor,
+            Windows = GameWindows,
+            PreferencesFile = HudSettingsFile
+        };
+        Interface.AddChild(HUD);
+        Interface.MoveChild(GameWindows, -1);
+        HUD.MainMenuRequested += () => GetTree().ReloadCurrentScene();
     }
 }

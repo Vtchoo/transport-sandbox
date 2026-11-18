@@ -10,10 +10,14 @@ public partial class TrackEditor : Node
     public WorldCamera Camera = null!;
     public TerrainGenerator Generator = null!;
     public CanvasLayer Interface = null!;
-    public PanelContainer Toolbar = null!;
+    public GameWindow Toolbar = null!;
+    public WindowManager Windows = null!;
+    public event Action<bool>? EnabledChanged;
     public HBoxContainer NodeMenu = null!, SegmentMenu = null!;
     public Label Status = null!;
     public OptionButton GaugePicker = null!;
+    private VBoxContainer _trackOptions = null!, _stationOptions = null!;
+    private Button _trackTab = null!, _stationTab = null!;
     public string Mode = "track";
     public bool Enabled, Grid;
     public int Gauge = 1435, Source, SourceSide = 1, HoverNode;
@@ -34,33 +38,56 @@ public partial class TrackEditor : Node
     private static Button Button(Node parent, string text, Action callback, string tooltip = "")
     {
         var button = new Button { Text = text, TooltipText = tooltip };
+        UiSkin.Button(button);
         button.Pressed += callback;
         parent.AddChild(button);
         return button;
     }
     private void BuildUI()
     {
-        Toolbar = new()
-        {
-            Position = new(20, 70)
-        };
-        Interface.AddChild(Toolbar);
-        var box = new VBoxContainer();
-        box.AddThemeConstantOverride("separation", 8);
-        Toolbar.AddChild(box);
+        Toolbar = Windows.Create("Build track", new(24, 85, 330, 460), new(280, 240));
+        Toolbar.Opened += () => ApplyEnabled(true);
+        Toolbar.Closed += () => ApplyEnabled(false);
+        Toolbar.Minimized += () => ApplyEnabled(false);
+        var box = Toolbar.Body;
         var tabs = new HBoxContainer();
         box.AddChild(tabs);
-        Button(tabs, "Tracks", () => SetMode("track"));
-        Button(tabs, "Stations", () => SetMode("station"));
+        _trackTab = Button(tabs, "Track", () => SetMode("track"), "Track");
+        _stationTab = Button(tabs, "Stations", () => SetMode("station"), "Stations");
+        var group = new ButtonGroup();
+        foreach (var tab in new[] { _trackTab, _stationTab })
+        {
+            tab.ToggleMode = true;
+            tab.ButtonGroup = group;
+            tab.CustomMinimumSize = new(130, 36);
+            tab.AddThemeConstantOverride("icon_max_width", 18);
+        }
+        _trackTab.Icon = UiSkin.Icon("track");
+        _trackTab.SetPressedNoSignal(true);
+        _stationTab.Icon = UiSkin.Icon("station");
+        _trackOptions = new();
+        box.AddChild(_trackOptions);
+        UiSkin.Label(_trackOptions, "TRACK GAUGE", 9, "c0cbbd");
         GaugePicker = new();
+        UiSkin.Selector(GaugePicker);
         foreach (int mm in TrackNetwork.Gauges)
             GaugePicker.AddItem($"{mm} mm", mm);
         GaugePicker.ItemSelected += index => { Gauge = GaugePicker.GetItemId((int)index); Cancel(); };
-        box.AddChild(GaugePicker);
+        _trackOptions.AddChild(GaugePicker);
+        _stationOptions = new()
+        {
+            Visible = false
+        };
+        box.AddChild(_stationOptions);
+        UiSkin.Label(_stationOptions, "STATION TYPE", 9, "c0cbbd");
+        var stationType = new OptionButton();
+        stationType.AddItem("Simple platform");
+        UiSkin.Selector(stationType);
+        _stationOptions.AddChild(stationType);
         Status = new()
         {
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
-            CustomMinimumSize = new(310, 0),
+            CustomMinimumSize = new(0, 0),
             Text = "Click to place the first node. Esc ends construction."
         };
         box.AddChild(Status);
@@ -75,8 +102,16 @@ public partial class TrackEditor : Node
     }
     public void SetEnabled(bool value)
     {
+        ApplyEnabled(value);
+        if (value)
+            Toolbar.Open();
+        else
+            Toolbar.Close();
+    }
+    private void ApplyEnabled(bool value)
+    {
+        bool changed = Enabled != value;
         Enabled = value;
-        Toolbar.Visible = value;
         Renderer.Markers.Visible = value && Mode == "track";
         if (!value)
         {
@@ -84,12 +119,17 @@ public partial class TrackEditor : Node
             NodeMenu.Hide();
             SegmentMenu.Hide();
         }
+        if (changed)
+            EnabledChanged?.Invoke(value);
     }
     public void SetMode(string value)
     {
         Cancel();
         Mode = value;
-        GaugePicker.Visible = Mode == "track";
+        _trackOptions.Visible = Mode == "track";
+        _stationOptions.Visible = Mode == "station";
+        _trackTab.SetPressedNoSignal(Mode == "track");
+        _stationTab.SetPressedNoSignal(Mode == "station");
         Renderer.Markers.Visible = Enabled && Mode == "track";
         Status.Text = Mode == "station" ? "Click a segment to place a platform on the mouse's side." : "Click to place the first node. Esc ends construction.";
     }
@@ -111,7 +151,7 @@ public partial class TrackEditor : Node
     }
     public override void _Process(double delta)
     {
-        if (!Enabled)
+        if (!Enabled || Windows.HasModal)
             return;
         if (IsInstanceValid(_splitMarker))
             _splitMarker!.Hide();
@@ -271,7 +311,7 @@ public partial class TrackEditor : Node
     }
     public override void _UnhandledInput(InputEvent input)
     {
-        if (!Enabled)
+        if (!Enabled || Windows.HasModal)
             return;
         if (input is InputEventKey { Pressed: true, Echo: false } key)
         {

@@ -135,6 +135,10 @@ public partial class TerrainWorld : Node3D
             if (holder.GetNodeOrNull<TreeChunk>("Trees") is { } trees)
                 trees.Visible = !value;
     }
+    public void SetContourInterval(double interval)
+    {
+        _terrainMaterial.SetShaderParameter("contour_interval", Math.Max(1, interval));
+    }
     public override void _ExitTree()
     {
         _stopping = true;

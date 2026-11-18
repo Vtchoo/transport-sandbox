@@ -5,7 +5,8 @@ import {mkdir,readFile,writeFile,unlink} from 'node:fs/promises';
 import path from 'node:path';
 const options=Object.fromEntries(process.argv.slice(2).map(s=>s.replace(/^--/,'').split('=')));
 const preset=Number(options.preset??2), state=options.state??'menu';
-if(![0,1,2].includes(preset)||!['menu','recommended','advanced'].includes(state))throw Error('Invalid capture options');
+if(![0,1,2].includes(preset)||!['menu','recommended','advanced','game','build','view','settings'].includes(state))throw Error('Invalid capture options');
+const gameplay=['game','build','view','settings'].includes(state);
 const [width,height]=(options.size??'1280x800').split('x').map(Number);
 const output=path.resolve('godot/.godot/menu-review');await mkdir(output,{recursive:true});
 const profile=path.join(output,'chrome-profile');await mkdir(profile,{recursive:true});
@@ -39,6 +40,16 @@ try{
  }
  await new Promise(r=>setTimeout(r,600));
  if(state!=='menu')await command('Runtime.evaluate',{expression:'document.querySelector("#new-game-open").click()'});
+ if(gameplay){
+  await command('Runtime.evaluate',{expression:'document.querySelector("#start").click()'});
+  for(let i=0;i<150;i++){
+   const r=await command('Runtime.evaluate',{expression:'!document.querySelector("#build-track").disabled',returnByValue:true});
+   if(r.result.value)break;await new Promise(r=>setTimeout(r,100));
+  }
+  if(state==='build')await command('Runtime.evaluate',{expression:'document.querySelector("#build-track").click()'});
+  if(state==='view')await command('Runtime.evaluate',{expression:'document.querySelector("#view-options-open").click()'});
+  if(state==='settings')await command('Runtime.evaluate',{expression:'document.querySelector(".settings-open").click()'});
+ }
  if(state==='advanced')await command('Runtime.evaluate',{expression:'const custom=document.querySelector("input[value=advanced]");custom.checked=true;custom.dispatchEvent(new Event("change",{bubbles:true}));'});
  const metrics=await command('Runtime.evaluate',{expression:'Object.fromEntries([["title","#menu h1"],["start","#new-game-open"],["dialog","#new-game"]].map(([key,selector])=>[key,document.querySelector(selector).getBoundingClientRect().toJSON()]))',returnByValue:true});
  const prefix=path.join(output,'browser-'+preset+'-'+width+'x'+height+'-'+state);

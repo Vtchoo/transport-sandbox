@@ -11,9 +11,9 @@ public partial class MenuUI : Control
     public string SettingsFile = "user://menu-settings.cfg";
     public Control Title = null!;
     public readonly List<Label> TitleLines = new();
-    public Button StartButton = null!, Launch = null!, Grip = null!;
-    public ColorRect Shade = null!;
-    public PanelContainer Dialog = null!, Heading = null!;
+    public Button StartButton = null!, Launch = null!;
+    public WindowManager Windows = null!;
+    public GameWindow Dialog = null!;
     public VBoxContainer Content = null!, Advanced = null!;
     public CheckBox Recommended = null!, Custom = null!;
     public LineEdit SeedInput = null!;
@@ -25,8 +25,6 @@ public partial class MenuUI : Control
     private Control _recommendedSpacer = null!;
     private SystemFont _headingFont = null!, _bodyFont = null!;
     private FontVariation _titleFont = null!;
-    private sealed record DragState(Vector2 Pointer, Rect2 Bounds, bool Resize);
-    private DragState? _drag;
     private static readonly double[] Scales = { 0.5, 1, 2 };
     public override void _Ready()
     {
@@ -107,58 +105,18 @@ public partial class MenuUI : Control
     private static void Gap(Node parent, float height) => parent.AddChild(new Control { CustomMinimumSize = new(0, height) });
     private void BuildDialog()
     {
-        Shade = new();
-        Shade.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        Shade.Material = ShaderMaterial("shader_type canvas_item; uniform sampler2D screen_texture:hint_screen_texture,filter_linear_mipmap; void fragment(){vec3 blurred=textureLod(screen_texture,SCREEN_UV,2.3).rgb;COLOR=vec4(mix(blurred,vec3(7.0,23.0,17.0)/255.0,0.533333),1.0);}");
-        AddChild(Shade);
-        Dialog = new();
-        var style = Style("233b33fa", "c4b77e", 5);
-        style.ContentMarginLeft = 11;
-        style.ContentMarginRight = 15;
-        style.ContentMarginTop = 10;
-        style.ContentMarginBottom = 11;
-        style.ShadowColor = new("07151099");
-        style.ShadowSize = 28;
-        style.ShadowOffset = new(0, 8);
-        Dialog.AddThemeStyleboxOverride("panel", style);
-        AddChild(Dialog);
-        var box = new VBoxContainer();
-        box.AddThemeConstantOverride("separation", 8);
-        Dialog.AddChild(box);
-        var headingSpace = new Control { CustomMinimumSize = new(0, 24) };
-        box.AddChild(headingSpace);
-        Heading = new()
+        Windows = new();
+        AddChild(Windows);
+        Dialog = Windows.Create("New game", Bounds, new(300, 330), modal: true, collapsible: false, minimizable: false, scrollBody: false);
+        Dialog.Closed += () =>
         {
-            Position = new(-11, -10),
-            CustomMinimumSize = new(0, 32),
-            MouseFilter = MouseFilterEnum.Stop,
-            FocusMode = FocusModeEnum.All
+            StartButton.FocusMode = FocusModeEnum.All;
+            StartButton.GrabFocus();
+            Bounds = Dialog.Bounds;
+            SavePreferences(false);
         };
-        var texture = new GradientTexture2D { Gradient = new Gradient { Colors = new[] { new Color("6a7954"), new Color("4b6245") } }, Width = 1, Height = 32, FillFrom = Vector2.Zero, FillTo = new(0, 1) };
-        Heading.AddThemeStyleboxOverride("panel", new StyleBoxTexture { Texture = texture, ContentMarginLeft = 10, ContentMarginRight = 4, ContentMarginTop = 3, ContentMarginBottom = 5 });
-        headingSpace.AddChild(Heading);
-        Heading.GuiInput += HeadingInput;
-        var bar = new HBoxContainer();
-        Heading.AddChild(bar);
-        var headingLabel = Label("New game", bar, 13, "e8eddf");
-        headingLabel.AddThemeFontOverride("font", _headingFont);
-        headingLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        headingLabel.MouseFilter = MouseFilterEnum.Ignore;
-        var close = new Button { Text = "×", CustomMinimumSize = new(25, 24) };
-        var closeStyle = Style("203b31", "94a67b66", 2);
-        closeStyle.ContentMarginLeft = closeStyle.ContentMarginRight = closeStyle.ContentMarginTop = closeStyle.ContentMarginBottom = 0;
-        close.AddThemeStyleboxOverride("normal", closeStyle);
-        close.AddThemeFontSizeOverride("font_size", 18);
-        close.Pressed += CloseSetup;
-        bar.AddChild(close);
+        Content = Dialog.Body;
         var scroller = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill };
-        Content = new()
-        {
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ExpandFill
-        };
-        Content.AddThemeConstantOverride("separation", 10);
-        box.AddChild(Content);
         Label("Game setup", Content);
         Gap(Content, 4);
         var group = new ButtonGroup();
@@ -200,7 +158,7 @@ public partial class MenuUI : Control
         };
         Advanced.AddThemeConstantOverride("separation", 8);
         Content.AddChild(Advanced);
-        Custom.Toggled += value => { Advanced.Visible = value; if (_recommendedSpacer != null) _recommendedSpacer.Visible = !value; Callable.From(TrapFocus).CallDeferred(); };
+        Custom.Toggled += value => { Advanced.Visible = value; if (_recommendedSpacer != null) _recommendedSpacer.Visible = !value; Callable.From(Dialog.RefreshFocus).CallDeferred(); };
         Gap(Advanced, 6);
         Label("World and train behavior", Advanced);
         Advanced.AddChild(scroller);
@@ -260,11 +218,7 @@ public partial class MenuUI : Control
         fields.AddChild(Physics);
         foreach (var selector in new[] { Landform, Physics })
         {
-            selector.CustomMinimumSize = new(0, 36);
-            selector.AddThemeStyleboxOverride("normal", Style("e8eddf", "a8b9a5"));
-            selector.AddThemeStyleboxOverride("hover", Style("e8eddf", "a8b9a5"));
-            selector.AddThemeColorOverride("font_color", new("20392f"));
-            selector.AddThemeColorOverride("font_hover_color", new("20392f"));
+            UiSkin.Selector(selector);
         }
         Label("World units remain metres in both modes. HO accelerates and brakes faster, with proportionally compressed top speeds.", fields, 11, "a8bca8").AutowrapMode = TextServer.AutowrapMode.Word;
         _recommendedSpacer = new()
@@ -284,22 +238,8 @@ public partial class MenuUI : Control
         arrow.MouseFilter = MouseFilterEnum.Ignore;
         Launch.Resized += () => arrow.Position = new(Launch.Size.X - 36, 10);
         Launch.Pressed += Start;
-        Content.AddChild(Launch);
+        Dialog.Footer.AddChild(Launch);
         Advanced.Hide();
-        Grip = new()
-        {
-            Text = "◢",
-            Flat = true,
-            CustomMinimumSize = new(18, 18),
-            MouseDefaultCursorShape = CursorShape.Fdiagsize
-        };
-        Grip.SetAnchorsAndOffsetsPreset(LayoutPreset.BottomRight);
-        Grip.Position = new(-18, -18);
-        AddChild(Grip);
-        Grip.GuiInput += input => DragStart(input, true);
-        Shade.Hide();
-        Dialog.Hide();
-        Grip.Hide();
     }
     public void LayoutMenu()
     {
@@ -327,104 +267,16 @@ public partial class MenuUI : Control
     }
     public void Constrain()
     {
-        var viewport = GetViewportRect().Size;
-        var available = new Vector2(Math.Max(1, viewport.X - 16), Math.Max(36, viewport.Y - 113));
-        var size = new Vector2(Mathf.Clamp(Bounds.Size.X, Math.Min(300, available.X), available.X), Mathf.Clamp(Bounds.Size.Y, Math.Min(330, available.Y), available.Y));
-        Bounds = new(new Vector2(Mathf.Clamp(Bounds.Position.X, 8, Math.Max(8, viewport.X - size.X - 8)), Mathf.Clamp(Bounds.Position.Y, 8, Math.Max(8, viewport.Y - size.Y - 105))), size);
-        Dialog.Position = Bounds.Position;
-        Dialog.Size = Bounds.Size;
-        Heading.Size = new(Bounds.Size.X, 32);
-        Grip.Position = Bounds.End - new Vector2(18, 18);
-        Grip.Size = new(18, 18);
+        Dialog.SetBounds(Bounds);
+        Bounds = Dialog.Bounds;
     }
     public void OpenSetup()
     {
-        Shade.Show();
-        Dialog.Show();
-        Grip.Show();
+        Dialog.Open();
         StartButton.FocusMode = FocusModeEnum.None;
-        (Custom.ButtonPressed ? Custom : Recommended).GrabFocus();
-        Callable.From(TrapFocus).CallDeferred();
+        Callable.From(() => { Dialog.RefreshFocus(); (Custom.ButtonPressed ? Custom : Recommended).GrabFocus(); }).CallDeferred();
     }
-    public void CloseSetup()
-    {
-        Dialog.Hide();
-        Shade.Hide();
-        Grip.Hide();
-        StartButton.FocusMode = FocusModeEnum.All;
-        StartButton.GrabFocus();
-        SavePreferences(false);
-    }
-    private void TrapFocus()
-    {
-        var controls = new List<Control>();
-        CollectFocus(Dialog, controls);
-        for (int i = 0; i < controls.Count; i++)
-        {
-            controls[i].FocusNext = controls[i].GetPathTo(controls[(i + 1) % controls.Count]);
-            controls[i].FocusPrevious = controls[i].GetPathTo(controls[(i - 1 + controls.Count) % controls.Count]);
-        }
-    }
-    private static void CollectFocus(Node node, List<Control> result)
-    {
-        if (node is Control control && control.IsVisibleInTree() && control.FocusMode != FocusModeEnum.None)
-            result.Add(control);
-        foreach (var child in node.GetChildren())
-            CollectFocus(child, result);
-    }
-    private void HeadingInput(InputEvent input)
-    {
-        if (input is InputEventKey { Pressed: true } key)
-        {
-            int amount = key.ShiftPressed ? 1 : 10;
-            var delta = key.Keycode switch
-            {
-                Key.Left => new Vector2(-amount, 0),
-                Key.Right => new Vector2(amount, 0),
-                Key.Up => new Vector2(0, -amount),
-                Key.Down => new Vector2(0, amount),
-                _ => Vector2.Zero
-            };
-            Bounds = key.AltPressed ? new(Bounds.Position, Bounds.Size + delta) : new(Bounds.Position + delta, Bounds.Size);
-            Constrain();
-            SavePreferences(false);
-        }
-        DragStart(input, false);
-    }
-    private void DragStart(InputEvent input, bool resize)
-    {
-        if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
-            return;
-        if (mouse.Pressed)
-            _drag = new(GetGlobalMousePosition(), Bounds, resize);
-        else
-        {
-            _drag = null;
-            SavePreferences(false);
-        }
-    }
-    public override void _Input(InputEvent input)
-    {
-        if (Dialog.Visible && input is InputEventKey { Pressed: true, Keycode: Key.Escape })
-        {
-            CloseSetup();
-            GetViewport().SetInputAsHandled();
-        }
-        if (_drag == null)
-            return;
-        if (input is InputEventMouseMotion)
-        {
-            var delta = GetGlobalMousePosition() - _drag.Pointer;
-            Bounds = _drag.Resize ? new(_drag.Bounds.Position, _drag.Bounds.Size + delta) : new(_drag.Bounds.Position + delta, _drag.Bounds.Size);
-            Constrain();
-            GetViewport().SetInputAsHandled();
-        }
-        else if (input is InputEventMouseButton { Pressed: false })
-        {
-            _drag = null;
-            SavePreferences(false);
-        }
-    }
+    public void CloseSetup() => Dialog.Close();
     public WorldSettings ChosenSettings()
     {
         if (!Custom.ButtonPressed)
@@ -461,7 +313,7 @@ public partial class MenuUI : Control
     {
         using var config = new ConfigFile();
         config.Load(SettingsFile);
-        config.SetValue("window", "bounds", Bounds);
+        config.SetValue("window", "bounds", Dialog.Bounds);
         if (worldSettings)
         {
             var settings = ChosenSettings();
