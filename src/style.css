@@ -1,4 +1,11 @@
 @import './train/style.css';
+.construction-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+#track-continue-parallel { position: fixed; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; gap: 0; width: 46px; height: 30px; border-radius: 5px; border: 1px solid #dbedb4; background: #284e3e; color: #edffcf; pointer-events: auto; z-index: 8; box-shadow: 0 2px 7px #0007; }
+#track-continue-parallel .app-icon { width: 18px; height: 18px; }
+.construction-tabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px; border: 1px solid #718574; border-radius: 4px; background: #263e34; color: #dce6d3; cursor: pointer; }
+.construction-tabs button[aria-selected="true"] { background: #56705a; border-color: #e4cb8b; color: #fff1c4; }
+.station-viewport { display: block; width: 100%; flex: 1 1 0; min-height: 0; object-fit: contain; background: #1a2d27; border-radius: 3px; }
+.station-length { flex-shrink: 0; margin: 3px 0 0; font-size: 12px; color: #e8eddf; }
 #track-confirm-split { position: fixed; transform: translate(-50%, -100%); padding: 8px 12px; border: 1px solid #9ee4c5; border-radius: 5px; background: #284e3ef5; color: #edf5df; font-size: 11px; pointer-events: auto; z-index: 8; box-shadow: 0 2px 7px #0007; white-space: nowrap; }
 #track-confirm-split:hover { background: #38654e; }
 .setup-choice, #advanced-setup { padding: 10px 0; margin: 0; border: 0; min-width: 0; }
@@ -28,3 +35,15 @@
 #view-options .view-checkbox { display: flex; align-items: center; gap: 9px; margin: 8px 0 20px; font-size: 14px; letter-spacing: normal; }
 #view-options input { accent-color: #b4cd9d; width: 16px; height: 16px; }
 #view-options p { font-size: 12px; color: #b5c3b1; line-height: 1.6; }
+select { color-scheme: light; background: #e8eddf; color: #20392f; border-color: #a8b9a5; }
+select option { background: #e8eddf; color: #20392f; }
+select option:checked { background: #20392f; color: #e8eddf; }
+body:not(.playing) header, body:not(.playing) footer, body:not(.playing)::after { display: none; }
+body:not(.playing) #menu { inset: 0; width: 100%; height: 100svh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; padding: 0 clamp(24px, 6vw, 96px); text-align: left; background: linear-gradient(180deg, #101b1910, #101b1920 60%, #101b1966); }
+body:not(.playing) #menu h1 { margin: 0; padding: 0; max-width: min(420px, 38vw); font-size: clamp(32px, 4.5vw, 64px); line-height: 1.15; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #fff9e9; text-shadow: 0 3px 25px #102019c9, 0 1px 5px #102019; }
+body:not(.playing) #menu .primary { margin: 0; width: 220px; min-height: 50px; justify-content: center; padding: 15px 24px; font-size: 14px; font-weight: 600; background: #eee8d8; color: #233b32; box-shadow: 0 4px 24px #10201955; }
+body:not(.playing) #menu .primary:hover { background: #fff9e9; }
+@media (max-width: 700px) {
+  body:not(.playing) #menu { justify-content: flex-start; padding-top: 12svh; gap: 20px; }
+  body:not(.playing) #menu h1 { max-width: 100%; font-size: clamp(28px, 8vw, 44px); }
+}

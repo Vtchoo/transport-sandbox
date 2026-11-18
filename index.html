@@ -5,18 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#182c2b" />
     <meta name="description" content="Explore a seeded, real-scale railway world with streaming procedural terrain." />
-    <title>Railway World — Terrain Sandbox</title>
+    <title>Transport Sandbox</title>
   </head>
   <body>
     <canvas id="world" tabindex="0" aria-label="Procedural terrain world. WASD to move, mouse to look, E and Q to change altitude."></canvas>
     <div id="app">
-      <header><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">Ⅱ</span> RAILWAY WORLD</a><span class="version">TERRAIN SANDBOX <span>·</span> v0.2</span></header>
+      <header><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">Ⅱ</span> TRANSPORT SANDBOX</a><span class="version">TERRAIN SANDBOX <span>·</span> v0.2</span></header>
       <main id="menu">
-        <div class="eyebrow"><span></span> A WORLD WORTH CROSSING</div>
-        <h1>Beyond the<br /><em>next mountain.</em></h1>
-        <p>Mountain ranges, river valleys, an open horizon.<br />The beginning of your railway world.</p>
-        <button id="new-game-open" class="primary" type="button">New game <span aria-hidden="true">↗</span></button>
-        <span class="menu-note">Same seed. Same settings. Same world.</span>
+        <h1>Transport Sandbox</h1>
+        <button id="new-game-open" class="primary" type="button">Start game</button>
       </main>
       <dialog id="new-game" aria-labelledby="new-game-title">
         <div class="settings-heading"><h2 id="new-game-title">New game</h2><button id="new-game-close" type="button" aria-label="Close new game">✕</button></div>
@@ -42,7 +39,7 @@
       </dialog>
       <section id="game" hidden aria-label="World controls">
         <aside id="debug-overlay" hidden aria-label="World debug information">
-          <span class="debug-heading">RAILWAY WORLD · DEBUG · F3 TO HIDE</span>
+          <span class="debug-heading">TRANSPORT SANDBOX · DEBUG · F3 TO HIDE</span>
           <span id="camera-label">OVERLOOK CAMERA</span>
           <span id="world-name"></span>
           <span id="coordinates"></span><span id="altitude"></span><span id="speed"></span>
@@ -80,15 +77,29 @@
         <div id="train-placement-hint" hidden></div><div id="train-coupler" hidden aria-hidden="true"></div>
         <section id="track-panel" hidden aria-labelledby="track-title">
           <div class="track-panel-heading"><h2 id="track-title">Build track</h2><button id="track-done" type="button">Done</button></div>
+          <div class="construction-tabs" role="tablist" aria-label="Construction tools">
+            <button id="track-tab" role="tab" aria-selected="true" aria-controls="track-tools" type="button">Track</button>
+            <button id="station-tab" role="tab" aria-selected="false" aria-controls="station-tools" type="button">Stations</button>
+          </div>
+          <div id="track-tools" role="tabpanel" aria-labelledby="track-tab">
           <label for="track-gauge">TRACK GAUGE</label><select id="track-gauge"></select>
           <label for="track-grid">WORLD GRID SNAP · G</label><select id="track-grid"><option value="0">Off</option><option value="1">1 m</option><option value="5">5 m</option><option value="10">10 m</option><option value="25">25 m</option></select>
           <p class="track-dimensions">4 m ballast bed · 2H:1V cuts &amp; embankments</p>
+          </div>
+          <div id="station-tools" role="tabpanel" aria-labelledby="station-tab" hidden>
+            <label for="station-type">STATION TYPE</label>
+            <select id="station-type"><option value="platform">Simple platform</option></select>
+            <p class="track-help">Hover an existing track to preview a platform, then click to build. Platforms cover the entire segment. Split the track first for a shorter platform.</p>
+            <label for="station-action">ACTION</label>
+            <select id="station-action"><option value="build">Build platform</option><option value="remove">Remove platform</option></select>
+          </div>
           <p id="track-status" role="status">Choose a start location.</p>
           <p id="track-earthworks" hidden>Updating terrain…</p>
           <p id="track-selection"></p>
           <p class="track-help">Keep clicking to place nodes; <kbd>Esc</kbd> stops. <kbd>Z</kbd> / <kbd>X</kbd> rotate the new end node direction. Drag nodes or cyan handles horizontally; hold <kbd>Shift</kbd> for vertical movement. Hover beside a node: <kbd>+</kbd> extends, purple <kbd>Ⅱ+</kbd> adds a parallel node. Purple handles adjust spacing. Click a track to preview a node, then Confirm split to add it; <kbd>Esc</kbd> cancels. Hover a segment’s middle to straighten or delete it.</p>
         </section>
         <button id="track-direction" type="button" hidden aria-label="Start track from node">+</button>
+        <button id="track-continue-parallel" type="button" hidden aria-label="Continue all parallel tracks" title="Continue all parallel tracks"></button>
         <button id="track-delete" type="button" hidden aria-label="Delete node" title="Delete node">×</button>
         <button id="track-merge" type="button" hidden aria-label="Merge segments" title="Merge segments">⇄</button>
         <button id="track-straighten" type="button" hidden>Straighten</button>

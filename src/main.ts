@@ -14,6 +14,7 @@ import './ui/windows.css';
 import { icon } from './ui/icons';
 import { WarningMessages } from './ui/warnings';
 import type { PhysicsMode } from './train/physics';
+import { MenuScene } from './menu-scene';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const canvas = $<HTMLCanvasElement>('#world');
@@ -48,7 +49,8 @@ try {
 } catch {
   start.disabled = true;
   $<HTMLButtonElement>('#new-game-open').disabled = true;
-  $('.menu-note').textContent = 'WebGL is unavailable. Enable hardware acceleration to load the world.';
+  const message = document.createElement('p'); message.setAttribute('role', 'alert');
+  message.textContent = 'WebGL is unavailable. Enable hardware acceleration to load the world.'; menu.append(message);
   throw new Error('WebGL is unavailable');
 }
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
@@ -80,6 +82,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(12000, 24, 16), new THREE.Sh
     }`,
 }));
 scene.add(sky);
+let menuScene: MenuScene | undefined = new MenuScene();
 let world: TerrainWorld | undefined;
 let trackEditor: TrackEditor | undefined;
 let trainEditor: TrainEditor | undefined;
@@ -207,6 +210,7 @@ function menuView() {
   trainWindows?.dispose(); trainWindows = undefined;
   trainViewports.clear();
   playing = false; ready = false;
+  menuScene ??= new MenuScene();
   debugOverlay.hidden = true;
   clearInput();
   if (locked()) document.exitPointerLock();
@@ -239,10 +243,11 @@ start.addEventListener('click', () => {
   menu.hidden = true; game.hidden = false; loading.hidden = false;
   document.body.classList.add('playing');
   playing = true; ready = false;
+  menuScene?.dispose(); menuScene = undefined;
   world = new TerrainWorld(settings);
   applyViewOptions();
   scene.add(world.group);
-  trackEditor = new TrackEditor(scene, camera, canvas, world);
+  trackEditor = new TrackEditor(scene, camera, canvas, world, windows);
   trainEditor = new TrainEditor(scene, camera, canvas, world, trackEditor.network);
   trainEditor.physicsMode = physics;
   trainEditor.onWarning = text => warnings.show(text);
@@ -298,6 +303,7 @@ canvas.addEventListener('pointerdown', (event) => {
   canvas.focus({ preventScroll: true });
   skipCaptureClick = false;
   if (trainEditor?.pointerDown(event)) { skipCaptureClick = true; event.preventDefault(); keys.clear(); return; }
+  if (trackEditor?.openStationAt(event)) { skipCaptureClick = true; event.preventDefault(); clearInput(); return; }
   if (event.button === 0) {
     const id = trainEditor?.pickTrain(event);
     if (id !== undefined) { skipCaptureClick = true; trainWindows?.openTrain(id, 'viewport'); event.preventDefault(); clearInput(); return; }
@@ -385,7 +391,12 @@ let previousTime = 0;
 renderer.setAnimationLoop(time => {
   const delta = Math.min((time - previousTime) / 1000, 0.05);
   previousTime = time;
-  if (document.hidden || !playing || !world) return;
+  if (document.hidden) return;
+  if (!playing) {
+    if (menuScene) { menuScene.update(time, innerWidth / innerHeight); renderer.render(menuScene.scene, menuScene.camera); }
+    return;
+  }
+  if (!world) return;
   frames++; frameTime += delta;
   if (frameTime >= 0.5) { fps = Math.round(frames / frameTime); frames = 0; frameTime = 0; }
   const stats = world.stats;
@@ -408,6 +419,7 @@ renderer.setAnimationLoop(time => {
   trainEditor?.update(time);
   if (trainWindows) trainViewports.update(time, trainWindows);
   sky.position.copy(camera.position);
+  trackEditor?.stations.updateViewports(time, renderer, scene);
   renderer.render(scene, camera);
   hudTime += delta;
   if (hudTime > 0.2) {
@@ -421,4 +433,4 @@ renderer.setAnimationLoop(time => {
     $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }
 });
-window.addEventListener('pagehide', () => { warnings.dispose(); trainWindows?.dispose(); trainViewports.dispose(); windows.dispose(); trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
+window.addEventListener('pagehide', () => { menuScene?.dispose(); warnings.dispose(); trainWindows?.dispose(); trainViewports.dispose(); windows.dispose(); trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });

@@ -13,7 +13,19 @@ Follow the [shared authoring guide](sketchup-reference.md) for axes, scale, mate
 
 Designated front is SketchUp +green Y, regardless of which cab/hood is longest. State whether your prototype normally operates short-hood or long-hood forward. Body origin is halfway between bogie stations at railhead height. Name couplers `coupler-front` / `coupler-rear`; record their actual coordinates and heights.
 
-Optional moving details should remain separate: `fan-01` with origin at its shaft, `wheelset-01` at its axle, `door-cab-front` at its hinge. Fan rotation, doors, lighting and diesel exhaust are future integration work; no automatic behavior follows from these names. For exhaust, record each outlet in body-local coordinates and its direction; do not model smoke as permanent geometry.
+Optional moving details should remain separate: `fan-01` with origin at its shaft, `wheelset-01` at its axle, `door-cab-front` at its hinge. Fan rotation, doors and automatic light integration remain future work; no automatic behavior follows from these names. For exhaust, record each outlet in body-local coordinates and its direction; do not model smoke as permanent geometry.
+
+The vehicle definition can optionally configure one exhaust outlet. Coordinates use game axes (X across, Y up, +Z forward), in body-local metres:
+
+```ts
+exhaust: {
+  position: [0, 4.34, 0.2], // Example: the current F7 model's roof outlet.
+  kind: 'diesel',
+  idleRate: 1.2, // Particle emissions per second at idle.
+},
+```
+
+Omit `exhaust` to disable emissions for that model. Omit `idleRate` for the diesel default of 1.2 particles/second, or set it to zero to emit only under effort. Working engines automatically produce more exhaust. The effect is shared by placed trains and menu trains; catalog models and placement ghosts do not emit. Component-name discovery, multiple outlets and configurable outlet directions are not implemented yet.
 
 Use `paint-primary` for the main customizable body, `paint-secondary` for another chosen livery region, and `paint-accent` for selectable striping. Fixed historical logos remain `decal-fixed`; unpainted stainless and wheel treads use their own metal materials. Keep handrail paint separate only if it needs a different material or selectable color.
 

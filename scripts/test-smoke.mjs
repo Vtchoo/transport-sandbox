@@ -14,6 +14,41 @@ const { physicsStep, trainPerformance } = await load('src/train/physics.ts');
 const locomotive = VEHICLES.find(def => def.id === 'drgw-consolidation');
 const coach = VEHICLES.find(def => def.id === 'drgw-wood-coach');
 
+test('optional diesel exhaust emits lightly at idle, increases with effort, and can disable idle emission', () => {
+  const origin = new THREE.Vector2(), camera = new THREE.PerspectiveCamera(); camera.position.set(10, 10, 20);
+  for (const id of ['atsf-f7a', 'ge-809', 'ge-dash9', 'tgv-sud-est-power']) {
+    const definition = VEHICLES.find(def => def.id === id), visual = makeVehicle(definition, 1435), smoke = new TrainSmoke();
+    try {
+      for (let i = 0; i < 40; i++) smoke.update(.1, [{ visual, effort: 0 }], origin, camera);
+      if (id.startsWith('tgv')) { assert.equal(smoke.count, 0); continue; }
+      assert.ok(smoke.count > 0 && smoke.count < 10);
+      const idleCount = smoke.count, density = Math.max(...smoke.particles.map(p => p.density));
+      for (let i = 0; i < 40; i++) smoke.update(.1, [{ visual, effort: 1 }], origin, camera);
+      assert.ok(smoke.count > idleCount * 3);
+      assert.ok(Math.max(...smoke.particles.map(p => p.density)) > density * 2);
+    } finally { smoke.dispose(); disposeVehicle(visual); }
+  }
+  const definition = { ...VEHICLES.find(def => def.id === 'atsf-f7a'), exhaust: { position: [0, 4.34, .2], kind: 'diesel', idleRate: 0 } };
+  const visual = makeVehicle(definition, 1435), smoke = new TrainSmoke();
+  try {
+    for (let i = 0; i < 20; i++) smoke.update(.1, [{visual, effort:0}], origin, camera);
+    assert.equal(smoke.count, 0);
+    smoke.update(.1, [{visual, effort:1}], origin, camera); assert.ok(smoke.count > 0);
+  } finally { smoke.dispose(); disposeVehicle(visual); }
+});
+
+test('menu presets emit idle steam or diesel exhaust while the electric TGV stays clean', async () => {
+  const { MenuScene } = await load('src/menu-scene.ts');
+  for (let preset = 0; preset < 3; preset++) {
+    const scene = new MenuScene(preset);
+    try {
+      for (let i = 1; i <= 40; i++) scene.update(i * 100, 16 / 9);
+      assert.equal(scene.smoke.count > 0, preset !== 0);
+      assert.equal(scene.smoke.points.visible, preset !== 0);
+    } finally { scene.dispose(); }
+  }
+});
+
 test('traction effort distinguishes acceleration, hill load, downhill coasting and brakes in both modes', () => {
   for (const mode of ['realistic', 'ho']) {
     const definitions = [locomotive, coach, coach];
@@ -41,7 +76,7 @@ test('smoke originates at the articulated engine chimney, preserves floating-ori
     camera.position.set(30, 20, 40);
     try {
       for (let i = 0; i < 20; i++) smoke.update(.05, [{ visual, effort: 0 }], origin, camera);
-      assert.equal(smoke.count, 0);
+      assert.ok(smoke.count > 0, 'Stopped steam locomotives emit light idle exhaust');
       const outlet = visual.sections[0].body.localToWorld(new THREE.Vector3(...visual.sections[0].definition.exhaust.position));
       for (let i = 0; i < 8; i++) smoke.update(.05, [{ visual, effort: 1 }], origin, camera);
       assert.ok(smoke.count > 0 && smoke.points.visible);

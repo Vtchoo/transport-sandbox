@@ -4,10 +4,45 @@ import type { Side, TrackNetwork, TrackSegment } from '../track/model';
 import { vehicleBogie } from './catalog';
 import type { VehicleDefinition } from './catalog';
 import type { VehicleVisual } from './render';
+import { stationRuns } from '../track/station-layout';
 
 export interface TrackPosition { edge: number; u: number; facing: Side; routeIndex?: number }
 export interface TrackSample { point: THREE.Vector3; tangent: THREE.Vector3; position: TrackPosition }
 export type TrackSampler = (position: TrackPosition, distance: number) => TrackSample;
+/** Snap the leading coupler within 5 m along its own route, without jumping to parallel tracks. */
+export function snapTrainToStationEnd(network: TrackNetwork, position: TrackPosition, trainLength: number, threshold = 5) {
+  if (!Number.isFinite(trainLength) || trainLength <= 0) return undefined;
+  const ends = new Map(stationRuns(network).flatMap(run => run.ends.map(end => [`${end.edge}:${end.u}`, run.station] as const)));
+  const initial = network.segments.get(position.edge);
+  if (!initial || !ends.size) return undefined;
+  let edge: TrackSegment = initial, u = position.u, direction = position.facing;
+  const half = trainLength / 2, maxDistance = half + threshold;
+  let travelled = 0, best = threshold + 1e-8;
+  let result: { position: TrackPosition; station: number } | undefined;
+  for (let hop = 0; hop < 256 && travelled <= maxDistance; hop++) {
+    const curve = network.curve(edge); curve.arcLengthDivisions = 512;
+    const length = curve.getLength(); if (length < 1e-6) break;
+    for (const end of [0, 1] as const) {
+      const distance = travelled + (end - u) * direction * length, error = Math.abs(distance - half);
+      const station = ends.get(`${edge.id}:${end}`);
+      if (station === undefined || distance < -1e-8 || error >= best) continue;
+      try {
+        const center = sampleTrack(network, position, distance - half).position;
+        // The whole consist must still fit after aligning its front.
+        sampleTrack(network, center, -half); sampleTrack(network, center, half);
+        result = { position: center, station }; best = error;
+      } catch { /* An invalid station alignment must not steal a valid free placement. */ }
+    }
+    travelled += length * (direction > 0 ? 1 - u : u);
+    if (travelled > maxDistance) break;
+    const node = direction > 0 ? edge.b : edge.a, side = direction > 0 ? edge.bSide : edge.aSide;
+    const next: TrackSegment[] = network.incident(node).filter(other => other.id !== edge.id && other.gauge === edge.gauge &&
+      (other.a === node ? other.aSide : other.bSide) !== side);
+    if (next.length !== 1) break;
+    edge = next[0]; direction = edge.a === node ? 1 : -1; u = direction > 0 ? 0 : 1;
+  }
+  return result;
+}
 export interface VehiclePose {
   center: THREE.Vector3; front: THREE.Vector3; rear: THREE.Vector3; frontDirection: THREE.Vector3; rearDirection: THREE.Vector3;
   sections?: (facing: Side) => VehiclePose[];

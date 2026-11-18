@@ -55,7 +55,7 @@ The current animation derives wheel rotation from signed distance / rolling radi
 
 For different gauges, supply appropriate frames, wheel spacing, rods and cylinders where necessary. Do not scale the entire locomotive or stretch the boiler. A real conversion may alter more than the wheels. Label fictional gauge adaptations explicitly.
 
-Record the chimney outlet position in engine body-local coordinates, facing upward, and its effective width. The existing exhaust system reads a position and emits effort-driven smoke; outlet width/direction and multiple outlets are authoring notes pending adapter support. Do not include particle puffs in the GLB.
+Record the chimney outlet position in engine body-local coordinates, facing upward, and its effective width. The exhaust system reads `exhaust.position`, with optional `kind: 'steam'` and `idleRate` (default 2.2 particles/second). Steam engines emit faint idle puffs and denser smoke under effort, including in menu scenes. Setting `idleRate: 0` disables idle puffs. Outlet width/direction and multiple outlets are authoring notes pending adapter support. Do not include particle puffs in the GLB.
 
 Use `paint-primary` / `paint-secondary` only for selectable paint. Black boiler paint is a paint surface, not necessarily exposed metallic steel. Use `metal-steel` for rods/tires, `metal-dark` for exposed dark machinery, fixed materials for historic lettering, and a separate coal material. Keep coal load and tender water/fuel mass documented. Omit boiler internals unless visible.
 

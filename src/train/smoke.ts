@@ -10,6 +10,8 @@ interface Particle {
   density: number;
   phase: number;
   distance: number;
+  shade: number;
+  growth: number;
 }
 interface Emitter {
   position: THREE.Vector3;
@@ -21,7 +23,7 @@ export interface SmokeSource {
   effort: number;
 }
 
-/** One bounded point-sprite batch for all steam exhaust; positions remain in world space. */
+/** One bounded point-sprite batch for idle and working exhaust; positions remain in world space. */
 export class TrainSmoke {
   readonly points: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
   private particles: Particle[] = [];
@@ -91,7 +93,7 @@ export class TrainSmoke {
         }`,
     });
     this.points = new THREE.Points(geometry, material);
-    this.points.name = "Steam exhaust";
+    this.points.name = "Locomotive exhaust";
     // Vertex positions are rebased each update; a batch may span multiple separated trains.
     this.points.frustumCulled = false;
     this.points.visible = false;
@@ -140,6 +142,8 @@ export class TrainSmoke {
       }
       const outlet = visual.definition.exhaust;
       if (!outlet) return;
+      const steam = (outlet.kind ?? (visual.definition.runningGear === 'steam' ? 'steam' : 'diesel')) === 'steam';
+      const idleRate = Math.max(0, outlet.idleRate ?? (steam ? 2.2 : 1.2));
       seen.add(visual);
       const position = visual.body.localToWorld(
         new THREE.Vector3(...outlet.position),
@@ -160,10 +164,9 @@ export class TrainSmoke {
         .divideScalar(Math.max(dt, 0.001));
       if (velocity.lengthSq() > 80 ** 2) velocity.set(0, 0, 0);
       if (
-        emitter.effort > 0.025 &&
         position.distanceToSquared(eye) < 2500 ** 2
       ) {
-        emitter.carry += dt * (5 + emitter.effort * 28);
+        emitter.carry += dt * (idleRate + emitter.effort * (steam ? 31 : 18));
         const amount = Math.floor(emitter.carry);
         emitter.carry -= amount;
         for (
@@ -180,6 +183,8 @@ export class TrainSmoke {
             density: 0,
             phase: 0,
             distance: 0,
+            shade: 0,
+            growth: 0,
           };
           particle.position
             .copy(emitter.position)
@@ -188,12 +193,14 @@ export class TrainSmoke {
           particle.position.z += (this.random() - 0.5) * 0.14;
           particle.velocity.copy(velocity).multiplyScalar(0.12);
           particle.velocity.x += (this.random() - 0.5) * 0.5;
-          particle.velocity.y += 2.5 + emitter.effort * 2 + this.random();
+          particle.velocity.y += (steam ? 1.4 : 1) + emitter.effort * (steam ? 3 : 1.8) + this.random() * .5;
           particle.velocity.z += (this.random() - 0.5) * 0.5;
           particle.age = 0;
-          particle.life = 3.1 + this.random() * 1.7;
-          particle.radius = 0.21 + this.random() * 0.13;
-          particle.density = 0.18 + emitter.effort * 0.36;
+          particle.life = 2.4 + emitter.effort * .7 + this.random() * 1.2;
+          particle.radius = 0.12 + emitter.effort * .09 + this.random() * .10;
+          particle.density = (steam ? .10 : .065) + emitter.effort * (steam ? .44 : .24);
+          particle.shade = (steam ? .43 : .32) - emitter.effort * (steam ? .28 : .14);
+          particle.growth = (steam ? .28 : .18) + emitter.effort * .3;
           particle.phase = this.random() * Math.PI * 2;
           this.particles.push(particle);
         }
@@ -214,10 +221,10 @@ export class TrainSmoke {
       this.positions[i * 3] = particle.position.x - origin.x;
       this.positions[i * 3 + 1] = particle.position.y;
       this.positions[i * 3 + 2] = particle.position.z - origin.y;
-      this.sizes[i] = particle.radius + particle.age * 0.58;
+      this.sizes[i] = particle.radius + particle.age * particle.growth;
       this.appearances[i * 3] =
         particle.density * Math.min(1, particle.age / 0.1) * (1 - age) ** 1.6;
-      this.appearances[i * 3 + 1] = 0.15 + age * 0.32;
+      this.appearances[i * 3 + 1] = particle.shade + age * 0.25;
       this.appearances[i * 3 + 2] = particle.phase + particle.age * 0.3;
     });
     this.points.geometry.setDrawRange(0, this.count);

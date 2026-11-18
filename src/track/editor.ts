@@ -4,6 +4,9 @@ import type { TrackNode, TrackSegment, Side } from './model';
 import { makeTrack, disposeTrack, updateSleeperLOD } from './render';
 import { WorldGrid } from './grid';
 import type { TerrainWorld } from '../terrain/world';
+import { makePlatform, StationPlatforms } from './stations';
+import type { WindowManager } from '../ui/windows';
+import { icon } from '../ui/icons';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
 const ACTION_DISTANCE = 600;
@@ -12,6 +15,8 @@ interface Drag { pick: Pick; pointer: number; anchor: THREE.Vector3; screenY: nu
 export class TrackEditor {
   readonly network = new TrackNetwork();
   readonly group = new THREE.Group();
+  readonly stations: StationPlatforms;
+  private stationMode = false;
   private rails = new THREE.Group();
   private segmentMeshes = new Map<number, THREE.Group>();
   private gizmos = new THREE.Group();
@@ -30,6 +35,8 @@ export class TrackEditor {
   private spacingLineMaterial = new THREE.LineBasicMaterial({ color: 0xd19aff, depthTest: false });
   private markers: { object: THREE.Mesh; pick: Pick }[] = [];
   private directionButton = $<HTMLButtonElement>('track-direction');
+  private continueParallel = $<HTMLButtonElement>('track-continue-parallel');
+  private buildingParallel = false;
   private parallelLeft = $<HTMLButtonElement>('track-parallel-left');
   private parallelRight = $<HTMLButtonElement>('track-parallel-right');
   private straightenButton = $<HTMLButtonElement>('track-straighten');
@@ -63,9 +70,25 @@ export class TrackEditor {
   private visible = false;
   gauge = 1435;
   onClose?: () => void;
-  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld) {
+  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement, private world: TerrainWorld, windows?: WindowManager) {
+    this.stations = new StationPlatforms(this.network, windows); this.group.add(this.stations.group);
     this.group.add(this.rails, this.gizmos); scene.add(this.group);
     this.group.add(this.grid); this.grid.visible = false;
+    for (const [id, station] of [['track-tab', false], ['station-tab', true]] as const) {
+      $(id).prepend(icon(station ? 'station' : 'track'));
+      $(id).addEventListener('click', () => {
+        this.cancelPlacement(); this.endDrag(); this.hideNodeButtons();
+        this.stationMode = station; this.gizmos.visible = this.enabled && !station;
+        $('track-tools').hidden = station; $('station-tools').hidden = !station;
+        $('track-selection').hidden = station;
+        document.querySelector<HTMLElement>('#track-panel .track-help:last-child')!.hidden = station;
+        $('track-tab').setAttribute('aria-selected', String(!station));
+        $('station-tab').setAttribute('aria-selected', String(station));
+        this.grid.showAt(undefined, false);
+        this.message(station ? 'Hover beside an existing track, then click to build a platform on that side. Junction segments are excluded.' : 'Click terrain to place the first node, or use a node’s + button.');
+      }, { signal: this.abort.signal });
+    }
+    $('station-action').addEventListener('change', () => this.clearGhost(), { signal: this.abort.signal });
     const gridSelect = $<HTMLSelectElement>('track-grid');
     gridSelect.value = '0';
     gridSelect.addEventListener('change', () => {
@@ -97,10 +120,21 @@ export class TrackEditor {
     this.directionButton.addEventListener('click', () => {
       const direction = this.hoverDirection;
       if (!direction) return;
+      if (!this.network.canExtend(direction.node, direction.side)) return;
       if (direction.node.gauge !== this.gauge) { this.message(`Gauge mismatch. Select ${direction.node.gauge.toLocaleString()} mm to use this node.`); return; }
       this.cancelPlacement(); this.start = direction; this.selected = direction.node.id;
       this.directionButton.hidden = true; this.refreshGizmos();
       this.message('Choose the next node. Keep clicking to extend; Esc stops placement.');
+    }, { signal: this.abort.signal });
+    this.continueParallel.replaceChildren(icon('add'), icon('parallel'));
+    this.continueParallel.addEventListener('click', () => {
+      const direction = this.hoverDirection;
+      if (!this.enabled || this.drag || !direction || !this.network.parallelGroup(direction.node) || !this.actionsInRange(direction.node.position)) return;
+      if ([...this.network.parallelGroup(direction.node)!.offsets.keys()].some(id => !this.network.canExtend(this.network.nodes.get(id)!, direction.side))) return;
+      this.cancelPlacement(); this.start = direction; this.buildingParallel = true; this.selected = direction.node.id;
+      this.gauge = direction.node.gauge; select.value = String(this.gauge);
+      this.hideNodeButtons(); this.refreshGizmos();
+      this.message('Building all parallel tracks. Click to place their next nodes; keep clicking to extend. Esc stops.');
     }, { signal: this.abort.signal });
     this.straightenButton.addEventListener('click', () => {
       if (!this.enabled || this.drag || this.hoveredSegment === undefined) return;
@@ -164,7 +198,7 @@ export class TrackEditor {
       this.gauge = node.gauge; $<HTMLSelectElement>('track-gauge').value = String(node.gauge);
       this.selected = node.id; this.start = { node, side: 1 };
       this.refreshGizmos();
-      this.message(`Parallel node added · ${this.network.defaultSpacing(node.gauge).toFixed(3)} m default spacing. Drag its purple handle to adjust; click terrain to extend.`);
+      this.message(`Parallel node added · ${node.position.distanceTo(source.position).toFixed(3)} m spacing. Drag its purple handle to adjust; click terrain to extend.`);
     }, { signal: this.abort.signal });
     $('track-done').addEventListener('click', () => this.onClose ? this.onClose() : this.setEnabled(false), { signal: this.abort.signal });
     this.deleteButton.addEventListener('click', () => {
@@ -181,7 +215,7 @@ export class TrackEditor {
         this.message(`Delete node ${node.id} and its ${this.network.incident(node.id).length} connected tracks? Other nodes will remain. Click again to confirm; Esc cancels.`);
         return;
       }
-      if (this.start?.node.id === node.id) this.start = undefined;
+      if (this.start?.node.id === node.id) { this.start = undefined; this.buildingParallel = false; }
       this.network.deleteNode(node.id);
       if (this.selected === node.id) this.selected = undefined;
       this.hideNodeButtons(); this.clearGhost(); this.changed(); this.rebuild(); this.commitEarthworks();
@@ -201,7 +235,7 @@ export class TrackEditor {
       try {
         const removed = new Set(this.network.incident(node.id).map(edge => edge.id));
         this.network.merge(node.id);
-        if (this.start?.node.id === node.id) this.start = undefined;
+        if (this.start?.node.id === node.id) { this.start = undefined; this.buildingParallel = false; }
         if (this.selected === node.id) this.selected = undefined;
         this.hideNodeButtons(); this.clearGhost(); this.changed(); this.rebuild(removed); this.commitEarthworks();
         this.message(`Node ${node.id} removed and its tracks merged. Outer endpoint handles and remaining parallel nodes preserved.`);
@@ -212,7 +246,7 @@ export class TrackEditor {
   get enabled() { return this.visible; }
   get isDragging() { return !!this.drag; }
   toggleGrid() {
-    if (!this.enabled) return;
+    if (!this.enabled || this.stationMode) return;
     const select = $<HTMLSelectElement>('track-grid');
     select.value = String(this.grid.spacing ? 0 : this.lastGridSpacing);
     select.dispatchEvent(new Event('change'));
@@ -220,14 +254,14 @@ export class TrackEditor {
   setEnabled(enabled: boolean, keepOpen = false) {
     this.hideSplit();
     this.resetDelete();
-    this.visible = enabled; this.gizmos.visible = enabled;
+    this.visible = enabled; this.gizmos.visible = enabled && !this.stationMode;
     this.grid.showAt(this.gridPoint, enabled);
     $('track-panel').hidden = !(enabled || keepOpen);
     $('build-track').setAttribute('aria-pressed', String(enabled));
     this.hideNodeButtons();
     this.hideStraighten();
     if (!enabled) { this.cancelPlacement(); this.endDrag(); this.clearGhost(); }
-    else this.message('Click terrain to place the first node, or use a node’s + button.');
+    else this.message(this.stationMode ? 'Hover beside an existing track, then click to build a platform.' : 'Click terrain to place the first node, or use a node’s + button.');
     this.refreshGizmos();
   }
   private message(text: string) { $('track-status').textContent = text; }
@@ -248,6 +282,7 @@ export class TrackEditor {
     this.mergeButton.setAttribute('aria-label', this.mergeButton.title);
   }
   private hideNodeButtons() {
+    this.continueParallel.hidden = true;
     this.directionButton.hidden = true; this.parallelLeft.hidden = true; this.parallelRight.hidden = true;
     this.deleteButton.hidden = true; this.hoverDirection = undefined; this.resetDelete();
     this.mergeButton.hidden = true; this.resetMerge();
@@ -331,6 +366,23 @@ export class TrackEditor {
   }
   pointerDown(event: PointerEvent) {
     if (!this.enabled || event.button !== 0) return false;
+    if (this.stationMode) {
+      this.stationHover(event);
+      const target = this.splitTarget, edge = target && this.network.segments.get(target.edge);
+      if (!edge) { this.message('Choose an existing track segment.'); return true; }
+      const side = this.platformSide(event, edge, target!.t);
+      if ($<HTMLSelectElement>('station-action').value === 'remove') {
+        if (edge.station?.sides.includes(side)) { this.network.removePlatform(edge, side); this.stations.sync(); this.clearGhost(); this.message('Platform removed.'); }
+        else this.message('This side has no platform.');
+      } else if (edge.station?.sides.includes(side)) this.stations.open(edge.station.id);
+      else {
+        try {
+          const station = this.network.addStation(edge, side);
+          this.stations.sync(); this.clearGhost(); this.message(`Platform added to Station ${station.id}. Click a platform to open its window.`);
+        } catch (error) { this.message((error as Error).message); }
+      }
+      return true;
+    }
     const cancellingSplit = !!this.pendingSplit;
     if (cancellingSplit) this.cancelPlacement();
     const pick = this.pick(event);
@@ -377,6 +429,15 @@ export class TrackEditor {
   }
   private placeSecond(point: THREE.Vector3, existing?: TrackNode) {
     const start = this.start!;
+    if (this.buildingParallel) {
+      try {
+        const next = this.network.extendParallel(start.node, start.side, point, existing, existing ? undefined : this.endDirection(point));
+        this.start = { node: next.node, side: next.side }; this.selected = next.node.id; this.endRotation = 0;
+        this.clearGhost(); this.changed(); this.rebuild(); this.commitEarthworks();
+        this.message(`${next.edges.length} parallel tracks built. Click to extend them together; Esc stops.`);
+        return true;
+      } catch (error) { this.message((error as Error).message); return false; }
+    }
     if (existing && existing.gauge !== this.gauge) { this.message(`Cannot connect ${this.gauge.toLocaleString()} mm to ${existing.gauge.toLocaleString()} mm.`); return false; }
     if (point.distanceTo(start.node.position) < 1) { this.message('Choose an end node at least 1 m away.'); return false; }
     const node = existing ?? this.network.addNode(point, this.gauge);
@@ -398,6 +459,7 @@ export class TrackEditor {
   pointerMove(event: PointerEvent) {
     if (!this.enabled) return false;
     this.lastPointer = event;
+    if (this.stationMode) { this.stationHover(event); return false; }
     if (this.pendingSplit) { this.positionSplitButton(); return false; }
     if (this.drag) {
       const drag = this.drag;
@@ -432,6 +494,7 @@ export class TrackEditor {
     if (this.start) {
       this.hoverNode(event);
       this.directionButton.hidden = true;
+      this.continueParallel.hidden = true;
       const node = this.pick(event, true)?.node;
       const terrain = node ? undefined : this.terrainPoint(event);
       const point = node?.position ?? (terrain && this.placementPoint(terrain, event.shiftKey));
@@ -440,6 +503,16 @@ export class TrackEditor {
         const key = `${point.x.toFixed(1)},${point.y.toFixed(1)},${point.z.toFixed(1)},${node?.id ?? ''},${!!event.shiftKey}`;
         if (key !== this.ghostKey) {
           this.clearGhost(); this.ghostKey = key;
+          if (this.buildingParallel) {
+            try {
+              const plan = this.network.previewParallel(this.start.node, this.start.side, point, node, node ? undefined : this.endDirection(point));
+              this.ghost = new THREE.Group();
+              for (const entry of plan) this.ghost.add(makeTrack(entry.curve, this.gauge, true));
+              this.group.add(this.ghost);
+              this.message(`${plan.length} parallel tracks · click to ${node ? 'connect the matching group' : 'place all end nodes'}. Shift snaps straight; Z / X rotate; Esc stops.`);
+            } catch (error) { this.message((error as Error).message); }
+            return false;
+          }
           const curve = this.network.preview(this.start.node, point, this.start.side, node, node ? undefined : this.endDirection(point));
           this.ghost = makeTrack(curve, this.gauge, true);
           if (node && node.gauge !== this.gauge) {
@@ -461,6 +534,36 @@ export class TrackEditor {
     if (this.pendingSplit) this.splitMarker.position.copy(this.pendingSplit.point);
     this.positionSplitButton();
   }
+  openStationAt(event: PointerEvent) {
+    if (event.button !== 0 || this.enabled && this.stationMode && $<HTMLSelectElement>('station-action').value === 'remove') return false;
+    const id = this.stations.pick(this.ray(event), this.world.origin);
+    if (id === undefined) return false;
+    this.stations.open(id); return true;
+  }
+  private platformSide(event: PointerEvent, edge: TrackSegment, t: number): Side {
+    const curve = this.network.curve(edge), point = curve.getPoint(t);
+    const hit = this.ray(event).intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -point.y), new THREE.Vector3());
+    return hit && hit.sub(point).dot(trackFrame(curve.getTangent(t)).right) < 0 ? -1 : 1;
+  }
+  private stationHover(event: PointerEvent) {
+    this.hoverSplit(event); this.splitMarker.visible = false;
+    const target = this.splitTarget, edge = target && this.network.segments.get(target.edge);
+    if (!edge) { this.clearGhost(); return; }
+    const removing = $<HTMLSelectElement>('station-action').value === 'remove';
+    const side = this.platformSide(event, edge, target!.t);
+    if (edge.station?.sides.includes(side) && !removing) { this.clearGhost(); this.message(`Station ${edge.station.id} · click its platform to open the station window.`); return; }
+    if (!removing && !this.network.canPlaceStation(edge, side)) {
+      this.clearGhost(); this.message('No platforms on junction segments. Split the track beyond the junction first.'); return;
+    }
+    if (removing && !edge.station?.sides.includes(side)) { this.clearGhost(); return; }
+    const key = `station:${edge.id}:${side}:${removing}`;
+    if (this.ghostKey === key) return;
+    this.clearGhost(); this.ghostKey = key;
+    this.ghost = makePlatform(this.network.curve(edge), edge.gauge, side, true);
+    if (removing) this.ghost.traverse(object => { if (object instanceof THREE.Mesh) object.material.color.set(0xef7864); });
+    this.group.add(this.ghost);
+    this.message(removing ? 'Click to remove this platform.' : `Click to build a full-segment platform · ${this.network.curve(edge).getLength().toFixed(1)} m. Move across the track to change sides.`);
+  }
   private positionSplitButton() {
     const pending = this.pendingSplit, point = pending && this.project(pending.point);
     this.splitButton.hidden = !this.enabled || !pending || !point?.visible || !this.actionsInRange(pending.point);
@@ -468,8 +571,8 @@ export class TrackEditor {
   }
   private hoverSplit(event: PointerEvent) {
     if (this.pendingSplit) { this.hideSplit(); return; }
-    if (this.start || this.pick(event)) { this.hideSplit(); return; }
-    let best = 16 * 16, target: typeof this.splitTarget;
+    if (this.start || !this.stationMode && this.pick(event)) { this.hideSplit(); return; }
+    let best = (this.stationMode ? 45 : 16) ** 2, target: typeof this.splitTarget;
     for (const edge of this.network.segments.values()) {
       let samples = this.splitSamples.get(edge.id);
       if (!samples) {
@@ -563,7 +666,10 @@ export class TrackEditor {
     this.positionDirectionButton();
     this.directionButton.title = `Start track from node ${nearest.id} · ${nearest.gauge.toLocaleString()} mm`;
     this.directionButton.setAttribute('aria-label', `Start track from node ${nearest.id} in ${side === 1 ? 'positive' : 'negative'} tangent direction`);
-    this.directionButton.hidden = false;
+    this.directionButton.hidden = !this.network.canExtend(nearest, side);
+    const group = this.network.parallelGroup(nearest);
+    this.continueParallel.hidden = !group || group.offsets.size < 2 ||
+      [...group.offsets.keys()].some(id => !this.network.canExtend(this.network.nodes.get(id)!, side));
     this.deleteButton.hidden = false;
     this.mergeButton.hidden = !this.network.canMerge(nearest.id);
     this.parallelLeft.hidden = false; this.parallelRight.hidden = false;
@@ -578,10 +684,12 @@ export class TrackEditor {
     if (length < 0.001) { dx = 1; dy = 0; } else { dx /= length; dy /= length; }
     this.directionButton.style.left = `${center.x + dx * side * 65}px`;
     this.directionButton.style.top = `${center.y + dy * side * 65}px`;
+    this.continueParallel.style.left = `${center.x + dx * side * 65 + dy * 46}px`;
+    this.continueParallel.style.top = `${center.y + dy * side * 65 - dx * 46}px`;
     this.deleteButton.style.left = `${center.x + dx * side * 65 - dy * 32}px`;
     this.deleteButton.style.top = `${center.y + dy * side * 65 + dx * 32}px`;
-    this.mergeButton.style.left = `${center.x + dx * side * 65 + dy * 32}px`;
-    this.mergeButton.style.top = `${center.y + dy * side * 65 - dx * 32}px`;
+    this.mergeButton.style.left = `${center.x + dx * side * 65 + dy * 82}px`;
+    this.mergeButton.style.top = `${center.y + dy * side * 65 - dx * 82}px`;
     const rightPoint = this.project(node.position.clone().addScaledVector(trackFrame(node.axis).right, 10));
     let rx = rightPoint.x - center.x, ry = rightPoint.y - center.y;
     const span = Math.hypot(rx, ry);
@@ -589,7 +697,7 @@ export class TrackEditor {
     for (const [button, direction] of [[this.parallelLeft, -1], [this.parallelRight, 1]] as const) {
       button.style.left = `${center.x + rx * direction * 75}px`;
       button.style.top = `${center.y + ry * direction * 75}px`;
-      button.title = `Add parallel node ${direction < 0 ? 'left' : 'right'} · ${this.network.defaultSpacing(node.gauge).toFixed(3)} m · ${node.gauge.toLocaleString()} mm`;
+      button.title = `Add parallel node ${direction < 0 ? 'left' : 'right'} · ${this.network.parallelSpacing(node, direction).toFixed(3)} m · ${node.gauge.toLocaleString()} mm`;
     }
   }
   pointerUp(event: PointerEvent) {
@@ -605,6 +713,7 @@ export class TrackEditor {
   }
   suspend() { if (this.pendingSplit) this.cancelPlacement(); this.hideSplit(); this.resetDelete(); this.endDrag(); this.hideNodeButtons(); this.hideStraighten(); this.clearGhost(); }
   leave(target: EventTarget | null) {
+    if (target === this.continueParallel) return;
     if (target === this.mergeButton) return;
     if (this.drag || target === this.directionButton || target === this.deleteButton || target === this.parallelLeft || target === this.parallelRight || target === this.straightenButton || target === this.deleteSegmentButton) return;
     this.hideSplit(); this.hideNodeButtons(); this.hideStraighten(); this.clearGhost();
@@ -622,6 +731,7 @@ export class TrackEditor {
     return true;
   }
   private cancelPlacement() {
+    this.buildingParallel = false;
     this.pendingSplit = undefined; this.endRotation = 0;
     this.resetMerge();
     this.hideSplit();
@@ -670,6 +780,7 @@ export class TrackEditor {
       const mesh = makeTrack(this.network.curve(edge), edge.gauge, false, this.drag?.affected.has(edge.id) ?? false);
       this.segmentMeshes.set(edge.id, mesh); this.rails.add(mesh);
     }
+    this.stations.sync(affected);
     this.dirty = false; this.refreshGizmos();
   }
   private refreshGizmos() {
@@ -714,7 +825,7 @@ export class TrackEditor {
       this.viewSignature = signature;
     }
     const eye = this.camera.position.clone().add(new THREE.Vector3(this.world.origin.x, 0, this.world.origin.y));
-    this.grid.showAt(this.gridPoint, this.enabled && !!this.gridPoint && this.actionsInRange(this.gridPoint));
+    this.grid.showAt(this.gridPoint, this.enabled && !this.stationMode && !!this.gridPoint && this.actionsInRange(this.gridPoint));
     if (this.splitMarker.visible) {
       this.positionSplitButton();
       const units = eye.distanceTo(this.splitMarker.position) * 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) / this.canvas.clientHeight;
@@ -738,6 +849,7 @@ export class TrackEditor {
   dispose() {
     this.setEnabled(false); this.abort.abort();
     this.scene.remove(this.group); disposeTrack(this.rails);
+    this.stations.dispose();
     this.grid.dispose();
     this.segmentMeshes.clear();
     this.splitSamples.clear();

@@ -1,9 +1,19 @@
 import * as THREE from "three";
 import type { Side, TrackNetwork } from "../track/model";
 import { vehicleDefinition } from "./catalog";
-import { makeVehicle, disposeVehicle, tintVehicle, vehicleTransforms } from "./render";
+import {
+  makeVehicle,
+  disposeVehicle,
+  tintVehicle,
+  vehicleTransforms,
+} from "./render";
 import type { VehicleVisual } from "./render";
-import { applyVehiclePose, vehiclesOverlap, sampleTrack } from "./placement";
+import {
+  applyVehiclePose,
+  vehiclesOverlap,
+  sampleTrack,
+  snapTrainToStationEnd,
+} from "./placement";
 import type { TrackPosition } from "./placement";
 import type { VehiclePose } from "./placement";
 import {
@@ -406,12 +416,10 @@ export class TrainEditor {
         route: parked.route?.snapshot(),
         visuals: parked.visuals.map((visual) => ({
           gauge: visual.gauge,
-          transforms: vehicleTransforms(visual).map(
-            (object) => ({
-              position: object.position.toArray(),
-              quaternion: object.quaternion.toArray(),
-            }),
-          ),
+          transforms: vehicleTransforms(visual).map((object) => ({
+            position: object.position.toArray(),
+            quaternion: object.quaternion.toArray(),
+          })),
         })),
       })),
     };
@@ -612,6 +620,18 @@ export class TrainEditor {
     } catch (error) {
       appendError = (error as Error).message;
     }
+    let stationSnap: number | undefined;
+    if (this.target && !this.appendTarget && !appendError) {
+      const snapped = snapTrainToStationEnd(
+        this.network,
+        this.target,
+        consistLayout(definitions).length,
+      );
+      if (snapped) {
+        this.target = snapped.position;
+        stationSnap = snapped.station;
+      }
+    }
     if (!this.target) {
       this.ghosts.forEach((visual) => {
         visual.group.visible = false;
@@ -688,7 +708,7 @@ export class TrainEditor {
       this.message(
         this.appendTarget
           ? `Attach to ${this.appendTarget.end} · ${this.appendTarget.parked.train.name}`
-          : `${train.name} · ${definitions.length} vehicles · ready to place`,
+          : `${train.name} · ${definitions.length} vehicles · ${stationSnap === undefined ? "ready to place" : `front snapped to Station ${stationSnap} end`}`,
       );
     } catch (error) {
       const raw = (error as Error).message;
@@ -894,9 +914,18 @@ export class TrainEditor {
       this.signature = signature;
     }
     this.instances.sync(this.parked.flatMap((train) => train.visuals));
-    this.smoke.update(delta, this.parked.flatMap(parked => parked.visuals.map(visual => ({
-      visual, effort: parked.train.running && parked.supported ? parked.effort ?? 0 : 0,
-    }))), this.world.origin, this.camera);
+    this.smoke.update(
+      delta,
+      this.parked.flatMap((parked) =>
+        parked.visuals.map((visual) => ({
+          visual,
+          effort:
+            parked.train.running && parked.supported ? (parked.effort ?? 0) : 0,
+        })),
+      ),
+      this.world.origin,
+      this.camera,
+    );
   }
   private moveTrains(dt: number) {
     for (const parked of this.parked) {
@@ -1027,7 +1056,12 @@ export class TrainEditor {
           );
           train.speed = 0;
         } else {
-          parked.visuals.forEach((visual, i) => advanceVehicle(visual, direction * Math.min(next.distance, free) * train.items[i].facing));
+          parked.visuals.forEach((visual, i) =>
+            advanceVehicle(
+              visual,
+              direction * Math.min(next.distance, free) * train.items[i].facing,
+            ),
+          );
           parked.position = position;
           parked.effort = next.effort;
           train.speed =

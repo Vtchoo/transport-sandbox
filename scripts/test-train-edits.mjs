@@ -95,17 +95,18 @@ test('steam wheel phase follows accepted travel in either direction, freezes at 
  });
 });
 
-test('only a working placed steam locomotive emits; stopping or picking it up lets the plume dissipate', () => {
+test('placed steam locomotives emit lightly at idle, more under effort, and stop emitting when picked up', () => {
  for(const mode of ['realistic','ho']) fixture(({editor,park})=>{
   const train=park([VEHICLES.find(def=>def.id==='drgw-consolidation')]);editor.physicsMode=mode;
   for(let i=0;i<20;i++)editor.update(i*50);
-  assert.equal(editor.smoke.count,0);
+  assert.ok(editor.smoke.count>0);
+  const idleCount=editor.smoke.count;
   editor.toggleRunning(train.id);
   for(let i=20;i<60;i++)editor.update(i*50);
-  assert.ok(editor.smoke.count>0&&editor.parked[0].effort>0);
+  assert.ok(editor.smoke.count>idleCount&&editor.parked[0].effort>0);
   editor.toggleRunning(train.id);
   for(let i=60;i<200;i++)editor.update(i*50);
-  assert.equal(train.speed,0);assert.equal(editor.smoke.count,0);
+  assert.equal(train.speed,0);assert.ok(editor.smoke.count>0);
   editor.toggleRunning(train.id);for(let i=200;i<220;i++)editor.update(i*50);
   assert.ok(editor.smoke.count>0);
   editor.toggleRunning(train.id);for(let i=220;i<300;i++)editor.update(i*50);

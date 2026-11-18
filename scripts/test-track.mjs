@@ -12,10 +12,262 @@ const load = (entry) => {
 const { TrackNetwork, trackFrame } = await load('src/track/model.ts');
 const { TrackEditor } = await load('src/track/editor.ts');
 const { makeTrack, updateSleeperLOD, disposeTrack } = await load('src/track/render.ts');
+const { makePlatform, StationPlatforms } = await load('src/track/stations.ts');
+const { stationRuns, stationLengthLabel } = await load('src/track/station-layout.ts');
 const { WorldGrid, snapWorldPoint } = await load('src/track/grid.ts');
 const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.ts');
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('node hover hides single and parallel extension buttons toward station track, preserving outward actions', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 100), 1435);
+  const platform = network.connect(a, b, 1435); network.addStation(platform, 1); network.addParallel(a, 1);
+  const editor = Object.create(TrackEditor.prototype);
+  const button = () => ({ hidden: true, classList: { toggle() {} }, setAttribute() {} });
+  Object.assign(editor, { network, gauge: 1435, directionButton: button(), continueParallel: button(),
+    deleteButton: button(), mergeButton: button(), parallelLeft: button(), parallelRight: button(),
+    actionsInRange: () => true, project: point => ({ x: 400 + point.z, y: 400, visible: true }),
+    resetDelete() {}, resetMerge() {}, positionDirectionButton() {} });
+  editor.hoverNode({ clientX: 410, clientY: 400 });
+  assert.equal(editor.directionButton.hidden, true); assert.equal(editor.continueParallel.hidden, true);
+  assert.equal(editor.deleteButton.hidden, false);
+  editor.hoverNode({ clientX: 390, clientY: 400 });
+  assert.equal(editor.directionButton.hidden, false); assert.equal(editor.continueParallel.hidden, false);
+  const { node } = network.split(platform, 0.5);
+  for (const dx of [-5, 5]) {
+    editor.hoverNode({ clientX: 400 + node.position.z + dx, clientY: 400 });
+    assert.equal(editor.directionButton.hidden, true);
+  }
+});
+
+test('station-facing node sides reject outgoing and incoming branches while outside junctions remain allowed', () => {
+  for (const reverse of [false, true]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 100), 1435);
+    const platform = reverse ? network.connect(b, a, 1435) : network.connect(a, b, 1435);
+    network.addStation(platform, 1);
+    for (const node of [a, b]) {
+      const inside = platform.a === node.id ? platform.aSide : platform.bSide;
+      assert.equal(network.canExtend(node, inside), false);
+      assert.equal(network.canExtend(node, -inside), true);
+      const inner = network.addNode(node.position.clone().addScaledVector(node.axis, inside * 20).add(p(5, 0, 0)), 1435);
+      assert.throws(() => network.connect(node, inner, 1435, inside), /platform/);
+      assert.throws(() => network.connect(inner, node, 1435), /platform/);
+      const outer = network.addNode(node.position.clone().addScaledVector(node.axis, -inside * 40), 1435);
+      assert.ok(network.connect(node, outer, 1435, -inside));
+      const branch = network.addNode(node.position.clone().addScaledVector(node.axis, -inside * 20).add(p(10, 0, 0)), 1435);
+      assert.ok(network.connect(branch, node, 1435));
+      assert.equal(network.incident(node.id).length, 3);
+    }
+    const split = network.split(platform, 0.5);
+    assert.equal(network.canExtend(split.node, 1), false);
+    assert.equal(network.canExtend(split.node, -1), false);
+  }
+});
+
+test('station lengths count contiguous track runs once, preserve subdivision and distinguish shorter parallel platforms', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 50), 1435), c = network.addNode(p(0, 0, 120), 1435);
+  const first = network.connect(a, b, 1435), second = network.connect(b, c, 1435);
+  const station = network.addStation(first, 1); network.addStation(first, -1); network.addStation(second, 1);
+  assert.equal(stationLengthLabel(network, station.id), 'Station length: 120.0 m');
+  assert.equal(stationRuns(network, station.id)[0].ends.length, 2);
+  network.split(first, 0.5);
+  assert.equal(stationLengthLabel(network, station.id), 'Station length: 120.0 m');
+  const parallel = network.addParallel(a, 1), end = network.addNode(p(parallel.position.x, 0, 100), 1435);
+  const edge = network.connect(parallel, end, 1435); network.addStation(edge, -1);
+  assert.equal(stationLengthLabel(network, station.id), 'Station length: 100.0–120.0 m');
+  assert.equal(stationRuns(network, station.id).length, 2);
+});
+
+test('parallel construction previews and builds every member with independent curve handles and continuous groups', () => {
+  for (const side of [1, -1]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(0, 0, 0), 1435);
+    const b = network.addParallel(a, 1); network.setParallelOffset(b, 10.035);
+    const c = network.addParallel(a, -1);
+    const end = p(20, 4, side * 160), direction = p(0.25, 0.02, side).normalize();
+    const counts = [network.nodes.size, network.segments.size, network.parallelGroups.size];
+    const plan = network.previewParallel(a, side, end, undefined, direction);
+    assert.equal(plan.length, 3);
+    assert.deepEqual([network.nodes.size, network.segments.size, network.parallelGroups.size], counts);
+    assert.ok(Math.abs(plan[0].curve.getLength() - plan[1].curve.getLength()) > 0.01);
+    const built = network.extendParallel(a, side, end, undefined, direction);
+    assert.equal(built.edges.length, 3); assert.equal(network.nodes.size, 6);
+    assert.equal(network.parallelGroup(built.node).offsets.size, 3);
+    assert.ok(built.node.position.distanceTo(end) < 1e-8);
+    for (let i = 0; i < plan.length; i++) {
+      const curve = network.curve(built.edges[i]);
+      for (let t = 0; t <= 1; t += 0.1) assert.ok(curve.getPoint(t).distanceTo(plan[i].curve.getPoint(t)) < 1e-7, JSON.stringify({side,i,t,actual:curve,expected:plan[i].curve}));
+      assert.ok(curve.getTangent(0).dot(a.axis.clone().multiplyScalar(side)) > 0.999999);
+    }
+    const next = network.extendParallel(built.node, built.side, built.node.position.clone().addScaledVector(built.node.axis, side * 120));
+    assert.equal(next.edges.length, 3); assert.equal(network.segments.size, 6);
+    assert.ok(network.nodes.has(c.id));
+  }
+});
+
+test('parallel construction connects matching groups in either orientation and rejects incompatible targets unchanged', () => {
+  for (const reverse of [false, true]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(0, 0, 0), 1435); network.addParallel(a, 1);
+    const target = network.addNode(p(0, 0, 120), 1435);
+    if (reverse) target.axis.negate();
+    network.addParallel(target, reverse ? -1 : 1);
+    const result = network.extendParallel(a, 1, target.position, target);
+    assert.equal(result.node, target); assert.equal(result.edges.length, 2); assert.equal(network.nodes.size, 4);
+    assert.equal(result.side, reverse ? -1 : 1);
+    const isolated = network.addNode(p(0, 0, 240), 1435);
+    const count = network.segments.size;
+    assert.throws(() => network.extendParallel(target, result.side, isolated.position, isolated), /matching parallel group/);
+    assert.equal(network.segments.size, count);
+    assert.throws(() => network.extendParallel(a, 1, target.position, target), /already connected/);
+    assert.equal(network.segments.size, count); assert.equal(network.nodes.size, 5);
+  }
+});
+
+test('a rejected member rolls back the entire parallel build, including created nodes, groups and identifiers', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addParallel(a, 1);
+  const prev = network.addNode(p(b.position.x, 0, -40), 1435), after = network.addNode(p(b.position.x, 0, 40), 1435);
+  network.connect(prev, b, 1435); const platform = network.connect(b, after, 1435); network.addStation(platform, 1);
+  const nodes = [...network.nodes], edges = [...network.segments], groups = [...network.parallelGroups];
+  const counters = [network.nextNode, network.nextSegment, network.nextGroup];
+  assert.throws(() => network.extendParallel(a, 1, p(0, 0, 120)), /junction on a platform/);
+  assert.deepEqual([...network.nodes], nodes); assert.deepEqual([...network.segments], edges); assert.deepEqual([...network.parallelGroups], groups);
+  assert.deepEqual([network.nextNode, network.nextSegment, network.nextGroup], counters);
+  network.removePlatform(platform, 1);
+  network.setParallelOffset(b, 80);
+  assert.throws(() => network.previewParallel(a, 1, p(5, 0, 5), undefined, p(1, 0, 0)), /tight|spacing/);
+  assert.equal(network.segments.size, edges.length);
+});
+
+test('parallel nodes reserve two platform widths only on occupied platform sides for either segment orientation', () => {
+  for (const gauge of [610, 914, 1435, 1676]) for (const reverse of [false, true]) {
+    const network = new TrackNetwork();
+    const a = network.addNode(p(0, 0, 0), gauge), b = network.addNode(p(0, 0, 80), gauge);
+    const edge = reverse ? network.connect(b, a, gauge) : network.connect(a, b, gauge);
+    network.addStation(edge, 1);
+    for (const source of [a, b]) {
+      // Both node axes follow the segment direction, including the reversed case.
+      const normal = network.defaultSpacing(gauge), wide = network.parallelSpacing(source, 1);
+      assert.equal(network.parallelSpacing(source, -1), normal);
+      const platformEdge = Math.max(1.75, gauge / 2000 + 1.05);
+      assert.ok(wide >= 2 * (platformEdge + 3));
+      const next = network.addParallel(source, 1);
+      assert.ok(Math.abs(next.position.distanceTo(source.position) - wide) < 1e-8);
+      assert.ok(Math.abs(network.addParallel(source, -1).position.distanceTo(source.position) - normal) < 1e-8);
+      const repeated = network.addParallel(source, 1);
+      assert.ok(Math.abs(repeated.position.distanceTo(source.position) - 2 * wide) < 1e-8);
+    }
+    network.removePlatform(edge, 1);
+    assert.equal(network.parallelSpacing(a, 1), network.defaultSpacing(gauge));
+  }
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 80), 1435);
+  for (const node of [a, b]) { node.axis.set(0, 0, -1); network.addParallel(node, 1); }
+  const edge = network.connect(a, b, 1435); network.addStation(edge, 1);
+  assert.equal(edge.aSide, -1); assert.equal(edge.bSide, 1);
+  for (const node of [a, b]) {
+    assert.equal(network.parallelSpacing(node, 1), network.defaultSpacing(1435));
+    assert.ok(network.parallelSpacing(node, -1) >= 2 * (1.7675 + 3));
+  }
+});
+
+test('platforms join consecutive and parallel tracks, including bridges between existing stations', () => {
+  const network = new TrackNetwork();
+  const nodes = [0, 40, 80, 120].map(x => network.addNode(p(x, 0, 0), 1435));
+  const edges = nodes.slice(1).map((node, i) => network.connect(nodes[i], node, 1435));
+  const first = network.addStation(edges[0], 1), last = network.addStation(edges[2], -1);
+  assert.notEqual(first.id, last.id);
+  network.addStation(edges[1], 1);
+  assert.equal(new Set(edges.map(edge => edge.station.id)).size, 1);
+  const a = network.addParallel(nodes[0], 1), b = network.addParallel(nodes[1], 1);
+  const parallel = network.connect(a, b, 1435);
+  assert.equal(network.addStation(parallel, -1).id, first.id);
+  assert.equal(network.addStation(parallel, 1).id, first.id);
+  assert.deepEqual(parallel.station.sides, [-1, 1]);
+  assert.throws(() => network.addStation(parallel, 1), /already/);
+  assert.deepEqual(edges[2].station.sides, [-1]);
+});
+
+test('platform placement excludes both ends of junction segments and accepts a split beyond the junction', () => {
+  const network = new TrackNetwork();
+  const center = network.addNode(p(0, 0, 0), 1435);
+  const edges = [p(80, 0, 0), p(-80, 0, 0), p(0, 0, 80)].map(point => network.connect(center, network.addNode(point, 1435), 1435));
+  for (const edge of edges) {
+    assert.equal(network.canPlaceStation(edge), false);
+    assert.throws(() => network.addStation(edge, 1), /junction/);
+  }
+  const { second } = network.split(edges[0], 0.25);
+  assert.ok(network.canPlaceStation(second)); network.addStation(second, 1);
+});
+
+test('platform sides are visual facilities sharing one station; removing a side preserves the other', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 80), 1435);
+  const edge = network.connect(a, b, 1435);
+  const station = network.addStation(edge, -1);
+  assert.ok(network.canPlaceStation(edge, 1));
+  assert.equal(network.canPlaceStation(edge, -1), false);
+  assert.equal(network.addStation(edge, 1).id, station.id);
+  const platforms = new StationPlatforms(network); platforms.sync();
+  assert.equal(platforms.group.children[0].children.length, 2);
+  const split = network.split(edge, 0.5);
+  network.removePlatform(split.first, 1);
+  assert.deepEqual(split.first.station.sides, [-1]);
+  assert.deepEqual(split.second.station.sides, [-1, 1]);
+  assert.ok(network.canMerge(split.node.id));
+  const merged = network.merge(split.node.id);
+  assert.equal(merged.station.id, station.id);
+  assert.deepEqual(merged.station.sides, [-1, 1]);
+  network.removePlatform(merged, -1);
+  assert.deepEqual(merged.station.sides, [1]);
+  assert.equal(merged.station.id, station.id);
+  network.removePlatform(merged, 1); assert.equal(merged.station, undefined);
+  platforms.dispose();
+});
+
+test('station platforms survive subdivision and remerge; partial station extents cannot be merged away', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(80, 5, 0), 1435);
+  const edge = network.connect(a, b, 1435); network.addStation(edge, -1);
+  const { node, first, second } = network.split(edge, 0.4);
+  assert.equal(first.station.id, second.station.id);
+  assert.deepEqual(network.merge(node.id).station.sides, [-1]);
+  const merged = [...network.segments.values()][0];
+  const split = network.split(merged, 0.5); split.second.station = undefined;
+  assert.equal(network.canMerge(split.node.id), false);
+  const branchEnd = network.addNode(p(40, 0, 40), 1435);
+  assert.throws(() => network.connect(split.node, branchEnd, 1435, -1), /junction on a platform/);
+  assert.ok(network.connect(split.node, branchEnd, 1435, 1));
+});
+
+test('curved platforms follow both track sides and grades, pick across origin changes and release deleted geometry', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(1000000, 0, 0), 1435), b = network.addNode(p(1000080, 8, 40), 1435);
+  const edge = network.connect(a, b, 1435); network.addStation(edge, 1);
+  const curve = network.curve(edge);
+  for (const side of [-1, 1]) {
+    const group = makePlatform(curve, 1435, side, true);
+    const positions = group.children[0].geometry.getAttribute('position');
+    const offset = p(positions.getX(0), positions.getY(0), positions.getZ(0));
+    assert.ok(Math.abs(offset.dot(trackFrame(curve.getTangent(0)).right) - side * 1.7675) < 1e-5);
+    assert.equal(group.children[0].material.opacity, 0.45);
+    assert.ok([...positions.array].every(Number.isFinite)); disposeTrack(group);
+  }
+  const platforms = new StationPlatforms(network); platforms.sync();
+  const mesh = platforms.group.children[0]; let disposed = false;
+  mesh.children[0].children[0].geometry.addEventListener('dispose', () => disposed = true);
+  const midpoint = curve.getPointAt(0.5).addScaledVector(trackFrame(curve.getTangentAt(0.5)).right, 3);
+  const ray = new THREE.Ray(midpoint.clone().add(p(0, 100, 0)), p(0, -1, 0));
+  assert.equal(platforms.pick(ray, new THREE.Vector2()), edge.station.id);
+  const parent = new THREE.Group(); parent.position.x = -1000000; parent.add(platforms.group);
+  assert.equal(platforms.pick(ray, new THREE.Vector2(1000000, 0)), edge.station.id);
+  network.segments.delete(edge.id); platforms.sync();
+  assert.equal(platforms.group.children.length, 0); assert.ok(disposed); platforms.dispose();
+});
 
 test('world grid uses absolute X/Z multiples, preserves elevation and stays aligned across origin shifts', () => {
   for (const spacing of [1, 5, 10, 25]) {
@@ -275,13 +527,13 @@ test('editor hover actions support confirmation, continuous parallel placement, 
   const element = id => {
     if (!elements.has(id)) elements.set(id, Object.assign(new EventTarget(), {
       hidden: false, textContent: '', style: {}, classList: { add() {}, remove() {}, toggle() {} },
-      setAttribute() {}, replaceChildren() {},
+      setAttribute() {}, replaceChildren() {}, prepend() {},
     }));
     return elements.get(id);
   };
   let editor;
   try {
-    globalThis.document = { getElementById: element };
+    globalThis.document = { getElementById: element, createElementNS: () => ({ setAttribute() {}, classList: { add() {} }, append() {} }) };
     globalThis.Option = class { constructor(label, value) { this.label = label; this.value = value; } };
     globalThis.innerWidth = 1200; globalThis.innerHeight = 800;
     let earthworks;
@@ -535,7 +787,7 @@ test('drag rendering preserves unrelated meshes and restores affected sleepers o
   const farA = network.addNode(p(100, 0, 0), 1435), farB = network.addNode(p(130, 0, 0), 1435);
   const ab = network.connect(a, b, 1435), parallelEdge = network.connect(parallel, end, 1435), far = network.connect(farA, farB, 1435);
   const editor = Object.create(TrackEditor.prototype);
-  Object.assign(editor, { network, rails: new THREE.Group(), segmentMeshes: new Map(), refreshGizmos() {}, canvas: { hasPointerCapture: () => false } });
+  Object.assign(editor, { network, stations: new StationPlatforms(network), rails: new THREE.Group(), segmentMeshes: new Map(), refreshGizmos() {}, canvas: { hasPointerCapture: () => false } });
   editor.rebuild();
   const untouched = editor.segmentMeshes.get(far.id);
   let disposed = false;

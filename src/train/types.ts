@@ -11,8 +11,8 @@ export interface VehicleDefinition {
   length: number; bodyLength: number; width: number; height: number; bogieCenters: number;
   bogiesByGauge: Readonly<Record<number, string>>;
   runningGear?: 'steam';
-  /** Exhaust outlet in body-local metres; only placed, working engines emit. */
-  exhaust?: { position: readonly [number, number, number] };
+  /** Optional body-local exhaust outlet. Only world/menu vehicles emit; idleRate is particles/second. */
+  exhaust?: { position: readonly [number, number, number]; kind?: 'steam' | 'diesel'; idleRate?: number };
   /** Permanently coupled, independently articulated sections, measured from the item's center. */
   sections?: readonly { definition: VehicleDefinition; offset: number }[];
   physics: { massKg: number; powerW: number; tractiveEffortN: number; maxSpeedMps: number };

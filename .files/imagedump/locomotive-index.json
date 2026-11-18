@@ -1,0 +1,1861 @@
+{
+  "source": "https://trainiax.net/mescaleloco-list.php?dtype=UT&scale18=1&scale36=1&scale55=1",
+  "selection": "one-largest-image-per-locomotive-type",
+  "status": "automated-download-stopped-site-robots-restriction",
+  "locomotives": [
+    {
+      "manufacturer": "ALCO",
+      "model": "4-8-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=4-8-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-420",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-420&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-424",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-424&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-425",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-425&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-430",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-430&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-628",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-628&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-630",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-630&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-636",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-636&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "C-855",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=C-855&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "FA-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=FA-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "FA-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=FA-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "FB-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=FB-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "FB-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=FB-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "PA-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=PA-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "PA-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=PA-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "PB-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=PB-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-11",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-11&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-27",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-27&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-3",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-3&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-32",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-32&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RS-36",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RS-36&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RSC-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RSC-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "RSD-12",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=RSD-12&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "S-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=S-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "S-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=S-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "S-3",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=S-3&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "ALCO",
+      "model": "S-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=ALCO&dtype=UT&type=S-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "BBD",
+      "model": "HR-412",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=BBD&dtype=UT&type=HR-412&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "BBD",
+      "model": "HR-616",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=BBD&dtype=UT&type=HR-616&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "BBD",
+      "model": "LRC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=BBD&dtype=UT&type=LRC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "BLW",
+      "model": "RF-16",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=BLW&dtype=UT&type=RF-16&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "CLC",
+      "model": "CFA16-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=CLC&dtype=UT&type=CFA16-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "CLC",
+      "model": "CPA16-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=CLC&dtype=UT&type=CPA16-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "CLC",
+      "model": "CPA16-5",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=CLC&dtype=UT&type=CPA16-5&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "CLC",
+      "model": "H16-44",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=CLC&dtype=UT&type=H16-44&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "BL20-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=BL20-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "DD35",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=DD35&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "DDA35",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=DDA35&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "DDA40X",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=DDA40X&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "DE30AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=DE30AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "DM30AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=DM30AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "E8A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=E8A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F3A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F3A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F3B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F3B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PH",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PH&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PH-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PH-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PH-2C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PH-2C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PHM-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PHM-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F45",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F45&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F59PH",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F59PH&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F59PHI",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F59PHI&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F69PH-AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F69PH-AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F7B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F7B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F9A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F9A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "FL9",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=FL9&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "FP45",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=FP45&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "FP7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=FP7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "FP9A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=FP9A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "FT",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=FT&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP15-1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP15-1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP15AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP15AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP15D",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP15D&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP15T",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP15T&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP18",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP18&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP20",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP20&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP20C-ECO",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP20C-ECO&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP20D",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP20D&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP28",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP28&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP30",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP30&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP30B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP30B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP35",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP35&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP39",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP39&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP39-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP39-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP39X",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP39X&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP40-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP40-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP40X",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP40X&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP49",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP49&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP50",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP50&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP59",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP59&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP60",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP60&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP60B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP60B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP60M",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP60M&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP9",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP9&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP9B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP9B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "JT42CWR",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=JT42CWR&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "JT42CWR-T1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=JT42CWR-T1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "Model 40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=Model+40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "MP15",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=MP15&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "MP15AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=MP15AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "MP15DC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=MP15DC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "MP15T",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=MP15T&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "NW2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=NW2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "NW5",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=NW5&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD24",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD24&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD24B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD24B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD35",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD35&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD38",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD38&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD38-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD38-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD38AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD38AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD39",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD39&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40-2S",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40-2S&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40T-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40T-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40X",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40X&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD45",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD45&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD45-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD45-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD45T-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD45T-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD45X",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD45X&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD50",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD50&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD60",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD60&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD60I",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD60I&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD60M",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD60M&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD60MAC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD60MAC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70ACe",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70ACe&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70I",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70I&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70M",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70M&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70M-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70M-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD70MAC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD70MAC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD75I",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD75I&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD75M",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD75M&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD80MAC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD80MAC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD9",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD9&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD90MAC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD90MAC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD90MAC-H",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD90MAC-H&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SDP40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SDP40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SDP40F",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SDP40F&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SDP45",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SDP45&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1000",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1000&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1001",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1001&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1200",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1200&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1500",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1500&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1504",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1504&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW8",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW8&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW9",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW9&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW900",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW900&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "TR2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=TR2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "TR3",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=TR3&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "TR4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=TR4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "CF7",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=CF7&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F3Au",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F3Au&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40M-2F",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40M-2F&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PH-3",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PH-3&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F40PHM-3",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F40PHM-3&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "F7Au",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=F7Au&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP10",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP10&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP11",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP11&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP16",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP16&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP18M",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP18M&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP26",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP26&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP28M",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP28M&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP30 RDMT",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP30+RDMT&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP35 RDMT",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP35+RDMT&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP35R",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP35R&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38-2",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38-2&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38-3",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38-3&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP38M-4",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP38M-4&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP40-3",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP40-3&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP40M-3",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP40M-3&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP7",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP7&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP8",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP8&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP9",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP9&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "GP9B",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=GP9B&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "RM-1",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=RM-1&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD20",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD20&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40-2",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40-2&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40-2B",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40-2B&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SD40R",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SD40R&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SDF40-2",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SDF40-2&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "EMD",
+      "model": "SW1000B",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=EMD&dtype=UT&type=SW1000B&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "CFA16-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=CFA16-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "CFA20-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=CFA20-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "CPA20-5",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=CPA20-5&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "CPA24-5",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=CPA24-5&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "H16-44",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=H16-44&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "FM",
+      "model": "H24-66",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=FM&dtype=UT&type=H24-66&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "AC4400CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=AC4400CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "AC6000CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=AC6000CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B23-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B23-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B30-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B30-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B30-7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B30-7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B32-8",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B32-8&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B36-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B36-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "B39-8",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=B39-8&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "BQ23-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=BQ23-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "C30-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=C30-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "C30-7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=C30-7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "C32-8",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=C32-8&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "C36-7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=C36-7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "C39-8",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=C39-8&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-32B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-32B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-32BWH",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-32BWH&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-40B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-40B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-40BW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-40BW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-40C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-40C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-40CM",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-40CM&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-40CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-40CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-41CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-41CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 8-44CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+8-44CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 9-40C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+9-40C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 9-40CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+9-40CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 9-44CW",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+9-44CW&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Dash 9-44CWL",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Dash+9-44CWL&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ES40DC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ES40DC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ES44AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ES44AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ES44C4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ES44C4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ES44DC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ES44DC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ET44AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ET44AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "ET44C4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=ET44C4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "GG1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=GG1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "P32AC-DM",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=P32AC-DM&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "P40DC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=P40DC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "P42DC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=P42DC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Super 7-30CMP",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Super+7-30CMP&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U18B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U18B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U23B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U23B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U23C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U23C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U25B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U25B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U28B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U28B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U30B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U30B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U30C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U30C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U33B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U33B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U33C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U33C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U34CH",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U34CH&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U36B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U36B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U36C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U36C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "U50C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=U50C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "AC44C4M",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=AC44C4M&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "AC44C6M",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=AC44C6M&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Super 7-23B",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Super+7-23B&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GE",
+      "model": "Super 7-30C",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GE&dtype=UT&type=Super+7-30C&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "F40PH",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=F40PH&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "F40PH-2D",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=F40PH-2D&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "F7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=F7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "FP7A",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=FP7A&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GMD1",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GMD1&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP30",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP30&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP35",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP35&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP38-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP38-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP38-2(W)",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP38-2(W)&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP38AC",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP38AC&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP40-2(W)",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP40-2(W)&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP40-2L(W)",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP40-2L(W)&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP7",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP7&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP9",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP9&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD40",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD40&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD40-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD40-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD40-2(W)",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD40-2(W)&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD40-2F",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD40-2F&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD50F",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD50F&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD60F",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD60F&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SW1200RS",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SW1200RS&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "F7Au",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=F7Au&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "F7Bu",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=F7Bu&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP9 slug",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP9+slug&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP9RM",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP9RM&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "GP9u",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=GP9u&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SD40u",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SD40u&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "GMD",
+      "model": "SW1200RM",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=GMD&dtype=UT&type=SW1200RM&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "4-6-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=4-6-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "C-424",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=C-424&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "C-630M",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=C-630M&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "FPA-2",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=FPA-2&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "FPA-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=FPA-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "FPB-4",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=FPB-4&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-420",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-420&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-420B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-420B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-420R",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-420R&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-424",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-424&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-630",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-630&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-630(W)",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-630(W)&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-636",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-636&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "M-640",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=M-640&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-10",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-10&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-10S",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-10S&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-18",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-18&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-23",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-23&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-3",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-3&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RSC-3",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RSC-3&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "S-13",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=S-13&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-18M",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-18M&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RS-18u",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RS-18u&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MLW",
+      "model": "RSC-14",
+      "rebuilt": "R",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MLW&dtype=UT&type=RSC-14&rebuilt=R&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MPI",
+      "model": "MP1500D",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MPI&dtype=UT&type=MP1500D&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MPI",
+      "model": "MP2000C",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MPI&dtype=UT&type=MP2000C&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MPI",
+      "model": "MP2000D",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MPI&dtype=UT&type=MP2000D&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "MPI",
+      "model": "MP36PH-3S",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=MPI&dtype=UT&type=MP36PH-3S&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "NRE",
+      "model": "2GS14B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=NRE&dtype=UT&type=2GS14B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "NRE",
+      "model": "3GS21B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=NRE&dtype=UT&type=3GS21B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "RPRX",
+      "model": "GG-20B",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=RPRX&dtype=UT&type=GG-20B&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "SNCF",
+      "model": "BB 15000",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=SNCF&dtype=UT&type=BB+15000&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "SNCF",
+      "model": "BB 22200",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=SNCF&dtype=UT&type=BB+22200&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "SNCF",
+      "model": "BB 67000",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=SNCF&dtype=UT&type=BB+67000&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "SNCF",
+      "model": "BB 67400",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=SNCF&dtype=UT&type=BB+67400&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    },
+    {
+      "manufacturer": "SNCF",
+      "model": "CC 72000",
+      "rebuilt": "N",
+      "sourcePage": "https://trainiax.net/mescaleloco-results.php?build=SNCF&dtype=UT&type=CC+72000&rebuilt=N&lrtype=L&scale18=1&scale36=1&scale55=1"
+    }
+  ]
+}

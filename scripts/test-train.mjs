@@ -12,11 +12,44 @@ const load = entry => {
 const { VEHICLES, BOGIES, vehicleBogie } = await load('src/train/catalog.ts');
 const { makeVehicle, disposeVehicle, tintVehicle } = await load('src/train/render.ts');
 const { TrainBuilder, compatibleGauges, consistLayout, consistPoses, appendPositions, COUPLER_GAP } = await load('src/train/consist.ts');
-const { sampleTrack, vehiclePose, applyVehiclePose, vehiclesOverlap } = await load('src/train/placement.ts');
+const { sampleTrack, vehiclePose, applyVehiclePose, vehiclesOverlap, snapTrainToStationEnd } = await load('src/train/placement.ts');
 const { TrackNetwork } = await load('src/track/model.ts');
 const { catalogDestination, catalogAllows } = await load('src/train/catalog-routing.ts');
 const { advanceVehicle } = await load('src/train/motion.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('train fronts snap to station ends in both directions, including near dead ends, without snapping internal splits', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(0, 0, 100), 1435);
+  const edge = network.connect(a, b, 1435); const station = network.addStation(edge, 1);
+  for (const [u, facing, end] of [[0.82, 1, 100], [0.18, -1, 0], [0.77, 1, 100]]) {
+    const snap = snapTrainToStationEnd(network, { edge: edge.id, u, facing }, 40);
+    assert.equal(snap.station, station.id);
+    assert.ok(Math.abs(sampleTrack(network, snap.position, 20).point.z - end) < 1e-7);
+  }
+  assert.equal(snapTrainToStationEnd(network, { edge: edge.id, u: 0.74, facing: 1 }, 40), undefined);
+  assert.equal(snapTrainToStationEnd(network, { edge: edge.id, u: 0.82, facing: 1 }, 120), undefined);
+  const { first, second } = network.split(edge, 0.5);
+  assert.equal(snapTrainToStationEnd(network, { edge: first.id, u: 0.66, facing: 1 }, 40), undefined);
+  const across = snapTrainToStationEnd(network, { edge: first.id, u: 0.94, facing: 1 }, 100);
+  assert.equal(across.station, station.id);
+  const front = sampleTrack(network, across.position, 50);
+  assert.equal(front.position.edge, second.id); assert.ok(Math.abs(front.point.z - 100) < 1e-7);
+});
+
+test('station snapping stays on the selected track and uses curved track distances', () => {
+  const network = new TrackNetwork();
+  const a = network.addNode(p(0, 0, 0), 1435), b = network.addNode(p(30, 5, 120), 1435);
+  const edge = network.connect(a, b, 1435);
+  const parallel = network.addParallel(a, 1), parallelEnd = network.addNode(p(34, 5, 120), 1435);
+  const other = network.connect(parallel, parallelEnd, 1435); network.addStation(other, -1);
+  const curve = network.curve(edge); curve.arcLengthDivisions = 512;
+  const near = { edge: edge.id, u: 1 - 18 / curve.getLength(), facing: 1 };
+  assert.equal(snapTrainToStationEnd(network, near, 40), undefined);
+  network.addStation(edge, 1);
+  const snap = snapTrainToStationEnd(network, near, 40);
+  assert.ok(sampleTrack(network, snap.position, 20).point.distanceTo(b.position) < 1e-7);
+});
 
 test('SketchUp COLLADA import honors units, named component pivots and mirrored geometry without stale generated data', async () => {
   const source = await readFile('public/models/locomotives/dash-9/dash9.dae', 'utf8');
