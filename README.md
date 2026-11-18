@@ -123,6 +123,7 @@ The [vehicle authoring guide](docs/models/sketchup-reference.md) covers full-sca
 - `world.ts`: replaces meshes as LOD changes, rejects obsolete worker results, disposes unloaded geometry, and terminates workers when leaving the world. A floating origin keeps GPU geometry near the camera during long-distance travel. Shared edge samples and 180 m skirts conceal LOD junction gaps; LOD transitions currently switch discretely.
 - `main.ts`: settings menu, camera input, atmospheric sky, fog, water, loading progress, and world telemetry. Keyboard movement waits at an ungenerated chunk boundary rather than entering a hole.
 - `camera.ts`: overlook orbit, zoom, and ground-following pan; free flight; terrain clearance and mode transitions. Camera coordinates remain independent of the renderer's floating origin.
+- `ui/view-options-window.ts`: self-contained View options window, contour controls, interval choices and saved view preferences.
 - `track/model.ts`: node/segment graph, shared tangents, independent handles, and gauge validation.
 - `track/editor.ts`: screen-space picking, constrained dragging, directional start buttons, preview and terrain updates.
 - `track/render.ts`: rail and ballast sweeps with upright frames and instanced sleepers.

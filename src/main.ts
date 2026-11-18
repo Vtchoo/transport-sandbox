@@ -10,6 +10,7 @@ import { TrainEditor } from './train/editor';
 import { TrainWindows } from './train/windows';
 import { TrainViewports } from './train/viewports';
 import { WindowManager } from './ui/windows';
+import { ViewOptionsWindow } from './ui/view-options-window';
 import './ui/windows.css';
 import { icon } from './ui/icons';
 import { WarningMessages } from './ui/warnings';
@@ -103,22 +104,6 @@ const settingsDialog = $<HTMLDialogElement>('#settings');
 const newGameDialog = $<HTMLDialogElement>('#new-game');
 let settingsReturnFocus: HTMLElement | null = null;
 const cameraSelect = $<HTMLSelectElement>('#camera-mode');
-const contoursCheckbox = $<HTMLInputElement>('#terrain-contours');
-const contourIntervalSelect = $<HTMLSelectElement>('#contour-interval');
-try {
-  const view = JSON.parse(localStorage.getItem('rail-view-v1') || '{}');
-  contoursCheckbox.checked = view.contours === true;
-  if ([5, 10, 20, 50, 100].includes(view.contourInterval)) contourIntervalSelect.value = String(view.contourInterval);
-} catch { /* Storage is optional. */ }
-function applyViewOptions() {
-  const interval = Number(contourIntervalSelect.value);
-  world?.setContours(contoursCheckbox.checked, interval);
-  $('#contour-legend').textContent = `Bold contours every ${interval * 5} m, measured from sea level. Trees are hidden while contours are shown.`;
-  try { localStorage.setItem('rail-view-v1', JSON.stringify({ contours: contoursCheckbox.checked, contourInterval: interval })); } catch { /* Storage is optional. */ }
-}
-contoursCheckbox.addEventListener('change', applyViewOptions);
-contourIntervalSelect.addEventListener('change', applyViewOptions);
-applyViewOptions();
 const ground = (x: number, z: number) => world ? Math.max(world.settings.seaLevel, world.groundHeight(x, z)) : 0;
 let hudTime = 0, frames = 0, frameTime = 0, fps = 0;
 
@@ -139,11 +124,8 @@ function syncWindowTools(active?: string) {
 }
 const windows = new WindowManager($('#window-taskbar'), syncWindowTools);
 const warnings = new WarningMessages($('#game-warning'));
-windows.register({ id: 'view-options', element: $('#view-options'), titlebar: $('#view-options .settings-heading'), title: 'View options', closeButton: $('#view-options-close'), scrollContent: true, bounds: { x: innerWidth - 340, y: 140, width: 300, height: 260 }, minWidth: 270, minHeight: 200, onClose: clearInput });
-$('#view-options-open').addEventListener('click', () => {
-  if (windows.isVisible('view-options')) windows.close('view-options');
-  else windows.open('view-options');
-});
+const viewOptions = new ViewOptionsWindow(windows, $('#view-options-open'),
+  options => world?.setContours(options.contours, options.contourInterval), clearInput);
 windows.register({ id: 'new-game', element: newGameDialog, titlebar: $('#new-game .settings-heading'), title: 'New game', closeButton: $('#new-game-close'), modal: true, scrollContent: true, bounds: { x: (innerWidth - 460) / 2, y: 100, width: 460, height: 610 }, minWidth: 300, minHeight: 330, onClose: () => { newGameDialog.close(); $('#new-game-open').focus(); } });
 $('#new-game-open').addEventListener('click', () => { newGameDialog.showModal(); windows.open('new-game'); $<HTMLInputElement>('input[name="setup"]:checked').focus(); });
 newGameDialog.addEventListener('cancel', event => { event.preventDefault(); windows.close('new-game'); });
@@ -245,7 +227,7 @@ start.addEventListener('click', () => {
   playing = true; ready = false;
   menuScene?.dispose(); menuScene = undefined;
   world = new TerrainWorld(settings);
-  applyViewOptions();
+  viewOptions.apply();
   scene.add(world.group);
   trackEditor = new TrackEditor(scene, camera, canvas, world, windows);
   trainEditor = new TrainEditor(scene, camera, canvas, world, trackEditor.network);
@@ -433,4 +415,4 @@ renderer.setAnimationLoop(time => {
     $('#track-earthworks').hidden = stats.earthworksPending === 0;
   }
 });
-window.addEventListener('pagehide', () => { menuScene?.dispose(); warnings.dispose(); trainWindows?.dispose(); trainViewports.dispose(); windows.dispose(); trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
+window.addEventListener('pagehide', () => { menuScene?.dispose(); warnings.dispose(); trainWindows?.dispose(); trainViewports.dispose(); viewOptions.dispose(); windows.dispose(); trainEditor?.dispose(); trackEditor?.dispose(); world?.dispose(); renderer.dispose(); });
