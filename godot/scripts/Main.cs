@@ -14,6 +14,7 @@ public partial class Main : Node3D
     public TrackNetwork TrackNetwork = null!;
     public TrackRenderer TrackRenderer = null!;
     public TrackEditor TrackEditor = null!;
+    public TrackTreeClearance TreeClearance = null!;
     public WindowManager GameWindows = null!;
     public GameHUD HUD = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
@@ -67,6 +68,12 @@ public partial class Main : Node3D
         World.SetMeta("physics_mode", settings.Physics);
         AddChild(World);
         TrackNetwork = new();
+        TreeClearance = new()
+        {
+            Network = TrackNetwork,
+            World = World
+        };
+        AddChild(TreeClearance);
         TrackRenderer = new()
         {
             Network = TrackNetwork,

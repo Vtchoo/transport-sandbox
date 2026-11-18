@@ -23,13 +23,13 @@ public partial class TerrainBackend : RefCounted
     public long SeedHash() => _sampler.Seed;
     public int WorkerLimit() => Math.Min(3, Math.Max(1, System.Environment.ProcessorCount - 2));
 
-    public void Request(Vector2I key, int segments)
+    public void Request(Vector2I key, int segments, EarthworkField? earthworks = null, long revision = 0)
     {
         if (_shutdown.IsCancellationRequested || _jobs.ContainsKey(key))
             return;
         var sampler = _sampler;
         var token = _shutdown.Token;
-        _jobs.Add(key, Task.Run(() => Build(sampler, key, segments, token), token));
+        _jobs.Add(key, Task.Run(() => Build(sampler, key, segments, token, earthworks, revision), token));
     }
 
     public Godot.Collections.Array<Godot.Collections.Dictionary> Poll()
@@ -63,6 +63,7 @@ public partial class TerrainBackend : RefCounted
             {
                 ["key"] = key,
                 ["segments"] = data.Segments,
+                ["revision"] = data.Revision,
                 ["arrays"] = arrays,
                 ["trees"] = data.Trees
             });
@@ -88,10 +89,22 @@ public partial class TerrainBackend : RefCounted
     }
 
     private sealed record ChunkData(int Segments, Vector3[] Vertices, Vector3[] Normals,
-        Color[] Colors, int[] Indices, float[] Trees);
+        Color[] Colors, int[] Indices, float[] Trees, long Revision);
 
-    private static ChunkData Build(TerrainSampler sampler, Vector2I key, int segments, CancellationToken token)
+    internal static (int Vertices, int Indices) BenchmarkMesh(TerrainSampler sampler, Vector2I key, int segments, EarthworkField? earthworks)
     {
+        var data = Build(sampler, key, segments, CancellationToken.None, earthworks, 0, false);
+        return (data.Vertices.Length, data.Indices.Length);
+    }
+    private static ChunkData Build(TerrainSampler sampler, Vector2I key, int segments, CancellationToken token, EarthworkField? earthworks, long revision, bool vegetation = true)
+    {
+        if (earthworks?.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, sampler.Height) == true)
+            return BuildEarthwork(sampler, key, segments, token, earthworks, revision, vegetation);
+        double Height(double x, double z)
+        {
+            double natural = sampler.Height(x, z);
+            return earthworks?.Height(x, z, natural) ?? natural;
+        }
         int width = segments + 1, padded = segments + 3, count = width * width;
         var heights = new double[padded * padded];
         var vertices = new Vector3[count + width * 4];
@@ -103,7 +116,7 @@ public partial class TerrainBackend : RefCounted
         {
             token.ThrowIfCancellationRequested();
             for (int x = 0; x < padded; x++)
-                heights[z * padded + x] = sampler.Height(key.X * 512.0 + (x - 1) * step, key.Y * 512.0 + (z - 1) * step);
+                heights[z * padded + x] = Height(key.X * 512.0 + (x - 1) * step, key.Y * 512.0 + (z - 1) * step);
         }
         for (int z = 0; z < width; z++)
         {
@@ -158,7 +171,7 @@ public partial class TerrainBackend : RefCounted
                 }
             }
         // Match browser scheduling: distant tiles omit vegetation, near LODs share identical data.
-        var trees = segments >= 64 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
-        return new(segments, vertices, normals, colors, indices, trees);
+        var trees = vegetation && segments >= 64 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
+        return new(segments, vertices, normals, colors, indices, trees, revision);
     }
 }

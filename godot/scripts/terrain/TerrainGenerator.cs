@@ -25,7 +25,15 @@ public sealed class TerrainGenerator
         Backend = new();
         Backend.Configure(Settings.Seed, Settings.MountainHeight, Settings.HorizontalScale, Settings.SeaLevel);
     }
-    public double Height(double x, double z) => Sampler.Height(x, z);
+    public Terrain.EarthworkField? Earthworks
+    {
+        get; set;
+    }
+    public double Height(double x, double z)
+    {
+        double natural = Sampler.Height(x, z);
+        return Earthworks?.Height(x, z, natural) ?? natural;
+    }
 }
 
 public sealed record WorldSettings(string Seed = "the-long-way-home", double MountainHeight = 1800,

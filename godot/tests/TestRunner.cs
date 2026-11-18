@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "performance":
+                    TerrainPerformance.Run();
+                    break;
                 case "all":
                     Core();
                     await Menu();
@@ -79,6 +82,7 @@ public partial class TestRunner : Node
     private void Core()
     {
         TreeChecks.Run(Check);
+        ClearanceChecks.Run(Check);
         TrackGeometryChecks.Run(Check);
         var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");
         foreach (var reference in fixtures.GetProperty("cases").EnumerateArray())
@@ -295,11 +299,13 @@ public partial class TestRunner : Node
                     foreach (var sample in vegetation.EnumerateArray())
                     {
                         if (Integer(sample, "x") != key.X || Integer(sample, "z") != key.Y ||
-                            sample.GetProperty("settings").GetProperty("seed").GetString() != generator.SeedText) continue;
+                            sample.GetProperty("settings").GetProperty("seed").GetString() != generator.SeedText)
+                            continue;
                         var actual = data["trees"].AsFloat32Array();
                         var expected = sample.GetProperty("trees");
                         bool identical = actual.Length == expected.GetArrayLength();
-                        for (int i = 0; identical && i < actual.Length; i++) identical = actual[i] == expected[i].GetSingle();
+                        for (int i = 0; identical && i < actual.Length; i++)
+                            identical = actual[i] == expected[i].GetSingle();
                         Check(identical, "Parallel chunk uploads preserve original natural-tree data at both near LODs");
                     }
                 }
@@ -344,9 +350,11 @@ public partial class TestRunner : Node
             Check(ordered[i] == new Vector2I(Integer(tiles[i], "x"), Integer(tiles[i], "z")), "Nearby work prioritized like browser");
         world.Free();
         camera.Free();
+        await EarthworkMeshChecks.Run(Check, Frame);
     }
     private async Task Startup()
     {
+        GetTree().Root.Size = new(1280, 800);
         var main = GD.Load<PackedScene>("res://scenes/main.tscn").Instantiate<Main>();
         main.HudSettingsFile = "res://.godot/hud-test-preferences.cfg";
         if (FileAccess.FileExists(main.HudSettingsFile))
@@ -381,6 +389,7 @@ public partial class TestRunner : Node
             if (chunk.GetNodeOrNull<TreeChunk>("Trees") is { } trees)
                 Check(!trees.Visible, "Contours hide trees");
         main.World.ShowContours(false);
+        await CheckClearanceLifecycle(main);
         // Exercise the converted editor/controller and renderer, not only the graph model.
         var editor = main.TrackEditor;
         editor.SetEnabled(true);
@@ -423,6 +432,61 @@ public partial class TestRunner : Node
         editor.SetEnabled(false);
         main.Free();
         await Frame();
+    }
+    private async Task CheckClearanceLifecycle(Main main)
+    {
+        async Task Settle()
+        {
+            var timeout = Stopwatch.StartNew();
+            while ((main.TreeClearance.IsPending || main.World.PendingEarthworks > 0) && timeout.Elapsed.TotalSeconds < 15)
+                await ToSignal(GetTree().CreateTimer(.025), SceneTreeTimer.SignalName.Timeout);
+            Check(!main.TreeClearance.IsPending && main.World.PendingEarthworks == 0, "Earthwork workers apply latest track revision and terrain meshes");
+        }
+        await Settle();
+        var holder = main.World.Chunks.Values.FirstOrDefault(c => c.GetNodeOrNull<TreeChunk>("Trees") is { } t && t.Batches.Count > 0);
+        Check(holder != null, "Streaming produces natural trees for clearance integration");
+        if (holder == null)
+            return;
+        var key = main.World.Chunks.First(pair => pair.Value == holder).Key;
+        Node3D Current() => main.World.Chunks[key];
+        int Count() => Current().GetNodeOrNull<TreeChunk>("Trees")?.Batches.Sum(b => b.Crown.Multimesh.InstanceCount) ?? 0;
+        int before = Count();
+        var originalMesh = holder.GetChild<MeshInstance3D>(0).Mesh;
+        var tree = holder.GetNode<TreeChunk>("Trees").Batches[0].TrunkTransforms[0].Origin + holder.Position + Vector3.Up * .8f;
+        var a = main.TrackNetwork.AddNode(tree + new Vector3(-30, 25, 0));
+        var b = main.TrackNetwork.AddNode(tree + new Vector3(30, 25, 0));
+        main.TrackNetwork.ConnectNodes(a, b);
+        main.World.ShowContours(true);
+        await Settle();
+        Check(Count() < before, "Building track clears trees around its earthwork shoulders");
+        var editedMesh = Current().GetChild<MeshInstance3D>(0).Mesh;
+        Check(!ReferenceEquals(originalMesh, editedMesh), "Track edits replace affected terrain meshes");
+        var terrainVertices = editedMesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+        Check(terrainVertices.Any(v =>
+        {
+            var point = v + Current().Position;
+            return new Vector2(point.X - tree.X, point.Z - tree.Z).LengthSquared() < 9 &&
+                point.Y > main.Generator.Sampler.Height(point.X, point.Z) + 10;
+        }), "Rendered terrain contains the raised track formation");
+        Check(Current().GetNodeOrNull<TreeChunk>("Trees") is not { Visible: true }, "Clearance rebuild preserves contour tree hiding");
+        main.World.ShowContours(false);
+        main.TrackNetwork.MoveNode(a, a.Position + new Vector3(10000, 0, 0));
+        main.TrackNetwork.MoveNode(b, b.Position + new Vector3(10000, 0, 0));
+        await Settle();
+        Check(Count() == before, "Moving track restores trees at its previous position");
+        main.TrackNetwork.MoveNode(a, tree + new Vector3(-30, 25, 0));
+        main.TrackNetwork.MoveNode(b, tree + new Vector3(30, 25, 0));
+        await Settle();
+        Check(Count() < before, "Moving track back reapplies clearance");
+        main.TrackNetwork.DeleteNode(a.Id);
+        main.TrackNetwork.DeleteNode(b.Id);
+        await Settle();
+        Check(Count() == before, "Deleting track restores original natural trees");
+        Check(Math.Abs(main.Generator.Height(tree.X, tree.Z) - main.Generator.Sampler.Height(tree.X, tree.Z)) < 1e-8,
+            "Deleting track restores natural height queries");
+        Check(Current().GetChild<MeshInstance3D>(0).Mesh.GetSurfaceCount() == 1 &&
+            Current().GetChild<MeshInstance3D>(0).Mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array().Length == originalMesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array().Length,
+            "Deleting track restores the natural terrain tessellation");
     }
     private async Task CheckHUD(Main main)
     {
