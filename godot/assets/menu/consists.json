@@ -1,33 +1,33 @@
 [
   {
-	"id": "tgv-sud-est",
-	"gauge": 1435,
-	"vehicles": [
-	  { "id": "tgv-sud-est-power" },
-	  { "id": "tgv-sud-est-coach" },
-	  { "id": "tgv-sud-est-coach" },
-	  { "id": "tgv-sud-est-coach" },
-	  { "id": "tgv-sud-est-power", "reversed": true }
-	]
+    "id": "tgv-sud-est",
+    "gauge": 1435,
+    "vehicles": [
+      { "id": "tgv-sud-est-power" },
+      { "id": "tgv-sud-est-coach" },
+      { "id": "tgv-sud-est-coach" },
+      { "id": "tgv-sud-est-coach" },
+      { "id": "tgv-sud-est-power", "reversed": true }
+    ]
   },
   {
-	"id": "rio-grande",
-	"gauge": 914,
-	"vehicles": [
-	  { "id": "drgw-consolidation" },
-	  { "id": "drgw-wood-baggage" },
-	  { "id": "drgw-wood-coach" },
-	  { "id": "drgw-wood-coach" }
-	]
+    "id": "rio-grande",
+    "gauge": 914,
+    "vehicles": [
+      { "id": "drgw-consolidation" },
+      { "id": "drgw-wood-baggage" },
+      { "id": "drgw-wood-coach" },
+      { "id": "drgw-wood-coach" }
+    ]
   },
   {
-	"id": "santa-fe",
-	"gauge": 1435,
-	"vehicles": [
-	  { "id": "atsf-f7a" },
-	  { "id": "atsf-coach" },
-	  { "id": "atsf-pleasure-dome" },
-	  { "id": "atsf-coach" }
-	]
+    "id": "santa-fe",
+    "gauge": 1435,
+    "vehicles": [
+      { "id": "atsf-f7a" },
+      { "id": "atsf-coach" },
+      { "id": "atsf-pleasure-dome" },
+      { "id": "atsf-coach" }
+    ]
   }
 ]
