@@ -7,6 +7,7 @@ import type { TerrainWorld } from '../terrain/world';
 import { makePlatform, StationPlatforms } from './stations';
 import type { WindowManager } from '../ui/windows';
 import { icon } from '../ui/icons';
+import { TrackHoverMenu } from './hover-menu';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id)! as T;
 const ACTION_DISTANCE = 600;
@@ -34,19 +35,20 @@ export class TrackEditor {
   private spacingMaterial = new THREE.MeshBasicMaterial({ color: 0xd19aff, depthTest: false });
   private spacingLineMaterial = new THREE.LineBasicMaterial({ color: 0xd19aff, depthTest: false });
   private markers: { object: THREE.Mesh; pick: Pick }[] = [];
-  private directionButton = $<HTMLButtonElement>('track-direction');
-  private continueParallel = $<HTMLButtonElement>('track-continue-parallel');
+  private hoverMenu = new TrackHoverMenu();
+  private directionButton = this.hoverMenu.direction;
+  private continueParallel = this.hoverMenu.continueParallel;
   private buildingParallel = false;
-  private parallelLeft = $<HTMLButtonElement>('track-parallel-left');
-  private parallelRight = $<HTMLButtonElement>('track-parallel-right');
-  private straightenButton = $<HTMLButtonElement>('track-straighten');
-  private deleteSegmentButton = $<HTMLButtonElement>('track-delete-segment');
+  private parallelLeft = this.hoverMenu.parallelLeft;
+  private parallelRight = this.hoverMenu.parallelRight;
+  private straightenButton = this.hoverMenu.straighten;
+  private deleteSegmentButton = this.hoverMenu.deleteSegment;
   private splitTarget?: { edge: number; t: number; point: THREE.Vector3 };
   private pendingSplit?: { edge: TrackSegment; t: number; point: THREE.Vector3 };
-  private splitButton = $<HTMLButtonElement>('track-confirm-split');
+  private splitButton = this.hoverMenu.confirmSplit;
   private confirmDeleteSegment?: number;
-  private deleteButton = $<HTMLButtonElement>('track-delete');
-  private mergeButton = $<HTMLButtonElement>('track-merge');
+  private deleteButton = this.hoverMenu.deleteNode;
+  private mergeButton = this.hoverMenu.merge;
   private confirmMerge?: number;
   private confirmDelete?: number;
   private hoveredSegment?: number;
@@ -848,6 +850,7 @@ export class TrackEditor {
   }
   dispose() {
     this.setEnabled(false); this.abort.abort();
+    this.hoverMenu.dispose();
     this.scene.remove(this.group); disposeTrack(this.rails);
     this.stations.dispose();
     this.grid.dispose();

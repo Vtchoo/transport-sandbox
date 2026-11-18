@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildSync } from 'esbuild';
 import * as THREE from 'three';
+import { parseHTML } from 'linkedom';
 
 const load = (entry) => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node',
@@ -11,6 +12,7 @@ const load = (entry) => {
 };
 const { TrackNetwork, trackFrame } = await load('src/track/model.ts');
 const { TrackEditor } = await load('src/track/editor.ts');
+const { TrackHoverMenu } = await load('src/track/hover-menu.ts');
 const { makeTrack, updateSleeperLOD, disposeTrack } = await load('src/track/render.ts');
 const { makePlatform, StationPlatforms } = await load('src/track/stations.ts');
 const { stationRuns, stationLengthLabel } = await load('src/track/station-layout.ts');
@@ -18,6 +20,25 @@ const { WorldGrid, snapWorldPoint } = await load('src/track/grid.ts');
 const { EarthworkField, prepareEarthPaths } = await load('src/track/earthworks.ts');
 const { TerrainGenerator, DEFAULT_SETTINGS, buildChunk } = await load('src/terrain/generator.ts');
 const p = (x, y, z) => new THREE.Vector3(x, y, z);
+
+test('track hover actions are mounted by the editor component and removed before recreating it', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const { document } = parseHTML('<html><body><section id="game"></section></body></html>');
+  try {
+    globalThis.document = document;
+    const menu = new TrackHoverMenu();
+    assert.equal(document.querySelectorAll('#track-hover-menu button').length, 9);
+    assert.ok([...menu.element.querySelectorAll('button')].every(button => button.hidden && button.type === 'button'));
+    assert.equal(menu.direction.id, 'track-direction'); assert.equal(menu.continueParallel.id, 'track-continue-parallel');
+    assert.equal(menu.confirmSplit.id, 'track-confirm-split');
+    menu.dispose(); assert.equal(document.getElementById('track-hover-menu'), null);
+    const next = new TrackHoverMenu();
+    assert.equal(document.querySelectorAll('#track-direction').length, 1);
+    next.dispose(); assert.equal(document.getElementById('game').children.length, 0);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document;
+  }
+});
 
 test('node hover hides single and parallel extension buttons toward station track, preserving outward actions', () => {
   const network = new TrackNetwork();
@@ -527,13 +548,15 @@ test('editor hover actions support confirmation, continuous parallel placement, 
   const element = id => {
     if (!elements.has(id)) elements.set(id, Object.assign(new EventTarget(), {
       hidden: false, textContent: '', style: {}, classList: { add() {}, remove() {}, toggle() {} },
-      setAttribute() {}, replaceChildren() {}, prepend() {},
+      setAttribute() {}, replaceChildren() {}, prepend() {}, append() {},
     }));
     return elements.get(id);
   };
   let editor;
   try {
-    globalThis.document = { getElementById: element, createElementNS: () => ({ setAttribute() {}, classList: { add() {} }, append() {} }) };
+    globalThis.document = { getElementById: element,
+      createElement: () => ({ setAttribute() {}, querySelector: selector => element(selector.slice(1)), remove() {} }),
+      createElementNS: () => ({ setAttribute() {}, classList: { add() {} }, append() {} }) };
     globalThis.Option = class { constructor(label, value) { this.label = label; this.value = value; } };
     globalThis.innerWidth = 1200; globalThis.innerHeight = 800;
     let earthworks;

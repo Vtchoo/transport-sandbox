@@ -126,6 +126,7 @@ The [vehicle authoring guide](docs/models/sketchup-reference.md) covers full-sca
 - `ui/view-options-window.ts`: self-contained View options window, contour controls, interval choices and saved view preferences.
 - `track/model.ts`: node/segment graph, shared tangents, independent handles, and gauge validation.
 - `track/editor.ts`: screen-space picking, constrained dragging, directional start buttons, preview and terrain updates.
+- `track/hover-menu.ts`: editor-owned node/segment hover buttons and DOM cleanup; these controls are created at runtime rather than kept in `index.html`.
 - `track/render.ts`: rail and ballast sweeps with upright frames and instanced sleepers.
 - `track/earthworks.ts`: spatially indexed formation heights and cut/fill slope extents.
 - `train/locomotives/f7a.ts`, `train/locomotives/ge809.ts`: locomotive definitions, dimensions, physics, supported gauges and body models.
