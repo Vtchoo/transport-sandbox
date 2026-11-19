@@ -26,6 +26,7 @@ public sealed class TrainPlacement : IDisposable
         if (!_curves.TryGetValue(edge.Id, out var curve)) _curves[edge.Id] = curve = new(Network.PreciseControls(edge));
         return curve;
     }
+    public double CachedLength(int edge) => _curves.TryGetValue(edge, out var curve) ? curve.Length : -1;
     public TrainSample Sample(TrainPosition position, double distance)
     {
         if (!Network.Edges.TryGetValue(position.Edge, out var edge) || !double.IsFinite(position.U) || !double.IsFinite(distance) || position.U < 0 || position.U > 1) throw new InvalidOperationException("Choose an existing track segment.");

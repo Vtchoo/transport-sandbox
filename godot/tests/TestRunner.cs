@@ -52,6 +52,19 @@ public partial class TestRunner : Node
                 case "visuals":
                     await WorldVisualChecks.Run(Check, Frame, this);
                     break;
+                case "orders":
+                    await RailPathfindingChecks.Run(Check);
+                    await TrainOrderChecks.Run(Check, Frame, this);
+                    await Frames();
+                    GC.Collect(); GC.WaitForPendingFinalizers();
+                    await Frames();
+                    break;
+                case "routing":
+                    await RailPathfindingChecks.Run(Check);
+                    break;
+                case "routing-performance":
+                    await RailPathfindingChecks.Benchmark(Check);
+                    break;
                 case "all":
                     Core();
                     await WorldVisualChecks.Run(Check, Frame, this);
@@ -59,6 +72,8 @@ public partial class TestRunner : Node
                     await Terrain();
                     await Startup();
                     await TrainPlacementChecks.Run(Check, Frame, this);
+                    await RailPathfindingChecks.Run(Check);
+                    await TrainOrderChecks.Run(Check, Frame, this);
                     await Frames();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
@@ -685,6 +700,13 @@ public partial class TestRunner : Node
                 if (_args["hover"] == "train-preview")
                     main.Trains.StartPlacement(id);
                 main.TrainUI.Views[id].Window.SetBounds(new(870, 100, 380, 530));
+                if (_args["hover"] == "train-orders")
+                {
+                    main.TrainUI.AddOrder(id, TrainOrderKind.Station, edge.Station);
+                    main.TrainUI.AddOrder(id, TrainOrderKind.Wait, seconds: 30);
+                    main.TrainUI.AddOrder(id, TrainOrderKind.Waypoint, b.Id);
+                    main.TrainUI.OpenRoutes(id);
+                }
                 if (_args["hover"] == "train-edit")
                 {
                     main.TrainUI.CatalogWindow.Open();
@@ -697,7 +719,7 @@ public partial class TestRunner : Node
                     for (int i = 0; i < 100; i++) main.Trains.AdvanceMovement(.1);
                 }
                 main.TrainUI._Process(.2);
-                main.TrainUI.SetProcess(_args["hover"] is "train-edit" or "train-viewport" or "train-moving");
+                main.TrainUI.SetProcess(_args["hover"] is "train-edit" or "train-viewport" or "train-moving" or "train-orders");
                 if (_args["hover"] == "train-preview")
                     main.Trains.RefreshPreview(main.Camera.UnprojectPosition(point));
                 var timeout = Stopwatch.StartNew();

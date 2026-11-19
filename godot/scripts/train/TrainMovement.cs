@@ -36,6 +36,7 @@ public partial class TrainEditor
     /// <summary>Same bounded 1/60 s substeps as the browser; all distances and forces remain SI.</summary>
     public void AdvanceMovement(double delta)
     {
+        PrepareRouting();
         bool moving = Parked.Any(p => !Builder.Get(p.Id).Stopped);
         for (double remaining = Math.Clamp(delta, 0, .1); remaining > 1e-8;)
         {
@@ -72,11 +73,12 @@ public partial class TrainEditor
                 double grade = train.Items.Select((item, i) => item.Definition.Physics.MassKg * route.Sample(parked.Position, offsets[i]).Tangent.Y * direction).Sum() / performance.Mass;
                 double braking = TrainPhysics.BrakingDeceleration(grade, HoPhysics);
                 double lookahead = Math.Max(100, train.Speed * train.Speed / (2 * braking) + 50);
+                var command = ExecuteOrders(parked, train, route, dt, lookahead);
                 double clearance = Math.Max(0, route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2 - 2);
-                double free = clearance;
+                double free = Math.Min(clearance, command.StopDistance);
                 var others = Parked.Where(p => p != parked).ToArray();
                 if (others.Length > 0)
-                    for (double d = 0; d < clearance; d += 4)
+                    for (double d = 0; d < free; d += 4)
                     {
                         var point = route.Sample(parked.Position, direction * (length / 2 + d)).Point;
                         bool blocked = others.Any(other => other.Poses.Select((pose, i) =>
@@ -87,11 +89,11 @@ public partial class TrainEditor
                         }).Any(v => v));
                         if (blocked)
                         {
-                            free = Math.Max(0, d - 5);
+                            free = Math.Min(free, Math.Max(0, d - 5));
                             break;
                         }
                     }
-                double limit = Math.Sqrt(2 * braking * free);
+                double limit = command.Hold ? 0 : Math.Sqrt(2 * braking * free);
                 double scan = Math.Min(lookahead, clearance);
                 for (double d = -length / 2; d <= length / 2 + scan; d += 5)
                 {
@@ -99,11 +101,11 @@ public partial class TrainEditor
                     double curveLimit = TrainPhysics.CurveLimit(route.TurnRadius(location), HoPhysics);
                     limit = Math.Min(limit, Math.Sqrt(curveLimit * curveLimit + 2 * braking * Math.Max(0, d - length / 2)));
                 }
-                var next = TrainPhysics.Step(definitions, Math.Abs(train.Speed), train.Running, grade, HoPhysics, dt, limit, catalogMax);
+                var next = TrainPhysics.Step(definitions, Math.Abs(train.Speed), train.Running && !command.Hold, grade, HoPhysics, dt, limit, catalogMax);
                 if (free < .05 && Math.Abs(train.Speed) < .1)
                 {
                     train.Speed = 0;
-                    if (train.Running && clearance < .05)
+                    if (train.Running && !command.Hold && clearance < .05 && command.StopDistance > .05)
                         train.TravelDirection = -direction;
                     continue;
                 }
@@ -121,6 +123,8 @@ public partial class TrainEditor
                     parked.Visuals[i].AdvanceRunningGear(direction * distance * train.Items[i].Facing);
                 }
                 parked.Position = position;
+                if (parked.Journey is { } journey) journey.Distance -= distance;
+                if (parked.Wandering is { Station: not 0, Servicing: false } wandering) wandering.Distance -= distance;
                 parked.Poses = poses;
                 parked.Effort = next.Effort;
                 parked.Supported = true;

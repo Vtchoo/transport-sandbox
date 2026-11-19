@@ -13,8 +13,9 @@ public sealed class TrainConsist
     public bool Placed, Running;
     public double Speed;
     public int TravelDirection = 1;
+    public TrainOrders Orders = new();
     public bool Stopped => !Running && double.IsFinite(Speed) && Math.Abs(Speed) <= .001;
-    public TrainConsist Copy() => new() { Id = Id, Name = Name, Items = new(Items), Placed = Placed, Running = Running, Speed = Speed, TravelDirection = TravelDirection };
+    public TrainConsist Copy() => new() { Id = Id, Name = Name, Items = new(Items), Placed = Placed, Running = Running, Speed = Speed, TravelDirection = TravelDirection, Orders = Orders.Copy() };
     public double Length => Items.Sum(i => i.Definition.Length) + Math.Max(0, Items.Count - 1) * .12;
     public double[] Offsets
     {

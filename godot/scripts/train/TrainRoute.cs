@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace TransportSandbox;
 
+public sealed record WanderingStationStop(int Station, int EndRouteIndex, double Distance);
+
 public sealed class RouteEnd(double distance) : InvalidOperationException("End of connected track.")
 {
     public double Distance { get; } = distance;
@@ -29,6 +31,16 @@ public sealed class TrainRoute
         foreach (var leg in _legs)
             copy._legs.Add(leg.Key, leg.Value);
         return copy;
+    }
+    /// <summary>Replace only future legs beyond the leading coupler; preserve occupied junctions.</summary>
+    public void SetPath(TrainPosition leading, int travelDirection, IReadOnlyList<int> states)
+    {
+        if (states.Count == 0 || states[0] / 2 != leading.Edge || !_legs.TryGetValue(leading.RouteIndex, out var current))
+            throw new InvalidOperationException("Route start no longer matches the train.");
+        int step = (leading.Facing == current.Facing ? 1 : -1) * travelDirection;
+        foreach (int index in _legs.Keys.Where(index => (index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
+        for (int i = 1; i < states.Count; i++)
+            _legs[leading.RouteIndex + step * i] = (states[i] / 2, RailRouter.Direction(states[i]) * step);
     }
     public TrainSample Sample(TrainPosition position, double distance)
     {
@@ -90,6 +102,36 @@ public sealed class TrainRoute
             return Math.Abs(distance);
         }
         catch (RouteEnd end) { return end.Distance; }
+    }
+    /// <summary>Find the next platform run on this seeded itinerary, without choosing a destination or changing junction rules.</summary>
+    public WanderingStationStop? NextStation(TrainPosition leading, int travelDirection, double lookahead,
+        int servicedStation = 0, int servicedIndex = int.MinValue)
+    {
+        var location = leading;
+        double travelled = 0;
+        for (int hop = 0; hop < 4096; hop++)
+        {
+            if (!_placement.Network.Edges.TryGetValue(location.Edge, out var edge)) return null;
+            double length = _placement.Curve(edge).Length;
+            if (length < 1e-6) return null;
+            int direction = location.Facing * travelDirection;
+            double available = length * (direction > 0 ? 1 - location.U : location.U);
+            if (edge.Station == 0 && travelled + available > lookahead) return null;
+            TrainPosition? next = null;
+            try { next = Sample(location, travelDirection * (available + .001)).Position; }
+            catch (RouteEnd) { }
+            int nextStation = next is { } following ? _placement.Network.Edges[following.Edge].Station : 0;
+            if (edge.Station != 0 && nextStation != edge.Station)
+            {
+                double distance = travelled + available - 2;
+                if (distance >= -.02 && (edge.Station != servicedStation || location.RouteIndex != servicedIndex))
+                    return new(edge.Station, location.RouteIndex, Math.Max(0, distance));
+            }
+            if (next == null || travelled + available > lookahead) return null;
+            travelled += available + .001;
+            location = next.Value;
+        }
+        return null;
     }
     public double TurnRadius(TrainPosition position)
     {

@@ -9,6 +9,9 @@ public sealed class TrainView
 {
     public GameWindow Window = null!;
     public bool EditTab = true;
+    public bool RoutesTab;
+    public TrainOrderView Orders = null!;
+    public Button RoutesButton = null!;
     public bool? RunStyleRunning;
     public int? Selected;
     public VBoxContainer Edit = null!, Overview = null!;
@@ -44,6 +47,7 @@ public partial class TrainWindows : Node
     public override void _Ready()
     {
         BuildCatalog();
+        InitializeOrders();
         FleetWindow = Manager.Create("Trains", new Rect2(50, 110, 330, 390), new(270, 200));
         _fleet = new();
         FleetWindow.Body.AddChild(_fleet);
@@ -179,6 +183,8 @@ public partial class TrainWindows : Node
             return;
         var train = Editor.Builder.Get(id);
         var view = EnsureView(train);
+        CancelOrderPicking();
+        view.RoutesTab = false;
         view.EditTab = edit ?? (train.Placed ? false : view.EditTab);
         Editor.Select(id);
         SuspendTrack();
@@ -197,9 +203,10 @@ public partial class TrainWindows : Node
         view.Window.Body.AddChild(tabs);
         view.ViewTab = Button(tabs, "", () => OpenTrain(train.Id, false), "viewport", "Viewport");
         view.EditButton = Button(tabs, "", () => OpenTrain(train.Id, true), "wrench", "Edit train");
+        view.RoutesButton = Button(tabs, "", () => OpenRoutes(train.Id), "routes", "Routes");
         var group = new ButtonGroup();
-        view.ViewTab.ToggleMode = view.EditButton.ToggleMode = true;
-        view.ViewTab.ButtonGroup = view.EditButton.ButtonGroup = group;
+        view.ViewTab.ToggleMode = view.EditButton.ToggleMode = view.RoutesButton.ToggleMode = true;
+        view.ViewTab.ButtonGroup = view.EditButton.ButtonGroup = view.RoutesButton.ButtonGroup = group;
         view.Overview = new();
         view.Window.Body.AddChild(view.Overview);
         view.Preview = new();
@@ -238,6 +245,7 @@ public partial class TrainWindows : Node
         view.Edit.AddChild(tools);
         Button(tools, "Add vehicles...", () => CatalogWindow.Open(), "plus");
         view.Reverse = Button(tools, "Reverse preview - R", Editor.ReversePreview, "flip");
+        view.Orders = BuildOrders(train.Id, view.Window.Body);
         view.Status = UiSkin.Label(view.Window.Body, "", 11);
         view.Status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         view.Window.StateChanged += StackChanged;
@@ -273,10 +281,12 @@ public partial class TrainWindows : Node
     }
     private void Render(TrainConsist train, TrainView view)
     {
-        view.Edit.Visible = view.EditTab;
-        view.Overview.Visible = !view.EditTab;
+        view.Edit.Visible = view.EditTab && !view.RoutesTab;
+        view.Overview.Visible = !view.EditTab && !view.RoutesTab;
+        view.Orders.Root.Visible = view.RoutesTab;
         view.EditButton.SetPressedNoSignal(view.EditTab);
-        view.ViewTab.SetPressedNoSignal(!view.EditTab);
+        view.ViewTab.SetPressedNoSignal(!view.EditTab && !view.RoutesTab);
+        view.RoutesButton.SetPressedNoSignal(view.RoutesTab);
         view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.Definition.Physics.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
         view.OverviewSpecs.Text = view.Specs.Text;
         view.Empty.Visible = train.Items.Count == 0;
@@ -314,6 +324,7 @@ public partial class TrainWindows : Node
         view.Pickup.Disabled = view.Follow.Disabled = !train.Placed;
         view.Follow.TooltipText = Following == train.Id ? "Stop following" : "Follow train";
         RefreshRunButton(train, view);
+        RenderOrders(train, view);
         view.Status.Text = Editor.Builder.Selected?.Id == train.Id ? Editor.Message : "";
     }
     private static void RefreshRunButton(TrainConsist train, TrainView view)
@@ -334,6 +345,7 @@ public partial class TrainWindows : Node
             {
                 RefreshRunButton(train, view);
                 if (train.Placed) view.Location.Text = FormattableString.Invariant($"{Math.Abs(train.Speed) * 3.6:F1} km/h - {(train.Running ? "Started" : train.Stopped ? "Stopped" : "Stopping")}");
+                RefreshOrderStatus(train, view);
             }
     }
     private void Rebased(TrackVector worldShift)
@@ -408,13 +420,17 @@ public partial class TrainWindows : Node
     private void Warn(string text) => WarningBubble.Display(text);
     private void SuspendTrack()
     {
+        CancelOrderPicking();
         if (TrackEditor.Enabled)
             TrackEditor.SetEnabled(false);
     }
     private void TrackEnabled(bool value)
     {
         if (value)
+        {
             Editor.CancelPlacement();
+            CancelOrderPicking();
+        }
     }
     private void StopFollowing()
     {
@@ -449,7 +465,7 @@ public partial class TrainWindows : Node
         {
             _viewTimer = 0;
             foreach (var (id, view) in Views)
-                if (!view.EditTab && view.Window.Visible && !view.Window.IsCollapsed)
+                if (!view.EditTab && !view.RoutesTab && view.Window.Visible && !view.Window.IsCollapsed)
                 {
                     RefreshRunButton(Editor.Builder.Get(id), view);
                     view.Preview.Train(Editor.Builder.Get(id), Editor.Parked.FirstOrDefault(p => p.Id == id), Editor.Catalog, GetViewport().World3D);
@@ -479,9 +495,11 @@ public partial class TrainWindows : Node
             }
             catch (InvalidOperationException) { Coupler.Hide(); }
         }
+        RefreshOrderPicking();
     }
     public override void _UnhandledInput(InputEvent input)
     {
+        if (HandleOrderPicking(input)) return;
         if (Manager.HasModal || input is not InputEventKey { Pressed: true, Echo: false } key)
             return;
         bool active = Manager.Active == CatalogWindow || Manager.Active == FleetWindow || Views.Values.Any(v => v.Window == Manager.Active);
@@ -495,6 +513,8 @@ public partial class TrainWindows : Node
     }
     public override void _ExitTree()
     {
+        if (IsInstanceValid(OrderHighlights)) OrderHighlights.QueueFree();
+        CancelOrderPicking();
         Editor.Changed -= Change;
         Editor.Warning -= Warn;
         Editor.MotionChanged -= RefreshMotion;

@@ -85,7 +85,7 @@ public partial class StationWindows : Node
         view.Camera.Position = center + new Vector3(radius, radius * .7f, radius);
         view.Camera.LookAt(center, Vector3.Up);
     }
-    public bool OpenAt(Camera3D camera, Vector2 mouse)
+    public int PickAt(Camera3D camera, Vector2 mouse)
     {
         float closest = float.PositiveInfinity;
         int station = 0;
@@ -110,9 +110,12 @@ public partial class StationWindows : Node
                     }
                 }
         }
-        if (station == 0)
-            return false;
-        Open(station);
-        return true;
+        return station;
+    }
+    public bool OpenAt(Camera3D camera, Vector2 mouse)
+    {
+        int station = PickAt(camera, mouse);
+        if (station == 0) return false;
+        Open(station); return true;
     }
 }
