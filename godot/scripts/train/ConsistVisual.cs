@@ -47,8 +47,24 @@ public partial class VehicleVisual : Node3D
         Name = definition.Id;
         // Imported geometry is already in metres. Never normalize or resize catalog models.
         Model = GD.Load<PackedScene>(model).Instantiate<Node3D>();
+        ConfigureLettering(Model);
         AddChild(Model);
         Rotation = new(0, reversed ? Mathf.Pi : 0, 0);
+    }
+    private static void ConfigureLettering(Node node)
+    {
+        // glTF BLEND imports with a depth prepass. Canvas signs in Three.js use
+        // transparent blending and depthWrite=false, including placement ghosts.
+        // Imported materials are shared, so this also preserves instance batching.
+        if (node is MeshInstance3D mesh && mesh.Name.ToString().StartsWith("lettering_"))
+            for (int surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
+                if (mesh.GetActiveMaterial(surface) is StandardMaterial3D material)
+                {
+                    material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+                    material.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled;
+                }
+        foreach (var child in node.GetChildren())
+            ConfigureLettering(child);
     }
 }
 

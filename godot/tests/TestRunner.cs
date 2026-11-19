@@ -49,8 +49,12 @@ public partial class TestRunner : Node
                 case "tree-performance":
                     await TreeStreamingPerformance.Run(this, Frame);
                     break;
+                case "visuals":
+                    await WorldVisualChecks.Run(Check, Frame, this);
+                    break;
                 case "all":
                     Core();
+                    await WorldVisualChecks.Run(Check, Frame, this);
                     await Menu();
                     await Terrain();
                     await Startup();
@@ -477,7 +481,7 @@ public partial class TestRunner : Node
         async Task Settle()
         {
             var timeout = Stopwatch.StartNew();
-            while ((main.TreeClearance.IsPending || main.World.PendingEarthworks > 0) && timeout.Elapsed.TotalSeconds < 15)
+            while ((main.TreeClearance.IsPending || main.World.PendingEarthworks > 0 || main.World.ActiveJobs > 0) && timeout.Elapsed.TotalSeconds < 15)
                 await ToSignal(GetTree().CreateTimer(.025), SceneTreeTimer.SignalName.Timeout);
             Check(!main.TreeClearance.IsPending && main.World.PendingEarthworks == 0, "Earthwork workers apply latest track revision and terrain meshes");
         }

@@ -46,7 +46,7 @@ public partial class Main : Node3D
         MenuUI.StartRequested += StartWithSettings;
     }
     public void ShowSetup() => MenuUI.OpenSetup();
-    private void BuildWorldEnvironment() => WorldLighting.AddTo(this);
+    private void BuildWorldEnvironment() => WorldLighting.AddTo(this, gameplay: true);
     public void StartWorld(bool custom)
     {
         MenuUI.Custom.ButtonPressed = custom;

@@ -132,6 +132,14 @@ public static class CameraOriginChecks
         var sample = space.ToWorld(main.Camera.Target);
         double height = main.Generator.HeightWorld(sample.X, sample.Z);
         space.Rebase(new(eye.X + 4096, eye.Y, eye.Z - 4096));
+        foreach (var holder in chunks.Values.Take(1))
+        {
+            var material = (ShaderMaterial)holder.GetChild<MeshInstance3D>(0).MaterialOverride;
+            check(material.GetShaderParameter("terrain_origin").AsVector2() == new Vector2((float)space.Origin.X, (float)space.Origin.Z), "Terrain shader receives the current absolute origin for stationary ground grain");
+        }
+        var water = main.World.GetNode<MeshInstance3D>("Water");
+        check(water.Mesh is PlaneMesh { Size: var size } && size == new Vector2(32000, 32000), "Water retains the browser's 32 km extent");
+        check(Math.Abs(water.Position.Y - main.Generator.SeaLevel) < .001, "Origin changes keep water at the world's sea level");
         check(main.Camera.WorldPosition == eye, "Rebasing preserves the camera's absolute pose");
         foreach (var (key, holder) in chunks)
             check((space.ToWorld(holder.Position) - new TrackVector(key.X * 512.0, 0, key.Y * 512.0)).Length < .001, "Loaded chunk transforms retain their absolute placement after rebasing");

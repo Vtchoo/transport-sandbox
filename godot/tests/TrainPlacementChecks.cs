@@ -74,6 +74,7 @@ public static class TrainPlacementChecks
     {
         Parity(check);
         TrainMovementChecks.Parity(check);
+        await VehicleAppearanceChecks.Run(check, frame, parent);
         var graph = new TrackNetwork();
         var catalog = VehicleCatalog.Load();
         var generator = new TerrainGenerator() { Space = graph.Space };

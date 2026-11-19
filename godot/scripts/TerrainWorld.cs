@@ -107,10 +107,13 @@ public partial class TerrainWorld : Node3D
         {
             Shader = GD.Load<Shader>("res://shaders/terrain.gdshader")
         };
+        UpdateMaterialOrigin();
         _water = new()
         {
-            Mesh = new PlaneMesh { Size = new(24000, 24000) },
-            MaterialOverride = new StandardMaterial3D { AlbedoColor = new(0.13f, 0.35f, 0.42f), Roughness = 0.28f }
+            Name = "Water",
+            Mesh = new PlaneMesh { Size = new(32000, 32000) },
+            MaterialOverride = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/water.gdshader") },
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off
         };
         AddChild(_water);
         _water.Position = new(0, (float)Generator.SeaLevel, 0);
@@ -244,11 +247,14 @@ public partial class TerrainWorld : Node3D
     }
     private void Rebased(TrackVector worldShift)
     {
+        UpdateMaterialOrigin();
         var shift = worldShift.Float();
         foreach (var (key, holder) in Chunks)
             holder.Position = Generator.Space.ToLocal(new TrackVector(key.X * (double)Chunk, 0, key.Y * (double)Chunk));
         _water.Position -= shift;
     }
+    private void UpdateMaterialOrigin() => _terrainMaterial.SetShaderParameter("terrain_origin",
+        new Vector2((float)Generator.Space.Origin.X, (float)Generator.Space.Origin.Z));
     public static TerrainTile[] WantedTiles(TerrainGenerator generator, Vector3 camera) => WantedTiles(generator, TrackVector.From(camera));
     public static TerrainTile[] WantedTiles(TerrainGenerator generator, TrackVector camera)
     {

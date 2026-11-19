@@ -1,0 +1,67 @@
+[
+  {
+    "id": "atsf-f7a",
+    "gauge": 1435,
+    "lettering": 5
+  },
+  {
+    "id": "atsf-coach",
+    "gauge": 1435,
+    "lettering": 4
+  },
+  {
+    "id": "atsf-pleasure-dome",
+    "gauge": 1435,
+    "lettering": 4
+  },
+  {
+    "id": "ge-809",
+    "gauge": 1435,
+    "lettering": 8
+  },
+  {
+    "id": "drgw-consolidation",
+    "gauge": 914,
+    "lettering": 7
+  },
+  {
+    "id": "drgw-consolidation",
+    "gauge": 1435,
+    "lettering": 7
+  },
+  {
+    "id": "drgw-wood-baggage",
+    "gauge": 914,
+    "lettering": 4
+  },
+  {
+    "id": "drgw-wood-baggage",
+    "gauge": 1435,
+    "lettering": 4
+  },
+  {
+    "id": "drgw-wood-coach",
+    "gauge": 914,
+    "lettering": 4
+  },
+  {
+    "id": "drgw-wood-coach",
+    "gauge": 1435,
+    "lettering": 4
+  },
+  {
+    "id": "tgv-sud-est-power",
+    "gauge": 1435,
+    "lettering": 2
+  },
+  {
+    "id": "tgv-sud-est-coach",
+    "gauge": 1435,
+    "lettering": 2
+  },
+  {
+    "id": "ge-dash9",
+    "gauge": 1435,
+    "lettering": 0
+  }
+]
