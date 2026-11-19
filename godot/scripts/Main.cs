@@ -127,6 +127,7 @@ public partial class Main : Node3D
         HUD.TrainsButton.TooltipText = "Trains";
         HUD.VehiclesButton.Pressed += TrainUI.ToggleCatalog;
         HUD.TrainsButton.Pressed += TrainUI.OpenFleet;
+        HUD.StationsButton.Pressed += TrainUI.StationList.Open;
         TrainUI.CatalogWindow.StateChanged += () => HUD.VehiclesButton.SetPressedNoSignal(TrainUI.CatalogWindow.Visible && !TrainUI.CatalogWindow.IsCollapsed);
         Interface.MoveChild(GameWindows, -1);
         Camera.Loaded = World.HasTerrainAt;

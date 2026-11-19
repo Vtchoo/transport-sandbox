@@ -15,7 +15,7 @@ public partial class GameHUD : Control
     public WindowManager Windows = null!;
     public string PreferencesFile = "user://game-ui.cfg";
     public PanelContainer ActionBar = null!, DebugPanel = null!;
-    public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, CameraButton = null!, ViewButton = null!, SettingsButton = null!, MenuButton = null!;
+    public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, StationsButton = null!, CameraButton = null!, ViewButton = null!, SettingsButton = null!, MenuButton = null!;
     public GameWindow ViewWindow = null!, SettingsWindow = null!;
     public CheckBox Contours = null!;
     public OptionButton ContourInterval = null!, CameraMode = null!;
@@ -103,6 +103,9 @@ public partial class GameHUD : Control
         TrainsButton = ActionButton("Trains", "trains");
         TrainsButton.Disabled = true;
         TrainsButton.TooltipText = "Train windows are not ported yet.";
+        StationsButton = ActionButton("", "station");
+        StationsButton.IconAlignment = HorizontalAlignment.Center;
+        StationsButton.TooltipText = "Stations";
         Editor.EnabledChanged += SynchronizeBuild;
         Hint = UiSkin.Label(this, "", 9, "edf1e6");
         Hint.MouseFilter = MouseFilterEnum.Ignore;
