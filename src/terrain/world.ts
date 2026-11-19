@@ -8,8 +8,10 @@ import type { EarthPath } from '../track/earthworks';
 import { Trees } from './trees';
 import type { TreeChunk } from './trees';
 import { TerrainLodCache } from './cache';
+import { TreeStreaming } from './tree-streaming';
+import { prepareTrees, type PreparedTrees } from './tree-data';
 
-interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; trees: TreeChunk; segments: number; x: number; z: number; revision: number; bytes: number; dirty?: boolean }
+interface Chunk { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshStandardMaterial>; trees?: TreeChunk; prepared: PreparedTrees; segments: number; x: number; z: number; revision: number; bytes: number; dirty?: boolean }
 interface WorkerSlot { worker: Worker; job?: { id: number; key: string } }
 export class TerrainWorld {
   readonly group = new THREE.Group();
@@ -30,6 +32,14 @@ export class TerrainWorld {
   private contourEnabled = { value: 0 };
   private contourInterval = { value: 10 };
   private trees = new Trees();
+  private treeStreaming = new TreeStreaming(this.trees);
+  private completed: ChunkData[] = [];
+  private retired: Chunk[] = [];
+  private frameOperations = 0;
+  private frameStarted = 0;
+  /** Soft elapsed-time limit plus a hard cap; a single GPU operation cannot be preempted. */
+  maxOperationsPerFrame = 2;
+  frameBudgetMs = 2;
   private cameraPosition = new THREE.Vector3();
   error = '';
   constructor(readonly settings: TerrainSettings) {
@@ -92,7 +102,7 @@ export class TerrainWorld {
   setContours(enabled: boolean, interval = 10) {
     this.contourEnabled.value = enabled ? 1 : 0;
     this.contourInterval.value = Number.isFinite(interval) ? Math.max(1, interval) : 10;
-    for (const chunk of this.chunks.values()) chunk.trees.group.visible = !enabled;
+    for (const chunk of this.chunks.values()) if (chunk.trees) chunk.trees.group.visible = !enabled;
   }
   setEarthworks(paths: EarthPath[]) {
     const previous = this.generator.earthworks;
@@ -111,6 +121,7 @@ export class TerrainWorld {
   }
   update(worldX: number, worldZ: number, altitude: number) {
     if (this.disposed) return;
+    this.frameOperations = 0; this.frameStarted = performance.now();
     const cx = Math.floor(worldX / CHUNK_SIZE), cz = Math.floor(worldZ / CHUNK_SIZE);
     this.cameraPosition.set(worldX, altitude, worldZ);
     // Floating origin keeps GPU coordinates small as the world grows.
@@ -132,22 +143,38 @@ export class TerrainWorld {
     }
     this.pump();
   }
-  private pump() {
+  private pump(render = true) {
     if (this.disposed || this.error) return;
+    const available = () => render && this.frameOperations < this.maxOperationsPerFrame && performance.now() - this.frameStarted < this.frameBudgetMs;
+    // Give retirement a slot even while the camera keeps exposing new chunks.
+    if (available()) {
+      if (this.retired.length) { this.retired.shift()!.mesh.geometry.dispose(); this.frameOperations++; }
+      else if (this.treeStreaming.releaseOne()) this.frameOperations++;
+    }
+    // Results arrive between frames. Upload on the next update, never inside worker callbacks.
+    while (this.completed.length && available()) {
+      const data = this.completed.shift()!;
+      if (data.revision !== this.revision) continue;
+      this.commit(data); this.frameOperations++;
+    }
     // Cache hits require no worker slot, even while older LOD jobs are still running.
     for (const [key, tile] of this.wanted) {
       const current = this.chunks.get(key);
       if (current?.segments === tile.segments && !current.dirty) continue;
+      if (!available()) break;
       const cached = this.cache.take(tile.x, tile.z, tile.segments, this.revision);
-      if (cached) this.mount(cached);
+      if (cached) { this.mount(cached); this.frameOperations++; }
     }
     const busy = new Set(this.workers.flatMap(slot => slot.job ? [slot.job.key] : []));
+    for (const data of this.completed) busy.add(this.key(data.x, data.z));
     // Upgrades and newly exposed nearby tiles always precede distant work.
     for (const slot of this.workers) {
+      if (this.completed.length >= this.workers.length) break;
       if (slot.job) continue;
       for (const [key, tile] of this.wanted) {
         const chunk = this.chunks.get(key);
-        if (busy.has(key) || chunk?.segments === tile.segments && !chunk.dirty) continue;
+        if (busy.has(key) || chunk?.segments === tile.segments && !chunk.dirty
+          || this.cache.has(tile.x, tile.z, tile.segments, this.revision)) continue;
         const id = ++this.serial;
         slot.job = { id, key };
         busy.add(key);
@@ -155,63 +182,74 @@ export class TerrainWorld {
         break;
       }
     }
+    while (available()) {
+      if (this.retired.length) this.retired.shift()!.mesh.geometry.dispose();
+      else if (!this.treeStreaming.releaseOne()) break;
+      this.frameOperations++;
+    }
   }
   private receive(slot: WorkerSlot, data: ChunkData) {
     if (this.disposed || slot.job?.id !== data.id) return;
-    const key = slot.job.key;
     slot.job = undefined;
-    if (data.revision === this.revision) {
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
-      geometry.setAttribute('normal', new THREE.BufferAttribute(data.normals, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(data.colors, 3));
-      geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
-      geometry.computeBoundingSphere();
-      const mesh = new THREE.Mesh(geometry, this.material);
-      const trees = this.trees.create(data.trees ?? new Float32Array());
-      trees.group.visible = this.contourEnabled.value < 0.5;
-      mesh.add(trees.group);
-      const bytes = 2 * (data.positions.byteLength + data.normals.byteLength + data.colors.byteLength + data.indices.byteLength + trees.count * (2 * 16 * 4 + 3 * 4));
-      const chunk = { mesh, trees, segments: data.segments, x: data.x, z: data.z, revision: this.revision, bytes };
-      if (this.wanted.get(key)?.segments === data.segments) this.mount(chunk);
-      else this.cache.store(chunk);
-    }
-    this.pump();
+    if (data.revision === this.revision) this.completed.push(data);
+    // Scheduling is bounded by idle workers plus queued results; rendering waits for update().
+    this.pump(false);
+  }
+  private commit(data: ChunkData) {
+    const key = this.key(data.x, data.z);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(data.positions, 3));
+    geometry.setAttribute('normal', new THREE.BufferAttribute(data.normals, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(data.colors, 3));
+    geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
+    geometry.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geometry, this.material);
+    const prepared = data.preparedTrees ?? prepareTrees(data.trees ?? new Float32Array());
+    const bytes = 2 * (data.positions.byteLength + data.normals.byteLength + data.colors.byteLength + data.indices.byteLength) + prepared.bytes;
+    const chunk = { mesh, prepared, segments: data.segments, x: data.x, z: data.z, revision: this.revision, bytes };
+    if (this.wanted.get(key)?.segments === data.segments) this.mount(chunk);
+    else this.cache.store(chunk);
   }
   private updateTrees(chunk: Chunk) {
     const centerY = chunk.mesh.geometry.boundingSphere?.center.y ?? 0;
     const distance = Math.hypot(chunk.x * CHUNK_SIZE + CHUNK_SIZE / 2 - this.cameraPosition.x,
       centerY - this.cameraPosition.y, chunk.z * CHUNK_SIZE + CHUNK_SIZE / 2 - this.cameraPosition.z);
-    this.trees.update(chunk.trees, distance);
+    if (chunk.trees) this.trees.update(chunk.trees, distance);
   }
   private mount(chunk: Chunk) {
     const key = this.key(chunk.x, chunk.z), previous = this.chunks.get(key);
-    if (previous) this.retireChunk(previous);
+    // Reparent the trees before retiring their terrain holder. No empty frame during edits.
+    if (chunk.segments >= 64)
+      chunk.trees = this.treeStreaming.activate(key, chunk.mesh, chunk.prepared, this.contourEnabled.value > .5);
+    else this.treeStreaming.deactivate(key);
+    if (previous) { previous.trees = undefined; this.retireChunk(previous, false); }
     chunk.mesh.position.set(chunk.x * CHUNK_SIZE - this.origin.x, 0, chunk.z * CHUNK_SIZE - this.origin.y);
-    chunk.trees.group.visible = this.contourEnabled.value < 0.5;
     this.group.add(chunk.mesh); this.updateTrees(chunk); this.chunks.set(key, chunk);
   }
-  private retireChunk(chunk: Chunk) {
+  private retireChunk(chunk: Chunk, deactivateTrees = true) {
+    if (deactivateTrees) this.treeStreaming.deactivate(this.key(chunk.x, chunk.z));
+    chunk.trees = undefined;
     this.group.remove(chunk.mesh);
     if (chunk.dirty || chunk.revision !== this.revision) this.releaseChunk(chunk);
     else this.cache.store(chunk);
   }
   private releaseChunk(chunk: Chunk) {
-    this.trees.release(chunk.trees);
     this.group.remove(chunk.mesh);
-    chunk.mesh.geometry.dispose();
+    this.retired.push(chunk);
   }
   get stats() {
     let triangles = 0, nearby = 0, earthworksPending = 0, trees = 0;
     for (const [key, chunk] of this.chunks) {
       triangles += chunk.mesh.geometry.index!.count / 3;
-      trees += chunk.trees.count;
+      trees += chunk.trees?.count ?? 0;
       if (chunk.dirty) earthworksPending++;
       const target = this.wanted.get(key);
       if (target && target.ring <= 1 && chunk.segments === target.segments) nearby++;
     }
     return { chunks: this.chunks.size, total: this.wanted.size, triangles, nearby, earthworksPending, trees, radius: VIEW_RADIUS * CHUNK_SIZE,
-      cachedLods: this.cache.count, cacheBytes: this.cache.bytes, cacheHits: this.cache.hits };
+      cachedLods: this.cache.count, cacheBytes: this.cache.bytes, cacheHits: this.cache.hits,
+      cachedTreeBytes: this.treeStreaming.cachedBytes, treeUploads: this.treeStreaming.uploads, treeReuses: this.treeStreaming.reuses,
+      streamingPending: this.completed.length + this.retired.length + this.treeStreaming.pendingDisposals };
   }
   hasTerrainAt(x: number, z: number) {
     return this.chunks.has(this.key(Math.floor(x / CHUNK_SIZE), Math.floor(z / CHUNK_SIZE)));
@@ -232,6 +270,9 @@ export class TerrainWorld {
     this.workers.forEach(slot => slot.worker.terminate());
     this.chunks.forEach(chunk => this.releaseChunk(chunk));
     this.cache.clear();
+    this.treeStreaming.dispose();
+    for (const chunk of this.retired) chunk.mesh.geometry.dispose();
+    this.retired = []; this.completed = [];
     this.trees.dispose();
     this.chunks.clear();
     this.wanted.clear();

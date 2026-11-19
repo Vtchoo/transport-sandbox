@@ -119,6 +119,7 @@ export interface ChunkData {
   revision?: number;
   positions: Float32Array; normals: Float32Array; colors: Float32Array; indices: Uint32Array;
   trees?: Float32Array;
+  preparedTrees?: import('./tree-data').PreparedTrees;
 }
 export function buildChunk(generator: TerrainGenerator, request: ChunkRequest): ChunkData {
   if (generator.earthworks?.affectsBounds(request.x * CHUNK_SIZE, request.z * CHUNK_SIZE, CHUNK_SIZE, (x, z) => generator.baseHeight(x, z))) return buildEarthworkChunk(generator, request);

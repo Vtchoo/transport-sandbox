@@ -83,6 +83,15 @@ public static class TerrainCacheChecks
             stage = "superseded earthworks";
             await Drain();
             check(!world.MeshCache.TryTake(new(new(1, 1), 32, 0), out _), "Superseded worker output cannot restore stale terrain");
+            await Want(64);
+            var treeVisual = world.Chunks[new(1, 1)].GetNodeOrNull<TreeChunk>("Trees");
+            long generations = generator.Backend.VegetationGenerations, treeUploads = world.Trees.Uploads;
+            await Want(128);
+            check(generator.Backend.VegetationGenerations == generations, "Changing terrain LOD reuses worker vegetation data instead of recalculating placement");
+            check(ReferenceEquals(treeVisual, world.Chunks[new(1, 1)].GetNodeOrNull<TreeChunk>("Trees")) && world.Trees.Uploads == treeUploads, "Near terrain LOD swaps preserve the existing uploaded tree batches");
+            world.SetWantedTiles(Array.Empty<TerrainTile>());
+            await Want(64);
+            check(world.Trees.Uploads == treeUploads && generator.Backend.VegetationGenerations == generations, "Returning to cached terrain restores trees without placement calculations or GPU uploads");
             world.SetWantedTiles(Array.Empty<TerrainTile>());
             world.MeshCache.BudgetBytes = 0;
             check(world.MeshCache.Count == 0 && world.MeshCache.EstimatedBytes == 0, "Cache can release all retained mesh memory");

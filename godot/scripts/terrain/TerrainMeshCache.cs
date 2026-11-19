@@ -6,7 +6,7 @@ using System.Linq;
 namespace TransportSandbox;
 
 public readonly record struct TerrainMeshKey(Vector2I Chunk, int Segments, long Revision);
-public sealed record CachedTerrainMesh(ArrayMesh Mesh, TreeData[] Trees, long EstimatedBytes);
+public sealed record CachedTerrainMesh(ArrayMesh Mesh, TreeData[] Trees, long EstimatedBytes, PreparedTrees? Prepared = null);
 
 /// <summary>Inactive meshes only. Taking an entry transfers ownership back to the visible world.</summary>
 public sealed class TerrainMeshCache
@@ -49,6 +49,7 @@ public sealed class TerrainMeshCache
         EstimatedBytes += value.EstimatedBytes;
         Trim();
     }
+    public bool Contains(TerrainMeshKey key) => _entries.ContainsKey(key);
     public bool TryTake(TerrainMeshKey key, out CachedTerrainMesh value)
     {
         if (!_entries.TryGetValue(key, out var node))

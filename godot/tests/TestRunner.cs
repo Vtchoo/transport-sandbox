@@ -46,6 +46,9 @@ public partial class TestRunner : Node
                 case "performance":
                     TerrainPerformance.Run();
                     break;
+                case "tree-performance":
+                    await TreeStreamingPerformance.Run(this, Frame);
+                    break;
                 case "all":
                     Core();
                     await Menu();
@@ -383,6 +386,7 @@ public partial class TestRunner : Node
         camera.Free();
         await EarthworkMeshChecks.Run(Check, Frame);
         await TerrainCacheChecks.Run(Check, Frame, this);
+        await TreeStreamingChecks.Run(Check, Frame, this);
     }
     private async Task Startup()
     {

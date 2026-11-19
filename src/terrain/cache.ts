@@ -25,6 +25,9 @@ export class TerrainLodCache<T extends TerrainCacheEntry> {
     if (!entry) return;
     this.entries.delete(key); this.bytes -= entry.bytes; this.hits++; return entry;
   }
+  has(x: number, z: number, segments: number, revision: number) {
+    return this.entries.has(this.key(x, z, segments, revision));
+  }
   advanceRevision(revision: number, affected: (x: number, z: number) => boolean) {
     const previous = this.entries; this.entries = new Map(); this.bytes = 0;
     for (const entry of previous.values()) {

@@ -81,6 +81,20 @@ public static class TreeChecks
         check(woodland.Batches.All(batch => !batch.Trunk.Visible), "Tree trunks hide at 1100 metres");
         woodland.UpdateLod(849);
         check(woodland.Batches.All(batch => batch.Trunk.Visible && batch.Crown.Multimesh.Mesh == TreeScenery.Crown(batch.Species, false)), "Tree LOD restores when approaching");
+        int changes = woodland.LodChanges;
+        for (int i = 0; i < 100; i++) woodland.UpdateLod(500);
+        check(woodland.LodChanges == changes, "Unchanged tree LOD does not repeatedly update rendering resources");
+        if (DisplayServer.GetName() != "headless")
+            foreach (var batch in woodland.Batches)
+            {
+                using var original = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, UseColors = true, Mesh = TreeScenery.Trunk, InstanceCount = 1 };
+                for (int i = 0; i < batch.TrunkTransforms.Count; i++)
+                {
+                    check(batch.Trunk.Multimesh.GetInstanceTransform(i).IsEqualApprox(batch.TrunkTransforms[i]) && batch.Crown.Multimesh.GetInstanceTransform(i).IsEqualApprox(batch.CrownTransforms[i]), "GPU bulk tree buffer preserves original transforms");
+                    original.SetInstanceColor(0, batch.Colors[i]);
+                    check(batch.Crown.Multimesh.GetInstanceColor(i).IsEqualApprox(original.GetInstanceColor(0)), "Bulk tree colors match the original setter after renderer precision conversion");
+                }
+            }
         woodland.Free();
     }
 }

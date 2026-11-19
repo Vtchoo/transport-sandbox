@@ -1,79 +1,75 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { TREE_STRIDE } from './vegetation';
+import { treeCrown, treeTrunk } from './tree-geometry';
+import { prepareTrees, type PreparedTrees, type TreeBounds } from './tree-data';
 
-export interface TreeChunk { group: THREE.Group; count: number; meshes: THREE.InstancedMesh[] }
+export interface TreeChunk { group: THREE.Group; count: number; meshes: THREE.InstancedMesh[]; prepared: PreparedTrees; lod?: number }
 
 /** Shared geometry/materials, with separate batches per terrain tile for frustum culling. */
 export class Trees {
   private bark = new THREE.MeshStandardMaterial({ color: 0x655343, roughness: 1 });
   private leaves = new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true });
-  private trunk = new THREE.CylinderGeometry(.013, .025, 1, 5).translate(0, .5, 0);
-  private crowns = [this.crown(false, false), this.crown(true, false)];
-  private distantCrowns = [this.crown(false, true), this.crown(true, true)];
+  private trunk = treeTrunk();
+  private crowns = [treeCrown(false, false), treeCrown(true, false)];
+  private distantCrowns = [treeCrown(false, true), treeCrown(true, true)];
 
-  private crown(conifer: boolean, distant: boolean) {
-    if (conifer) {
-      const parts = (distant ? [[1, .82, .59]] : [[1, .57, .4], [.82, .52, .6], [.56, .43, .8]])
-        .map(([r, h, y]) => new THREE.ConeGeometry(r, h, distant ? 5 : 7).translate(0, y, 0));
-      const result = mergeGeometries(parts)!;
-      parts.forEach(part => part.dispose());
-      return result;
-    }
-    const parts = (distant ? [[0, .69, 0, 1, .32, .9]] : [
-      [0, .72, 0, .85, .29, .8], [-.4, .57, .12, .64, .24, .67],
-      [.42, .62, .17, .66, .27, .65], [.05, .59, -.4, .72, .26, .63],
-    ]).map(([x, y, z, sx, sy, sz]) => new THREE.IcosahedronGeometry(1, distant ? 0 : 1).scale(sx, sy, sz).translate(x, y, z));
-    const result = mergeGeometries(parts)!;
-    parts.forEach(part => part.dispose());
-    return result;
-  }
+  /** Synchronous convenience for the small menu scene. Streaming uses worker-prepared data. */
+  create(data: Float32Array): TreeChunk { return this.createPrepared(prepareTrees(data)); }
 
-  create(data: Float32Array): TreeChunk {
+  createPrepared(prepared: PreparedTrees): TreeChunk {
     const group = new THREE.Group();
     group.name = 'Natural trees';
-    const meshes: THREE.InstancedMesh[] = [];
-    const transform = new THREE.Object3D(), color = new THREE.Color();
-    for (let species = 0; species < 2; species++) {
-      const indices: number[] = [];
-      for (let i = 0; i < data.length; i += TREE_STRIDE) if (data[i + 6] === species) indices.push(i);
-      if (!indices.length) continue;
-      const trunk = new THREE.InstancedMesh(this.trunk, this.bark, indices.length);
-      const crown = new THREE.InstancedMesh(this.crowns[species], this.leaves, indices.length);
-      crown.userData.species = species;
-      indices.forEach((i, index) => {
-        const [x, y, z, height, radius, yaw] = data.subarray(i, i + TREE_STRIDE);
-        transform.position.set(x, y - .8, z); // Roots penetrate small terrain LOD differences.
-        transform.rotation.set(0, yaw, 0);
-        transform.scale.set(height, height, height);
-        transform.updateMatrix();
-        trunk.setMatrixAt(index, transform.matrix);
-        transform.scale.set(radius, height, radius);
-        transform.updateMatrix();
-        crown.setMatrixAt(index, transform.matrix);
-        color.setHSL((species ? .32 : .28) + Math.sin(yaw) * .018, .42 + Math.cos(yaw) * .06, species ? .14 : .19);
-        crown.setColorAt(index, color);
-      });
-      for (const mesh of [trunk, crown]) {
-        mesh.computeBoundingSphere();
-        mesh.computeBoundingBox();
-        meshes.push(mesh); group.add(mesh);
-      }
+    const chunk: TreeChunk = { group, meshes: [], count: prepared.count, prepared };
+    for (const batch of prepared.batches) {
+      // Avoid InstancedMesh's identity-matrix initialization loop; install complete worker buffers.
+      const trunk = new THREE.InstancedMesh(this.trunk, this.bark, 0);
+      const crown = new THREE.InstancedMesh(this.crowns[batch.species], this.leaves, 0);
+      crown.userData.species = batch.species;
+      chunk.meshes.push(trunk, crown);
+      group.add(trunk, crown);
     }
-    return { group, meshes, count: data.length / TREE_STRIDE };
+    this.replace(chunk, prepared);
+    return chunk;
+  }
+
+  /** Reuse uploaded batches when only terrain LOD/root elevations change. */
+  replace(chunk: TreeChunk, prepared: PreparedTrees) {
+    chunk.prepared = prepared;
+    chunk.count = prepared.count;
+    chunk.lod = undefined;
+    for (let i = 0; i < prepared.batches.length; i++) {
+      const batch = prepared.batches[i], trunk = chunk.meshes[i * 2], crown = chunk.meshes[i * 2 + 1];
+      trunk.count = crown.count = batch.trunks.length / 16;
+      this.buffer(trunk, batch.trunks);
+      this.buffer(crown, batch.crowns);
+      if (!crown.instanceColor || crown.instanceColor.array.length !== batch.colors.length)
+        crown.instanceColor = new THREE.InstancedBufferAttribute(batch.colors.slice(), 3);
+      else { crown.instanceColor.array.set(batch.colors); crown.instanceColor.needsUpdate = true; }
+      this.bounds(trunk, batch.trunkBounds);
+      this.bounds(crown, batch.nearBounds);
+    }
+    this.update(chunk, 0);
+  }
+
+  private buffer(mesh: THREE.InstancedMesh, values: Float32Array) {
+    if (mesh.instanceMatrix.array.length !== values.length)
+      mesh.instanceMatrix = new THREE.InstancedBufferAttribute(values.slice(), 16);
+    else { mesh.instanceMatrix.array.set(values); mesh.instanceMatrix.needsUpdate = true; }
+  }
+
+  private bounds(mesh: THREE.InstancedMesh, bounds: TreeBounds) {
+    mesh.boundingBox = new THREE.Box3(new THREE.Vector3(...bounds.min), new THREE.Vector3(...bounds.max));
+    mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(...bounds.center), bounds.radius);
   }
 
   update(chunk: TreeChunk, distance: number) {
-    for (const mesh of chunk.meshes) {
-      const species = mesh.userData.species as number | undefined;
-      if (species === undefined) mesh.visible = distance < 1100;
-      else {
-        const geometry = (distance < 850 ? this.crowns : this.distantCrowns)[species];
-        if (mesh.geometry !== geometry) {
-          mesh.geometry = geometry;
-          mesh.computeBoundingSphere();
-        }
-      }
+    const lod = (distance < 850 ? 0 : 1) + (distance < 1100 ? 0 : 2);
+    if (chunk.lod === lod) return;
+    chunk.lod = lod;
+    for (let i = 0; i < chunk.prepared.batches.length; i++) {
+      const batch = chunk.prepared.batches[i], trunk = chunk.meshes[i * 2], crown = chunk.meshes[i * 2 + 1];
+      trunk.visible = distance < 1100;
+      crown.geometry = (distance < 850 ? this.crowns : this.distantCrowns)[batch.species];
+      this.bounds(crown, distance < 850 ? batch.nearBounds : batch.farBounds);
     }
   }
 

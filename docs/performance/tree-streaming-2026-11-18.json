@@ -1,0 +1,47 @@
+{
+  "before": {
+    "treesPerChunk": 2048,
+    "samples": 25,
+    "display": "Windows",
+    "create": {
+      "medianMs": 1.4439,
+      "p95Ms": 1.5803,
+      "maxMs": 1.8856
+    },
+    "remove": {
+      "medianMs": 0.0855,
+      "p95Ms": 0.1045,
+      "maxMs": 0.132
+    },
+    "unchangedLod1000Calls": {
+      "medianMs": 0.4042,
+      "p95Ms": 0.6008,
+      "maxMs": 0.6481
+    }
+  },
+  "after": {
+    "treesPerChunk": 2048,
+    "samples": 25,
+    "display": "Windows",
+    "create": {
+      "medianMs": 1.779,
+      "p95Ms": 2.1687,
+      "maxMs": 5.4419
+    },
+    "preparedUpload": {
+      "medianMs": 0.5169,
+      "p95Ms": 0.6128,
+      "maxMs": 0.6534
+    },
+    "remove": {
+      "medianMs": 0.1122,
+      "p95Ms": 0.1452,
+      "maxMs": 0.1737
+    },
+    "unchangedLod1000Calls": {
+      "medianMs": 0.061,
+      "p95Ms": 0.0767,
+      "maxMs": 0.0825
+    }
+  }
+}

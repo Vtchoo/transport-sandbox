@@ -42,37 +42,68 @@ public static class TreeScenery
         return data.ToArray();
     }
     public static TreeChunk CreateWoodland() => Create(MenuTrees(), "Woodland");
-    public static TreeChunk Create(IEnumerable<TreeData> data, string name = "Trees")
+    public static PreparedTrees Prepare(TreeData[] entries)
     {
-        var chunk = new TreeChunk { Name = name };
-        var entries = data.ToArray();
+        var batches = new List<PreparedTreeSpecies>();
         for (int species = 0; species < 2; species++)
         {
             var trees = entries.Where(tree => tree.Species == species).ToArray();
             if (trees.Length == 0)
                 continue;
-            var trunk = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = Trunk, InstanceCount = trees.Length };
-            var crown = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, UseColors = true, Mesh = Crown(species, false), InstanceCount = trees.Length };
-            var trunkTransforms = new Transform3D[trees.Length];
-            var crownTransforms = new Transform3D[trees.Length];
+            var trunks = new Transform3D[trees.Length];
+            var crowns = new Transform3D[trees.Length];
             var colors = new Color[trees.Length];
+            var trunkBuffer = new float[trees.Length * 12];
+            var crownBuffer = new float[trees.Length * 16];
             for (int i = 0; i < trees.Length; i++)
             {
                 var tree = trees[i];
                 var origin = new Vector3(tree.X, (float)(tree.Y - .8), tree.Z);
                 var basis = new Basis(Vector3.Up, tree.Yaw);
-                trunkTransforms[i] = new(basis.ScaledLocal(Vector3.One * tree.Height), origin);
-                crownTransforms[i] = new(basis.ScaledLocal(new(tree.Radius, tree.Height, tree.Radius)), origin);
+                trunks[i] = new(basis.ScaledLocal(Vector3.One * tree.Height), origin);
+                crowns[i] = new(basis.ScaledLocal(new(tree.Radius, tree.Height, tree.Radius)), origin);
                 colors[i] = LeafColor(tree.Species, tree.Yaw);
-                trunk.SetInstanceTransform(i, trunkTransforms[i]);
-                crown.SetInstanceTransform(i, crownTransforms[i]);
-                crown.SetInstanceColor(i, colors[i]);
+                Pack(trunkBuffer, i * 12, trunks[i]);
+                Pack(crownBuffer, i * 16, crowns[i]);
+                crownBuffer[i * 16 + 12] = colors[i].R;
+                crownBuffer[i * 16 + 13] = colors[i].G;
+                crownBuffer[i * 16 + 14] = colors[i].B;
+                crownBuffer[i * 16 + 15] = colors[i].A;
             }
-            var trunkNode = new MultiMeshInstance3D { Name = $"Trunks_{species}", Multimesh = trunk };
-            var crownNode = new MultiMeshInstance3D { Name = $"Crowns_{species}", Multimesh = crown };
+            batches.Add(new(species, trunks, crowns, colors, trunkBuffer, crownBuffer));
+        }
+        return new(entries, batches.ToArray());
+    }
+    private static void Pack(float[] buffer, int offset, Transform3D t)
+    {
+        buffer[offset] = t.Basis.X.X;
+        buffer[offset + 1] = t.Basis.Y.X;
+        buffer[offset + 2] = t.Basis.Z.X;
+        buffer[offset + 3] = t.Origin.X;
+        buffer[offset + 4] = t.Basis.X.Y;
+        buffer[offset + 5] = t.Basis.Y.Y;
+        buffer[offset + 6] = t.Basis.Z.Y;
+        buffer[offset + 7] = t.Origin.Y;
+        buffer[offset + 8] = t.Basis.X.Z;
+        buffer[offset + 9] = t.Basis.Y.Z;
+        buffer[offset + 10] = t.Basis.Z.Z;
+        buffer[offset + 11] = t.Origin.Z;
+    }
+    public static TreeChunk Create(IEnumerable<TreeData> data, string name = "Trees") => Create(Prepare(data.ToArray()), name);
+    public static TreeChunk Create(PreparedTrees prepared, string name = "Trees")
+    {
+        var chunk = new TreeChunk { Name = name, Source = prepared.Trees };
+        foreach (var batch in prepared.Batches)
+        {
+            using var trunk = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = Trunk, InstanceCount = batch.Trunks.Length };
+            using var crown = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, UseColors = true, Mesh = Crown(batch.Species, false), InstanceCount = batch.Crowns.Length };
+            trunk.Buffer = batch.TrunkBuffer;
+            crown.Buffer = batch.CrownBuffer;
+            var trunkNode = new MultiMeshInstance3D { Name = $"Trunks_{batch.Species}", Multimesh = trunk };
+            var crownNode = new MultiMeshInstance3D { Name = $"Crowns_{batch.Species}", Multimesh = crown };
             chunk.AddChild(trunkNode);
             chunk.AddChild(crownNode);
-            chunk.Batches.Add(new(species, trunkNode, crownNode, trunkTransforms, crownTransforms, colors));
+            chunk.Batches.Add(new(batch.Species, trunkNode, crownNode, batch.Trunks, batch.Crowns, batch.Colors));
         }
         return chunk;
     }
@@ -99,19 +130,37 @@ public static class TreeScenery
     }
 }
 
+public sealed record PreparedTreeSpecies(int Species, Transform3D[] Trunks, Transform3D[] Crowns, Color[] Colors, float[] TrunkBuffer, float[] CrownBuffer);
+public sealed record PreparedTrees(TreeData[] Trees, PreparedTreeSpecies[] Batches)
+{
+    // Managed source/transforms/buffers plus both GPU copies; excludes shared tree meshes.
+    public long EstimatedBytes => Trees.LongLength * 364;
+}
 public sealed record TreeBatch(int Species, MultiMeshInstance3D Trunk, MultiMeshInstance3D Crown,
     IReadOnlyList<Transform3D> TrunkTransforms, IReadOnlyList<Transform3D> CrownTransforms, IReadOnlyList<Color> Colors);
 public partial class TreeChunk : Node3D
 {
+    public TreeData[] Source = Array.Empty<TreeData>();
     public readonly List<TreeBatch> Batches = new();
+    private bool? _trunksVisible, _distant;
+    public int LodChanges
+    {
+        get; private set;
+    }
     public void UpdateLod(double distance)
     {
+        bool trunksVisible = distance < 1100, distant = distance >= 850;
+        if (_trunksVisible == trunksVisible && _distant == distant)
+            return;
+        LodChanges++;
         foreach (var batch in Batches)
         {
-            batch.Trunk.Visible = distance < 1100;
-            var mesh = TreeScenery.Crown(batch.Species, distance >= 850);
-            if (batch.Crown.Multimesh.Mesh != mesh)
-                batch.Crown.Multimesh.Mesh = mesh;
+            if (_trunksVisible != trunksVisible)
+                batch.Trunk.Visible = trunksVisible;
+            if (_distant != distant)
+                batch.Crown.Multimesh.Mesh = TreeScenery.Crown(batch.Species, distant);
         }
+        _trunksVisible = trunksVisible;
+        _distant = distant;
     }
 }
