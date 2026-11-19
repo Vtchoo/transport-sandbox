@@ -6,6 +6,7 @@ namespace TransportSandbox;
 /// <summary>Fixed world-axis grid; coordinates and snap rounding match the browser implementation.</summary>
 public partial class WorldTrackGrid : Node3D
 {
+    public WorldSpace Space = new();
     public static readonly int[] Spacings = { 0, 1, 5, 10, 25 };
     public int Spacing
     {
@@ -49,9 +50,12 @@ public partial class WorldTrackGrid : Node3D
         }
         _mesh.SurfaceEnd();
     }
-    public Vector3 Snap(Vector3 point) => Spacing == 0 ? point : new(
-        (float)(Math.Floor((double)point.X / Spacing + .5) * Spacing), point.Y,
-        (float)(Math.Floor((double)point.Z / Spacing + .5) * Spacing));
+    public Vector3 Snap(Vector3 point)
+    {
+        if (Spacing == 0) return point;
+        var world = Space.ToWorld(point);
+        return Space.ToLocal(new TrackVector(Math.Floor(world.X / Spacing + .5) * Spacing, world.Y, Math.Floor(world.Z / Spacing + .5) * Spacing));
+    }
     public void ShowAt(Vector3? point, bool enabled)
     {
         Visible = enabled && Spacing != 0 && point.HasValue;

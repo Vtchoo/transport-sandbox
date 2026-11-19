@@ -41,11 +41,12 @@ public sealed class TrackCurve
     }
     private readonly double[] _lengths = new double[513];
     public double Length => _lengths[^1];
-    public TrackCurve(Vector3[] controls)
+    public TrackCurve(Vector3[] controls) : this(controls.Select(TrackVector.From).ToArray()) { }
+    public TrackCurve(TrackVector[] controls)
     {
         if (controls.Length != 4)
             throw new ArgumentException("A cubic track requires four control points.");
-        Controls = controls.Select(TrackVector.From).ToArray();
+        Controls = controls.ToArray();
         var last = Point(0);
         for (int i = 1; i <= 512; i++)
         {

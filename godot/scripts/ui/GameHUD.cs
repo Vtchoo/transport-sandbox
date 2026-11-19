@@ -253,7 +253,7 @@ public partial class GameHUD : Control
         if (_debugElapsed < .25)
             return;
         _debugElapsed = 0;
-        var p = Camera.Position;
+        var p = Camera.WorldPosition;
         _debug.Text = $"TRANSPORT SANDBOX · DEBUG · F3 TO HIDE\n{(Camera.FreeMode ? "FREE CAMERA" : "OVERLOOK CAMERA")}\nSeed: {World.Generator.SeedText}\nX {p.X:F1}  Y {p.Y:F1}  Z {p.Z:F1}\nChunks: {World.Chunks.Count} / {World.Wanted.Count}\nTerrain workers: {World.WorkerLimit}   FPS: {Engine.GetFramesPerSecond()}";
     }
     public override void _UnhandledInput(InputEvent input)

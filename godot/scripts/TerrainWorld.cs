@@ -81,6 +81,7 @@ public partial class TerrainWorld : Node3D
     }
     public override void _Ready()
     {
+        Generator.Space.Rebased += Rebased;
         WorkerLimit = Generator.Backend.WorkerLimit();
         _terrainMaterial = new()
         {
@@ -128,20 +129,21 @@ public partial class TerrainWorld : Node3D
             else
                 MeshCache.Store(new(key, segments, _terrainRevision), cached);
         }
+        var eye = Camera is WorldCamera worldCamera ? worldCamera.WorldPosition : Generator.Space.ToWorld(Camera.Position);
         foreach (var (key, holder) in Chunks)
             if (holder.GetNodeOrNull<TreeChunk>("Trees") is { } trees)
             {
                 float centerY = holder.GetChild<MeshInstance3D>(0).Mesh.GetAabb().GetCenter().Y;
-                var centerPoint = new Vector3((key.X + .5f) * Chunk, centerY, (key.Y + .5f) * Chunk);
+                var centerPoint = Generator.Space.ToLocal(new TrackVector((key.X + .5) * Chunk, centerY, (key.Y + .5) * Chunk));
                 trees.UpdateLod(Camera.Position.DistanceTo(centerPoint));
             }
-        var center = new Vector2I(Mathf.FloorToInt(Camera.Position.X / Chunk), Mathf.FloorToInt(Camera.Position.Z / Chunk));
+        var center = new Vector2I((int)Math.Floor(eye.X / Chunk), (int)Math.Floor(eye.Z / Chunk));
         _water.Position = new(Camera.Position.X, _water.Position.Y, Camera.Position.Z);
         var cell = new Vector3I(center.X, center.Y, Mathf.FloorToInt(Camera.Position.Y / 256));
         if (cell != _cell)
         {
             _cell = cell;
-            SetWantedTiles(WantedTiles(Generator, Camera.Position));
+            SetWantedTiles(WantedTiles(Generator, eye));
         }
         foreach (var (key, tile) in Wanted)
         {
@@ -173,7 +175,7 @@ public partial class TerrainWorld : Node3D
             Retire(key, previous);
         _visibleTrees.Remove(key);
         _naturalTrees[key] = entry.Trees;
-        var holder = new Node3D { Position = new(key.X * Chunk, 0, key.Y * Chunk) };
+        var holder = new Node3D { Position = Generator.Space.ToLocal(new TrackVector(key.X * (double)Chunk, 0, key.Y * (double)Chunk)) };
         holder.AddChild(new MeshInstance3D { Mesh = entry.Mesh, MaterialOverride = _terrainMaterial });
         RefreshTrees(key, holder);
         AddChild(holder);
@@ -198,15 +200,35 @@ public partial class TerrainWorld : Node3D
             _visibleTrees.Remove(key);
         }
     }
-    public static TerrainTile[] WantedTiles(TerrainGenerator generator, Vector3 camera)
+    public bool HasTerrainAt(double x, double z) => Chunks.ContainsKey(new((int)Math.Floor(x / Chunk), (int)Math.Floor(z / Chunk)));
+    public double GroundHeight(double x, double z)
     {
-        int cx = Mathf.FloorToInt(camera.X / Chunk), cz = Mathf.FloorToInt(camera.Z / Chunk);
+        if (Generator.Earthworks != null) return Generator.HeightWorld(x, z);
+        var key = new Vector2I((int)Math.Floor(x / Chunk), (int)Math.Floor(z / Chunk));
+        int segments = Chunks.TryGetValue(key, out var chunk) ? chunk.GetMeta("segments").AsInt32() : 128;
+        double step = Chunk / (double)segments;
+        double gx = Math.Floor(x / step) * step, gz = Math.Floor(z / step) * step;
+        double u = (x - gx) / step, v = (z - gz) / step;
+        double a = Generator.HeightWorld(gx, gz), b = Generator.HeightWorld(gx + step, gz);
+        double c = Generator.HeightWorld(gx, gz + step), d = Generator.HeightWorld(gx + step, gz + step);
+        return u + v <= 1 ? a + (b - a) * u + (c - a) * v : d + (c - d) * (1 - u) + (b - d) * (1 - v);
+    }
+    private void Rebased(TrackVector worldShift)
+    {
+        var shift = worldShift.Float();
+        foreach (var (key, holder) in Chunks) holder.Position = Generator.Space.ToLocal(new TrackVector(key.X * (double)Chunk, 0, key.Y * (double)Chunk));
+        _water.Position -= shift;
+    }
+    public static TerrainTile[] WantedTiles(TerrainGenerator generator, Vector3 camera) => WantedTiles(generator, TrackVector.From(camera));
+    public static TerrainTile[] WantedTiles(TerrainGenerator generator, TrackVector camera)
+    {
+        int cx = (int)Math.Floor(camera.X / Chunk), cz = (int)Math.Floor(camera.Z / Chunk);
         var tiles = new List<TerrainTile>();
         for (int dz = -10; dz <= 10; dz++)
             for (int dx = -10; dx <= 10; dx++)
             {
                 var key = new Vector2I(cx + dx, cz + dz);
-                double height = generator.Height((key.X + 0.5) * Chunk, (key.Y + 0.5) * Chunk), vertical = Math.Abs(camera.Y - height) / Chunk;
+                double height = generator.HeightWorld((key.X + 0.5) * Chunk, (key.Y + 0.5) * Chunk), vertical = Math.Abs(camera.Y - height) / Chunk;
                 double detail = Math.Max(Math.Max(Math.Abs(dx), Math.Abs(dz)), vertical);
                 tiles.Add(new(key, detail <= 1.5 ? 128 : detail <= 3.5 ? 64 : detail <= 6.5 ? 32 : 16, Math.Sqrt(dx * dx + dz * dz + vertical * vertical)));
             }
@@ -227,6 +249,7 @@ public partial class TerrainWorld : Node3D
     public override void _ExitTree()
     {
         _stopping = true;
+        Generator.Space.Rebased -= Rebased;
         Generator.Backend.Shutdown();
         _tasks.Clear();
         MeshCache.Clear();

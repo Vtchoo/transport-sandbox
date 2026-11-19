@@ -9,6 +9,7 @@ public sealed class TrainView
 {
     public GameWindow Window = null!;
     public bool EditTab = true;
+    public bool? RunStyleRunning;
     public int? Selected;
     public VBoxContainer Edit = null!, Overview = null!;
     public HBoxContainer Consist = null!, Tools = null!;
@@ -57,6 +58,7 @@ public partial class TrainWindows : Node
         Editor.Changed += Change;
         Editor.Warning += Warn;
         Editor.MotionChanged += RefreshMotion;
+        Editor.Network.Space.Rebased += Rebased;
         Editor.TrainClicked += OpenTrainFromWorld;
         Editor.PlacementStarted += SuspendTrack;
         Manager.StackingChanged += StackChanged;
@@ -202,9 +204,9 @@ public partial class TrainWindows : Node
         view.Window.Body.AddChild(view.Overview);
         view.Preview = new();
         view.Overview.AddChild(view.Preview);
-        view.Run = Button(view.Overview, "", () => Editor.ToggleRunning(train.Id), "play", "Start train");
         var tools = new HBoxContainer();
         view.Overview.AddChild(tools);
+        view.Run = Button(tools, "", () => Editor.ToggleRunning(train.Id), "play", "Start train");
         view.Follow = Button(tools, "", () => ToggleFollow(train.Id), "follow", "Follow train");
         view.Pickup = Button(tools, "", () => Editor.RemoveFromTrack(train.Id), "pickup", "Remove from track");
         view.Location = UiSkin.Label(view.Overview, "", 11);
@@ -319,6 +321,11 @@ public partial class TrainWindows : Node
         view.Run.Icon = UiSkin.Icon(train.Stopped ? "play" : "pause");
         view.Run.TooltipText = train.Running ? "Stop train" : "Start train";
         view.Run.Disabled = !train.Placed;
+        if (view.RunStyleRunning != train.Running)
+        {
+            UiSkin.TrainRunButton(view.Run, train.Running);
+            view.RunStyleRunning = train.Running;
+        }
     }
     private void RefreshMotion()
     {
@@ -328,6 +335,11 @@ public partial class TrainWindows : Node
                 RefreshRunButton(train, view);
                 if (train.Placed) view.Location.Text = FormattableString.Invariant($"{Math.Abs(train.Speed) * 3.6:F1} km/h - {(train.Running ? "Started" : train.Stopped ? "Stopped" : "Stopping")}");
             }
+    }
+    private void Rebased(TrackVector worldShift)
+    {
+        var shift = worldShift.Float();
+        foreach (var view in Views.Values) view.Preview.Rebase(shift);
     }
     private void RefreshCatalog()
     {
@@ -416,7 +428,7 @@ public partial class TrainWindows : Node
         else if (Editor.Parked.FirstOrDefault(p => p.Id == id) is { } parked)
         {
             Following = id;
-            Editor.Camera.SetFreeMode(false);
+            Editor.Camera.ReleaseMouse();
             Editor.Camera.Following = parked.Visuals[0].Vehicle.Model.FindChild("body", true, false) as Node3D;
         }
         Refresh();
@@ -486,6 +498,7 @@ public partial class TrainWindows : Node
         Editor.Changed -= Change;
         Editor.Warning -= Warn;
         Editor.MotionChanged -= RefreshMotion;
+        Editor.Network.Space.Rebased -= Rebased;
         Editor.TrainClicked -= OpenTrainFromWorld;
         Editor.PlacementStarted -= SuspendTrack;
         Manager.StackingChanged -= StackChanged;

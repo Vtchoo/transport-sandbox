@@ -33,6 +33,7 @@ public static class TerrainCacheChecks
         parent.AddChild(world);
         world.SetProcess(false);
         world._Process(0);
+        string stage = "initial jobs";
         async Task Drain()
         {
             var clock = Stopwatch.StartNew();
@@ -41,10 +42,11 @@ public static class TerrainCacheChecks
                 await frame();
                 world._Process(0);
             }
-            check(world.ActiveJobs == 0, "Cache test worker queue drains");
+            check(world.ActiveJobs == 0, $"Cache test worker queue drains ({stage}, {world.ActiveJobs} active, {world.SubmittedJobs} submitted, {world.Wanted.Count} wanted)");
         }
         async Task Want(int segments)
         {
+            stage = $"LOD {segments}";
             world.SetWantedTiles(new[] { new TerrainTile(new(1, 1), segments, 0) });
             world._Process(0);
             await Drain();
@@ -69,12 +71,16 @@ public static class TerrainCacheChecks
             world.SetEarthworks(new EarthworkField(Array.Empty<EarthPoint[]>()));
             await Want(16);
             check(world.SubmittedJobs == jobs, "Unrelated earthwork revisions preserve cached meshes");
-            var path = EarthworkField.Prepare(new[] { new EarthPoint(550, 40, 650), new EarthPoint(600, 40, 650) }, generator.Sampler.Height, 1800);
+            // Exercise invalidation near the actual ground, rather than spending the
+            // timeout excavating an entire mountainous chunk down to a fixed 40 m.
+            double height = generator.Sampler.Height(575, 650) + 5;
+            var path = EarthworkField.Prepare(new[] { new EarthPoint(550, height, 650), new EarthPoint(600, height, 650) }, generator.Sampler.Height, 1800);
             world.SetEarthworks(new EarthworkField(new[] { path }));
             check(world.MeshCache.Count == 0, "Earthwork edits invalidate every cached LOD for affected chunks");
             // A revision change while this job runs must not cache its older output.
             world._Process(0);
             world.SetEarthworks(new EarthworkField(Array.Empty<EarthPoint[]>()));
+            stage = "superseded earthworks";
             await Drain();
             check(!world.MeshCache.TryTake(new(new(1, 1), 32, 0), out _), "Superseded worker output cannot restore stale terrain");
             world.SetWantedTiles(Array.Empty<TerrainTile>());

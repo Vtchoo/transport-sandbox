@@ -35,6 +35,15 @@ public static class UiSkin
         button.AddThemeColorOverride("font_disabled_color", new("edf1e680"));
         button.AddThemeColorOverride("icon_disabled_color", new("ccddad80"));
     }
+    public static void TrainRunButton(Button button, bool running)
+    {
+        string background = running ? "754435" : "446343";
+        string border = running ? "d99b79" : "adc490";
+        foreach (string state in new[] { "normal", "hover", "pressed" })
+            button.AddThemeStyleboxOverride(state, Box(background, border, 4, 13, 10));
+        foreach (string state in new[] { "icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color" })
+            button.AddThemeColorOverride(state, new("edffdb"));
+    }
     public static Label Label(Node parent, string text, int size = 12, string color = "c6d7bc")
     {
         var label = new Label { Text = text };

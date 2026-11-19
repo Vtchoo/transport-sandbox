@@ -14,7 +14,7 @@ public partial class TrackTreeClearance : Node
     public TrackNetwork Network = null!;
     public TerrainWorld World = null!;
     private readonly CancellationTokenSource _shutdown = new();
-    private sealed record Prepared(Vector3[] Controls, EarthPoint[] Points);
+    private sealed record Prepared(TrackVector[] Controls, EarthPoint[] Points);
     private sealed record Result(long Revision, EarthworkField Field, Dictionary<int, Prepared> Cache);
     private Dictionary<int, Prepared> _cache = new();
     private Task<Result>? _job;
@@ -34,6 +34,10 @@ public partial class TrackTreeClearance : Node
         _remaining = .4;
     }
     public static EarthPoint[] SamplePath(Vector3[] controls)
+    {
+        return SamplePath(controls.Select(TrackVector.From).ToArray());
+    }
+    public static EarthPoint[] SamplePath(TrackVector[] controls)
     {
         var curve = new TrackCurve(controls);
         int steps = Math.Max(2, (int)Math.Ceiling(curve.Length / 2));
@@ -66,7 +70,7 @@ public partial class TrackTreeClearance : Node
             return;
         _dirty = false;
         long revision = _revision;
-        var paths = Network.Edges.Values.Select(e => (e.Id, Controls: Network.Controls(e))).ToArray();
+        var paths = Network.Edges.Values.Select(e => (e.Id, Controls: Network.WorldControls(e))).ToArray();
         var previous = _cache;
         var sampler = World.Generator.Sampler;
         var token = _shutdown.Token;

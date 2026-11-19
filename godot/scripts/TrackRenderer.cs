@@ -17,7 +17,7 @@ public partial class TrackRenderer : Node3D
     public Node3D Preview = null!;
     public int Selected;
     public Node3D Markers = new();
-    private readonly record struct RenderKey(Vector3 A, Vector3 B, Vector3 C, Vector3 D, int Gauge, string Platforms, bool RailsOnly);
+    private readonly record struct RenderKey(TrackVector A, TrackVector B, TrackVector C, TrackVector D, int Gauge, string Platforms, bool RailsOnly);
     private readonly Dictionary<int, RenderKey> _keys = new();
     private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
     private readonly Dictionary<int, TrackCurve> _pickCurves = new();
@@ -32,6 +32,7 @@ public partial class TrackRenderer : Node3D
     public override void _Ready()
     {
         Network.Changed += MarkDirty;
+        Network.Space.Rebased += Rebased;
         AddChild(Markers);
         Preview = new()
         {
@@ -40,7 +41,15 @@ public partial class TrackRenderer : Node3D
         };
         AddChild(Preview);
     }
-    public override void _ExitTree() => Network.Changed -= MarkDirty;
+    public override void _ExitTree() { Network.Changed -= MarkDirty; Network.Space.Rebased -= Rebased; }
+    private void Rebased(TrackVector worldShift)
+    {
+        var shift = worldShift.Float();
+        _pickCurves.Clear();
+        foreach (var (id, holder) in Holders) if (Network.Edges.TryGetValue(id, out var edge)) holder.Position = Network.Nodes[edge.A].Position;
+        foreach (var child in Preview.GetChildren()) if (child is Node3D node) node.Position -= shift;
+        UpdateMarkers();
+    }
     public override void _Process(double delta)
     {
         if (Dirty)
@@ -67,17 +76,18 @@ public partial class TrackRenderer : Node3D
     public static Basis Frame(Vector3 direction) => TrackFrame.From(TrackVector.From(direction)).Basis;
     private void BuildEdge(TrackEdge edge)
     {
-        var controls = Network.Controls(edge);
+        var world = Network.WorldControls(edge);
+        var controls = world.Select(p => (p - world[0]).Float()).ToArray();
         bool affected = Network.Nodes.TryGetValue(Selected, out var selected) &&
             (edge.A == Selected || edge.B == Selected || !SpacingDrag && selected.Group != 0 &&
             (Network.Nodes[edge.A].Group == selected.Group || Network.Nodes[edge.B].Group == selected.Group));
         bool railsOnly = Dragging && affected;
-        var key = new RenderKey(controls[0], controls[1], controls[2], controls[3], edge.Gauge, string.Join(",", edge.Platforms), railsOnly);
+        var key = new RenderKey(world[0], world[1], world[2], world[3], edge.Gauge, string.Join(",", edge.Platforms), railsOnly);
         if (_keys.TryGetValue(edge.Id, out var previous) && previous == key)
             return;
         if (Holders.TryGetValue(edge.Id, out var old))
             old.QueueFree();
-        var holder = new TrackVisual(new TrackGeometry(controls, edge.Gauge, edge.Platforms, railsOnly: railsOnly));
+        var holder = new TrackVisual(new TrackGeometry(controls, edge.Gauge, edge.Platforms, railsOnly: railsOnly)) { Position = Network.Nodes[edge.A].Position };
         Holders[edge.Id] = holder;
         _keys[edge.Id] = key;
         AddChild(holder);
@@ -170,7 +180,7 @@ public partial class TrackRenderer : Node3D
     public void ShowPreview(Vector3[] points, int gauge = 1435) => ShowPreviews(new[] { points }, gauge);
     public void ShowPreviews(Vector3[][] curves, int gauge = 1435)
     {
-        var keys = curves.Select(p => new RenderKey(p[0], p[1], p[2], p[3], gauge, "", false)).ToArray();
+        var keys = curves.Select(p => new RenderKey(TrackVector.From(p[0]), TrackVector.From(p[1]), TrackVector.From(p[2]), TrackVector.From(p[3]), gauge, "", false)).ToArray();
         if (!_previewKeys.SequenceEqual(keys))
         {
             foreach (var child in Preview.GetChildren())
@@ -191,7 +201,7 @@ public partial class TrackRenderer : Node3D
         foreach (var edge in Network.Edges.Values)
         {
             if (!_pickCurves.TryGetValue(edge.Id, out var curve))
-                _pickCurves[edge.Id] = curve = new TrackCurve(Network.Controls(edge));
+                _pickCurves[edge.Id] = curve = new TrackCurve(Network.PreciseControls(edge));
             int count = Math.Min(1024, Math.Max(32, (int)Math.Ceiling(curve.Length / 4)));
             var previousPoint = curve.Point(0).Float();
             var previous = camera.UnprojectPosition(previousPoint);

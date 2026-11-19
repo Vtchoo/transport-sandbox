@@ -114,7 +114,7 @@ public sealed partial class TrackNetwork
             if (target == null)
             {
                 createdGroup = _nextGroup++;
-                var group = new ParallelGroup { Anchor = targets[reference].Id, Origin = targets[reference].Position, Axis = axis };
+                var group = new ParallelGroup { Space = Space, Anchor = targets[reference].Id, Origin = targets[reference].Position, Axis = axis };
                 Groups[createdGroup] = group;
                 for (int i = 0; i < targets.Length; i++)
                 {

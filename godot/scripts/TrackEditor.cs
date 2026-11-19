@@ -57,6 +57,7 @@ public partial class TrackEditor : Node
         public int Id; public Vector3 Point; public Vector2 Mouse; public TrackEdge? Edge; public bool Active, Spacing, Vertical; public float InitialOffset;
     }
     private DragState? _drag;
+    public bool IsDragging => _drag != null;
     private MeshInstance3D? _splitMarker;
     public override void _Ready()
     {
@@ -165,6 +166,8 @@ public partial class TrackEditor : Node
         NodeMenu.Delete.Pressed += () => { int id = HoverNode; Confirm("node", () => Network.DeleteNode(id)); };
         NodeMenu.Merge.Pressed += () => { int id = HoverNode; Confirm("merge", () => Network.Merge(id)); };
         Network.Changed += GraphChanged;
+        Network.Space.Rebased += Rebased;
+        GridOverlay.Space = Network.Space;
         SegmentMenu = new();
         Interface.AddChild(SegmentMenu);
         SegmentMenu.Straighten.Pressed += () => ConfirmSegment("straight");
@@ -356,7 +359,19 @@ public partial class TrackEditor : Node
         RebuildSegmentMenu();
         UpdateMenuPositions();
     }
-    public override void _ExitTree() => Network.Changed -= GraphChanged;
+    public override void _ExitTree() { Network.Changed -= GraphChanged; Network.Space.Rebased -= Rebased; }
+    private void Rebased(TrackVector worldShift)
+    {
+        var shift = worldShift.Float();
+        _midpoints.Clear(); _parallelGhostKey = null;
+        if (_drag != null) _drag.Point -= shift;
+        if (PendingSplit is { } split) PendingSplit = split with { Point = split.Point - shift };
+        if (HoverSegment is { } hover) HoverSegment = hover with { Point = hover.Point - shift };
+        if (PlatformTarget is { } platform) PlatformTarget = platform with { Point = platform.Point - shift };
+        if (IsInstanceValid(_splitMarker)) _splitMarker!.Position -= shift;
+        if (IsInstanceValid(PlatformPreview)) PlatformPreview!.Position -= shift;
+        GridOverlay.Position -= shift;
+    }
     internal void RefreshHover(Vector2 mouse)
     {
         int nearest = 0;

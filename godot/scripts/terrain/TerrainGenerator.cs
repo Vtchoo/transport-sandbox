@@ -29,7 +29,9 @@ public sealed class TerrainGenerator
     {
         get; set;
     }
-    public double Height(double x, double z)
+    public WorldSpace Space = new();
+    public double Height(double x, double z) => HeightWorld(x + Space.Origin.X, z + Space.Origin.Z);
+    public double HeightWorld(double x, double z)
     {
         double natural = Sampler.Height(x, z);
         return Earthworks?.Height(x, z, natural) ?? natural;

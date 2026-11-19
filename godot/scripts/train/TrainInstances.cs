@@ -8,6 +8,7 @@ namespace TransportSandbox;
 /// <summary>Merge imported leaves by material into body/bogie templates, then instance repeats in 512 m cells.</summary>
 public partial class TrainInstances : Node3D
 {
+    public WorldSpace Space = new();
     private readonly Dictionary<string, ArrayMesh> _templates = new();
     private readonly Dictionary<PosedVehicleVisual, Node3D[]> _parts = new();
     public override void _ExitTree()
@@ -96,7 +97,8 @@ public partial class TrainInstances : Node3D
                     if (!Meshes(part).Any()) continue;
                     _templates[templateKey] = mesh = Template(part);
                 }
-                string key = templateKey + $":{Math.Floor(part.GlobalPosition.X / 512)}:{Math.Floor(part.GlobalPosition.Z / 512)}";
+                var world = Space.ToWorld(part.GlobalPosition);
+                string key = templateKey + $":{Math.Floor(world.X / 512)}:{Math.Floor(world.Z / 512)}";
                 if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (mesh, new());
                 batch.Transforms.Add(part.GlobalTransform);
             }

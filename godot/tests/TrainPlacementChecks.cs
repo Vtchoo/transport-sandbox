@@ -76,8 +76,8 @@ public static class TrainPlacementChecks
         TrainMovementChecks.Parity(check);
         var graph = new TrackNetwork();
         var catalog = VehicleCatalog.Load();
-        var generator = new TerrainGenerator();
-        var camera = new WorldCamera();
+        var generator = new TerrainGenerator() { Space = graph.Space };
+        var camera = new WorldCamera { Space = graph.Space };
         parent.AddChild(camera);
         camera.SetProcess(false);
         camera.Position = new(110, 100, 400);
@@ -237,6 +237,7 @@ public static class TrainPlacementChecks
             editor.RefreshPreview(camera.UnprojectPosition(new(30, 0, (float)(700 - half - 2))));
             check(editor.Valid && editor.SnappedStation == narrow.Station, "Placement snaps the leading coupler to its own station end");
             TrainMovementChecks.Movement(check, editor, ui, steam);
+            CameraOriginChecks.TrainOrigin(check, editor, camera);
             await frame();
         }
         finally { ui.Free(); editor.Free(); trackEditor.Free(); renderer.Free(); layer.Free(); camera.Free(); generator.Backend.Shutdown(); generator.Backend.Dispose(); }

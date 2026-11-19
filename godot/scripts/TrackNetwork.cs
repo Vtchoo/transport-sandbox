@@ -8,7 +8,10 @@ namespace TransportSandbox;
 public sealed class TrackNode
 {
     public int Id, Gauge, Group;
-    public Vector3 Position, Axis = Vector3.Back;
+    public WorldSpace Space = new();
+    public TrackVector WorldPosition;
+    public Vector3 Position { get => Space.ToLocal(WorldPosition); set => WorldPosition = Space.ToWorld(value); }
+    public Vector3 Axis = Vector3.Back;
 }
 public sealed class TrackEdge
 {
@@ -32,12 +35,16 @@ public sealed class TrackEdge
 public sealed class ParallelGroup
 {
     public int Anchor;
-    public Vector3 Origin, Axis;
+    public WorldSpace Space = new();
+    public TrackVector WorldOrigin;
+    public Vector3 Origin { get => Space.ToLocal(WorldOrigin); set => WorldOrigin = Space.ToWorld(value); }
+    public Vector3 Axis;
     public Dictionary<int, float> Offsets = new();
 }
 /// <summary>Gauge-aware signed-endpoint graph. Scene independent except Curve3D baking.</summary>
 public sealed partial class TrackNetwork
 {
+    public WorldSpace Space = new();
     public event Action? Changed;
     private int _changeDepth;
     private bool _changePending;
@@ -57,7 +64,7 @@ public sealed partial class TrackNetwork
     {
         if (!Gauges.Contains(gauge))
             throw new ArgumentOutOfRangeException(nameof(gauge));
-        var node = new TrackNode { Id = _nextNode++, Position = point, Gauge = gauge };
+        var node = new TrackNode { Space = Space, Id = _nextNode++, Position = point, Gauge = gauge };
         Nodes[node.Id] = node;
         return node;
     }
@@ -96,11 +103,15 @@ public sealed partial class TrackNetwork
         NotifyChanged();
         return edge;
     }
+    public TrackVector[] WorldControls(TrackEdge edge)
+    {
+        var a = Nodes[edge.A]; var b = Nodes[edge.B];
+        return new[] { a.WorldPosition, a.WorldPosition + TrackVector.From(a.Axis) * (edge.SideA * edge.LengthA), b.WorldPosition + TrackVector.From(b.Axis) * (edge.SideB * edge.LengthB), b.WorldPosition };
+    }
+    public TrackVector[] PreciseControls(TrackEdge edge) => WorldControls(edge).Select(p => p - Space.Origin).ToArray();
     public Vector3[] Controls(TrackEdge edge)
     {
-        var a = Nodes[edge.A];
-        var b = Nodes[edge.B];
-        return new[] { a.Position, a.Position + a.Axis * edge.SideA * edge.LengthA, b.Position + b.Axis * edge.SideB * edge.LengthB, b.Position };
+        return PreciseControls(edge).Select(p => p.Float()).ToArray();
     }
     public static Vector3 Bezier(Vector3[] p, float t)
     {
@@ -187,6 +198,7 @@ public sealed partial class TrackNetwork
             node.Group = _nextGroup++;
             Groups[node.Group] = new()
             {
+                Space = Space,
                 Anchor = node.Id,
                 Origin = node.Position,
                 Axis = node.Axis,

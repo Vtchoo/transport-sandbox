@@ -54,7 +54,7 @@ public partial class Main : Node3D
     }
     public void StartWithSettings(WorldSettings settings)
     {
-        Generator = new(settings);
+        Generator = new(settings) { Space = Camera.Space };
         Camera.ResetWorld(Generator);
         Camera.Enabled = true;
         RemoveChild(MenuScene);
@@ -69,7 +69,7 @@ public partial class Main : Node3D
         };
         World.SetMeta("physics_mode", settings.Physics);
         AddChild(World);
-        TrackNetwork = new();
+        TrackNetwork = new() { Space = Camera.Space };
         TreeClearance = new()
         {
             Network = TrackNetwork,
@@ -129,6 +129,11 @@ public partial class Main : Node3D
         HUD.TrainsButton.Pressed += TrainUI.OpenFleet;
         TrainUI.CatalogWindow.StateChanged += () => HUD.VehiclesButton.SetPressedNoSignal(TrainUI.CatalogWindow.Visible && !TrainUI.CatalogWindow.IsCollapsed);
         Interface.MoveChild(GameWindows, -1);
+        Camera.Loaded = World.HasTerrainAt;
+        Camera.GroundHeight = World.GroundHeight;
+        Camera.BuildMode = () => TrackEditor.Enabled || Trains.Placing;
+        Camera.NavigationBlocked = () => TrackEditor.IsDragging;
+        Camera.FloatingOriginEnabled = true;
         HUD.MainMenuRequested += () => GetTree().ReloadCurrentScene();
     }
 }

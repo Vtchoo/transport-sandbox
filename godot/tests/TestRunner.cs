@@ -110,6 +110,7 @@ public partial class TestRunner : Node
     }
     private void Core()
     {
+        CameraOriginChecks.Parity(Check);
         TreeChecks.Run(Check);
         ClearanceChecks.Run(Check);
         TrackGeometryChecks.Run(Check);
@@ -500,7 +501,7 @@ public partial class TestRunner : Node
         {
             var point = v + Current().Position;
             return new Vector2(point.X - tree.X, point.Z - tree.Z).LengthSquared() < 9 &&
-                point.Y > main.Generator.Sampler.Height(point.X, point.Z) + 10;
+                point.Y > main.Generator.Sampler.Height(main.Camera.Space.ToWorld(point).X, main.Camera.Space.ToWorld(point).Z) + 10;
         }), "Rendered terrain contains the raised track formation");
         Check(Current().GetNodeOrNull<TreeChunk>("Trees") is not { Visible: true }, "Clearance rebuild preserves contour tree hiding");
         main.World.ShowContours(false);
@@ -516,7 +517,8 @@ public partial class TestRunner : Node
         main.TrackNetwork.DeleteNode(b.Id);
         await Settle();
         Check(Count() == before, "Deleting track restores original natural trees");
-        Check(Math.Abs(main.Generator.Height(tree.X, tree.Z) - main.Generator.Sampler.Height(tree.X, tree.Z)) < 1e-8,
+        CameraOriginChecks.TerrainOrigin(Check, main);
+        Check(Math.Abs(main.Generator.Height(tree.X, tree.Z) - main.Generator.Sampler.Height(main.Camera.Space.ToWorld(tree).X, main.Camera.Space.ToWorld(tree).Z)) < 1e-8,
             "Deleting track restores natural height queries");
         Check(Current().GetChild<MeshInstance3D>(0).Mesh.GetSurfaceCount() == 1 &&
             Current().GetChild<MeshInstance3D>(0).Mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array().Length == originalMesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array().Length,

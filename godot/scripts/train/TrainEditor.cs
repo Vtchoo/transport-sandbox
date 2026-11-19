@@ -46,8 +46,8 @@ public partial class TrainEditor : Node3D
     private (Vector2 Mouse, Transform3D Camera, int Revision, int Facing, int? Train, bool Reverse)? _previewSignature;
     public TrainInstances Instances = null!;
     public MenuSmoke Smoke = null!;
-    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Instances = new(); AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); }
-    public override void _ExitTree() { Network.Changed -= TrackChanged; Placement.Dispose(); }
+    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); }
+    public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; Placement.Dispose(); }
     private void TrackChanged() { _trackDirty = true; _revision++; }
     public int? TrackGauge(int id) => Parked.FirstOrDefault(p => p.Id == id) is { } parked && Network.Edges.TryGetValue(parked.Position.Edge, out var edge) ? edge.Gauge : null;
     public void Select(int id) { if (Builder.Selected?.Id != id) CancelPlacement(); Builder.Selected = Builder.Get(id); }

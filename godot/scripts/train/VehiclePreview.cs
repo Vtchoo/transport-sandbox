@@ -77,4 +77,10 @@ public partial class VehiclePreview : SubViewportContainer
         Camera.LookAt(center, Vector3.Up); View.RenderTargetUpdateMode = SubViewport.UpdateMode.Once;
     }
     public void Suspend() => View.RenderTargetUpdateMode = SubViewport.UpdateMode.Disabled;
+    public void Rebase(Vector3 shift)
+    {
+        if (!_shared) return;
+        Camera.Position -= shift;
+        if (View.RenderTargetUpdateMode != SubViewport.UpdateMode.Disabled) View.RenderTargetUpdateMode = SubViewport.UpdateMode.Once;
+    }
 }

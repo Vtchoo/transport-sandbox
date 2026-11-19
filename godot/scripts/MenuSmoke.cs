@@ -19,6 +19,12 @@ public partial class MenuSmoke : Node3D
     private readonly List<double> _effort = new();
     private readonly List<Vector3> _positions = new();
     private uint _sequence = 1;
+    public void Rebase(Vector3 shift)
+    {
+        foreach (var particle in Particles) particle.Position -= shift;
+        for (int i = 0; i < _positions.Count; i++) _positions[i] -= shift;
+        for (int i = 0; i < Outlets.Count; i++) Outlets[i] = Outlets[i] with { Position = Outlets[i].Position - shift };
+    }
     private MeshInstance3D _visual = null!;
     private double RandomValue()
     {

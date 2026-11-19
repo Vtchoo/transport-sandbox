@@ -13,8 +13,9 @@ public partial class StationWindows : Node
     public TrackRenderer Renderer = null!;
     public readonly Dictionary<int, GameWindow> Views = new();
     private readonly Dictionary<int, (SubViewport Viewport, Camera3D Camera, Label Length)> _views = new();
-    public override void _Ready() => Network.Changed += Sync;
-    public override void _ExitTree() => Network.Changed -= Sync;
+    public override void _Ready() { Network.Changed += Sync; Network.Space.Rebased += Rebased; }
+    private void Rebased(TrackVector worldShift) => Sync();
+    public override void _ExitTree() { Network.Changed -= Sync; Network.Space.Rebased -= Rebased; }
     public void Open(int id)
     {
         if (id == 0 || !Network.Edges.Values.Any(e => e.Station == id))
@@ -65,7 +66,7 @@ public partial class StationWindows : Node
             double length = 0;
             while (pending.TryPop(out var edge))
             {
-                length += new TrackCurve(Network.Controls(edge)).Length;
+                length += new TrackCurve(Network.WorldControls(edge)).Length;
                 foreach (int node in new[] { edge.A, edge.B })
                     foreach (var other in Network.Incident(node))
                         if (other.Station == id && other.Gauge == edge.Gauge && TrackNetwork.SideAt(other, node) != TrackNetwork.SideAt(edge, node) && remaining.Remove(other.Id))

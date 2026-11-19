@@ -13,7 +13,13 @@ The project now requires the .NET editor and .NET 8 SDK or newer. The editor bui
 - Gauge-aware signed-endpoint track graph: Bezier handles, parallel groups, split/merge, station grouping and junction restrictions.
 - Directed-edge router with a binary priority queue and bounded route cache. It is not yet connected to a train simulation.
 
-The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track/station editing and train building/parked placement are available. Moving-train simulation integration is not complete. Do not treat the project as feature complete.
+The startup scene provides the station/train menu, recommended/advanced world setup, streamed terrain with LOD, trees, contours and overlook/free camera controls. Track rendering uses the original swept rail, ballast and platform profiles, with instanced sleepers. Track/station editing, train building/placement and realistic/HO train movement are available. Do not treat the project as feature complete.
+
+## Camera and floating origin
+
+`CameraRig.cs` ports `src/camera.ts` numerically: WASD/arrows, Q/E overlook rotation, normalized 3D free movement with E/Space/Q, mode-specific Shift speed, exponential wheel zoom/free speed, pitch limits, terrain-ray mode transitions and follow cancellation. Movement waits for loaded terrain; camera clearance uses the rendered terrain triangle heights. `WorldCamera.cs` maps native mouse wheel notches to 100 CSS pixels, handles left/right pan and middle orbit, captures the mouse for free look, releases it on Escape/modal UI/focus loss, and uses right-drag free look while constructing. Following preserves the current camera mode.
+
+`node scripts/export-godot-camera-fixtures.mjs` captures camera action sequences from the browser, including negative and billion-metre positions. Core checks compare positions, targets, angles, limits, speeds and follow state. Native checks cover input blocking/capture, double graph storage, grid anchoring, train poses, terrain queries and mesh/job preservation across origin changes. Mouse capture assertions require a graphical display server; headless tests cover the remaining behavior.
 
 ## Gameplay UI
 
@@ -66,7 +72,7 @@ Port behavior from the browser implementation and verify it against source-based
 
 The menu keeps **the original layout and colors with styled Godot controls** and the original camera framing/drift. Its scene is now assembled from **native game objects**, as requested: the gameplay track graph/renderer and platform, catalog vehicle instances at original scale, shared trees and station furniture. The former baked menu GLBs and material manifest have been removed. Native lighting and materials are shared with gameplay, so its 3D appearance now follows the native game renderer rather than the old browser-specific menu shaders.
 
-All native game scripts and test tools are C#. The menu is separated into `MenuDiorama.cs`, `MenuSmoke.cs` and `MenuUI.cs`. `Main.cs` wires menu startup into the unfinished gameplay port. Graph data uses typed `TrackNode`, `TrackEdge` and `ParallelGroup` objects; `RailRouter.cs` operates on a directed snapshot. `TrainPhysics.cs` retains the existing helper behavior; full moving-train integration is still pending.
+All native game scripts and test tools are C#. The menu is separated into `MenuDiorama.cs`, `MenuSmoke.cs` and `MenuUI.cs`. `Main.cs` wires menu startup into the unfinished gameplay port. Graph data uses typed `TrackNode`, `TrackEdge` and `ParallelGroup` objects; `RailRouter.cs` operates on a directed snapshot. `TrainPhysics.cs`, `TrainRoute.cs` and `TrainMovement.cs` implement the browser movement behavior.
 
 Source-exported menu assets and behavior fixtures:
 
@@ -119,7 +125,7 @@ Build immutable routing snapshots after edits and give each worker its own searc
 
 Use spatially partitioned MultiMeshes for sleepers, trees, repeated train bodies and bogies. Bucket by geometry/material/gauge, world cell and LOD. A world-wide MultiMesh prevents useful culling because all its instances share visibility. Near vehicles may use individually animated detail; distant instances should use simpler geometry. Limit shadows and smoke by distance as well as polygon counts.
 
-Keep authoritative world coordinates in double precision, with chunk-local float transforms and origin rebasing. Default Godot Vector3 coordinates are single precision; the current graph is a migration baseline and still needs this large-world storage layer.
+`WorldSpace` retains the absolute origin in double precision and rebases rendering on the camera's 512 m chunk. Track nodes and parallel origins retain absolute `TrackVector` coordinates; their `Position`/`Origin` properties expose local Godot coordinates for interaction. Train route parameters and arc tables retain double precision; world controls feed earthwork snapshots without converting through floats. Chunk meshes, local track meshes and cached terrain survive rebasing. Shared train/station viewports, previews, smoke, grid snapping and camera picking follow the same origin. Extremely long individual segments and remote secondary viewports remain subject to Godot's float transform precision; use ordinary segment lengths rather than one world-spanning spline.
 
 Before declaring scale targets met, benchmark 500 moving trains, 10,000+ cars, a 100,000-segment network, burst route invalidation, heavy station traffic and a dense visible scene. Report simulation, routing, terrain generation and rendering times separately, including worst-frame/99th-percentile times on named hardware. Headless routing tests do not measure rendering performance.
 

@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 namespace TransportSandbox;
 
@@ -7,87 +8,197 @@ public partial class WorldCamera : Camera3D
 {
     public event Action? ManuallyPanned;
     public event Action? ModeChanged;
-    public bool InputBlocked;
-    public Vector3 Target;
-    public float Distance = 160, Yaw = -0.65f, Pitch = 0.65f;
-    public bool FreeMode, Enabled;
+    public readonly CameraRig Rig = new();
+    public WorldSpace Space = new();
+    public bool FloatingOriginEnabled;
+    public Func<double, double, bool> Loaded = (_, _) => true;
+    public Func<double, double, double>? GroundHeight;
+    public Func<bool> BuildMode = () => false;
+    public Func<bool> NavigationBlocked = () => false;
+    private bool _inputBlocked;
+    public bool InputBlocked
+    {
+        get => _inputBlocked; set
+        {
+            _inputBlocked = value;
+            if (value)
+                ReleaseMouse();
+        }
+    }
+    public bool FreeMode => Rig.Free;
+    public bool Enabled;
+    public Vector3 Target
+    {
+        get => Space.ToLocal(Rig.Target); set => Rig.Target = Space.ToWorld(value);
+    }
+    public TrackVector WorldPosition => Position == _published ? Rig.Position : Space.ToWorld(Position);
+    public TrackVector WorldTarget => Rig.Target;
+    public float Distance
+    {
+        get => (float)Rig.Distance; set => Rig.Distance = value;
+    }
+    public float Yaw
+    {
+        get => (float)Rig.Yaw; set => Rig.Yaw = value;
+    }
+    public float Pitch
+    {
+        get => (float)-Rig.Pitch; set => Rig.Pitch = -value;
+    }
     public Node3D? Following;
     public TerrainGenerator? Ground;
-
-    public void ResetWorld(TerrainGenerator generator, float x = 600, float z = 900)
-    {
-        Ground = generator;
-        Following = null;
-        FreeMode = false;
-        Yaw = -0.5f;
-        Pitch = 0.72f;
-        Distance = 1100;
-        Fov = 65;
-        Target = new(x, (float)Math.Max(generator.SeaLevel, generator.Height(x, z)), z);
-        OrbitPosition();
-    }
-    private Vector3 OrbitDirection() => new(Mathf.Sin(Yaw) * Mathf.Cos(Pitch), Mathf.Sin(Pitch), Mathf.Cos(Yaw) * Mathf.Cos(Pitch));
-    private void OrbitPosition()
-    {
-        Position = Target + OrbitDirection() * Distance;
-        if (Ground != null)
-        {
-            float floor = (float)Math.Max(Ground.SeaLevel, Ground.Height(Position.X, Position.Z)) + 12;
-            if (Position.Y < floor)
-            {
-                Target += Vector3.Up * (floor - Position.Y);
-                Position = new(Position.X, floor, Position.Z);
-            }
-        }
-        Basis = Basis.LookingAt(Target - Position, Vector3.Up);
-    }
+    private Node3D? _lastFollowing;
+    private Vector3 _published, _publishedRotation;
+    private MouseButton _drag;
+    private bool _orbitDrag;
+    private double Height(double x, double z) => Ground == null ? 0 : Math.Max(Ground.SeaLevel, GroundHeight?.Invoke(x, z) ?? Ground.HeightWorld(x, z));
     public override void _Ready()
     {
+        Space.Rebased += Rebased;
         Far = 14000;
-        Near = 0.15f;
+        Near = .15f;
         Fov = 50;
         Current = true;
     }
+    private void Rebased(TrackVector worldShift)
+    {
+        if (Position != _published)
+            Rig.Position = Space.Origin - worldShift + TrackVector.From(Position);
+        Position = Space.ToLocal(Rig.Position);
+        _published = Position;
+    }
+    public void ResetWorld(TerrainGenerator generator, float x = 600, float z = 900)
+    {
+        Ground = generator;
+        Following = _lastFollowing = null;
+        Rig.Free = false;
+        Rig.Reset(x, z, Height);
+        Fov = 65;
+        Publish();
+    }
+    private void ImportPose()
+    {
+        if (Position != _published)
+            Rig.Position = Space.ToWorld(Position);
+        if (Rotation != _publishedRotation)
+        {
+            Rig.Pitch = Rotation.X;
+            Rig.Yaw = Rotation.Y;
+        }
+    }
+    private void Publish()
+    {
+        if (FloatingOriginEnabled)
+            Space.Rebase(Rig.Position);
+        Position = Space.ToLocal(Rig.Position);
+        _published = Position;
+        Rotation = new((float)Rig.Pitch, (float)Rig.Yaw, 0);
+        _publishedRotation = Rotation;
+    }
+    public void ReleaseMouse()
+    {
+        _drag = MouseButton.None;
+        if (Input.MouseMode == Input.MouseModeEnum.Captured)
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+    }
+    public override void _ExitTree()
+    {
+        Space.Rebased -= Rebased;
+        ReleaseMouse();
+    }
+    public override void _Notification(int what)
+    {
+        if (what == NotificationApplicationFocusOut)
+            ReleaseMouse();
+    }
     private void StopFollowing()
     {
-        Following = null;
+        Following = _lastFollowing = null;
+        Rig.Following = false;
         ManuallyPanned?.Invoke();
     }
     public override void _Process(double delta)
     {
-        if (!Enabled || InputBlocked)
+        if (!Enabled)
             return;
-        float dt = (float)delta;
-        var move = Vector3.Zero;
-        if (GetViewport().GuiGetFocusOwner() is not LineEdit)
-            move = new((Input.IsPhysicalKeyPressed(Key.D) ? 1 : 0) - (Input.IsPhysicalKeyPressed(Key.A) ? 1 : 0), 0,
-                (Input.IsPhysicalKeyPressed(Key.S) ? 1 : 0) - (Input.IsPhysicalKeyPressed(Key.W) ? 1 : 0));
-        if (move != Vector3.Zero)
+        ImportPose();
+        if (BuildMode() && Input.MouseMode == Input.MouseModeEnum.Captured)
+            ReleaseMouse();
+        var keys = new HashSet<string>();
+        if (!InputBlocked && !NavigationBlocked())
         {
-            StopFollowing();
-            float speed = (FreeMode ? 80 : Math.Max(Distance * 0.6f, 10)) * dt;
-            if (Input.IsPhysicalKeyPressed(Key.Shift))
-                speed *= 3;
-            var displacement = new Basis(Vector3.Up, Yaw) * move.Normalized() * speed;
-            if (FreeMode)
-                Position += displacement;
-            else
-                Target += displacement;
+            if (GetViewport().GuiGetFocusOwner() is not (LineEdit or TextEdit or OptionButton))
+                foreach (var (key, name) in new[] { (Key.W, "KeyW"), (Key.A, "KeyA"), (Key.S, "KeyS"), (Key.D, "KeyD"), (Key.Q, "KeyQ"), (Key.E, "KeyE"), (Key.Space, "Space"), (Key.Up, "ArrowUp"), (Key.Down, "ArrowDown"), (Key.Left, "ArrowLeft"), (Key.Right, "ArrowRight"), (Key.Shift, "ShiftLeft") })
+                    if (Input.IsPhysicalKeyPressed(key))
+                        keys.Add(name);
+            bool wasFollowing = IsInstanceValid(Following) || Rig.Following;
+            Rig.Following = wasFollowing;
+            Rig.Update(keys, Math.Clamp(delta, 0, .05), Height, Loaded);
+            if (wasFollowing && !Rig.Following)
+                StopFollowing();
         }
-        if (FreeMode)
+        if (IsInstanceValid(Following))
         {
-            float vertical = (Input.IsPhysicalKeyPressed(Key.E) ? 1 : 0) - (Input.IsPhysicalKeyPressed(Key.Q) ? 1 : 0);
-            Position += Vector3.Up * vertical * dt * 70;
-            Rotation = new(-Pitch, Yaw, 0);
+            var point = Space.ToWorld(Following!.GlobalPosition);
+            if (_lastFollowing != Following)
+            {
+                Rig.Follow(point, Height);
+                _lastFollowing = Following;
+            }
+            else
+                Rig.UpdateFollow(point, Height);
         }
         else
         {
-            if (GodotObject.IsInstanceValid(Following))
-                Target = Following!.GlobalPosition;
-            else if (Ground != null)
-                Target = new(Target.X, Mathf.Lerp(Target.Y,
-                (float)Math.Max(Ground.SeaLevel, Ground.Height(Target.X, Target.Z)), 1 - Mathf.Exp(-dt * 7)), Target.Z);
-            OrbitPosition();
+            _lastFollowing = null;
+            Rig.Following = false;
+        }
+        Publish();
+    }
+    public void SetFreeMode(bool free)
+    {
+        if (FreeMode == free)
+            return;
+        ImportPose();
+        Rig.SetMode(free, Height);
+        if (!free)
+            ReleaseMouse();
+        Publish();
+        ModeChanged?.Invoke();
+    }
+    public void Look(double dx, double dy)
+    {
+        ImportPose();
+        Rig.Look(dx, dy, Height);
+        Publish();
+    }
+    public void Pan(double dx, double dy)
+    {
+        ImportPose();
+        if (dx != 0 || dy != 0)
+            StopFollowing();
+        Rig.Pan(dx, dy, Height);
+        Publish();
+    }
+    public void Scroll(double pixels)
+    {
+        ImportPose();
+        Rig.Scroll(pixels, Height);
+        Publish();
+    }
+    public override void _Input(InputEvent input)
+    {
+        if (!Enabled || InputBlocked || Input.MouseMode != Input.MouseModeEnum.Captured)
+            return;
+        if (input is InputEventKey { Pressed: true, Keycode: Key.Escape })
+        {
+            ReleaseMouse();
+            GetViewport().SetInputAsHandled();
+        }
+        else if (input is InputEventMouseMotion motion && FreeMode)
+        {
+            Look(motion.Relative.X, motion.Relative.Y);
+            GetViewport().SetInputAsHandled();
         }
     }
     public override void _UnhandledInput(InputEvent input)
@@ -97,36 +208,46 @@ public partial class WorldCamera : Camera3D
         if (input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.C })
         {
             SetFreeMode(!FreeMode);
-        }
-        if (input is InputEventMouseMotion motion)
-        {
-            if (Input.IsMouseButtonPressed(MouseButton.Middle) || (FreeMode && Input.IsMouseButtonPressed(MouseButton.Right)))
-            {
-                Yaw -= motion.Relative.X * 0.005f;
-                Pitch = Mathf.Clamp(Pitch + motion.Relative.Y * 0.005f, 0.08f, 1.48f);
-            }
-            else if (Input.IsMouseButtonPressed(MouseButton.Right))
-            {
-                StopFollowing();
-                Target += new Basis(Vector3.Up, Yaw) * new Vector3(-motion.Relative.X, 0, -motion.Relative.Y) * Distance * 0.0015f;
-            }
-        }
-        if (input is InputEventMouseButton { Pressed: true } mouse)
-        {
-            if (mouse.ButtonIndex == MouseButton.WheelUp)
-                Distance = Math.Max(5, Distance / 1.15f);
-            if (mouse.ButtonIndex == MouseButton.WheelDown)
-                Distance = Math.Min(4500, Distance * 1.15f);
-        }
-    }
-    public void SetFreeMode(bool free)
-    {
-        if (FreeMode == free)
+            GetViewport().SetInputAsHandled();
             return;
-        FreeMode = free;
-        if (!FreeMode)
-            Target = Position - OrbitDirection() * Distance;
-        ModeChanged?.Invoke();
+        }
+        if (input is InputEventMouseButton mouse)
+        {
+            if (mouse.Pressed && mouse.ButtonIndex is MouseButton.WheelUp or MouseButton.WheelDown)
+            {
+                Scroll((mouse.ButtonIndex == MouseButton.WheelUp ? -100 : 100) * mouse.Factor);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            if (!mouse.Pressed && mouse.ButtonIndex == _drag)
+            {
+                _drag = MouseButton.None;
+                return;
+            }
+            if (!mouse.Pressed || mouse.ButtonIndex is not (MouseButton.Left or MouseButton.Middle or MouseButton.Right))
+                return;
+            if (FreeMode && mouse.ButtonIndex != (BuildMode() ? MouseButton.Right : MouseButton.Left))
+                return;
+            if (FreeMode && !BuildMode())
+            {
+                Input.MouseMode = Input.MouseModeEnum.Captured;
+                return;
+            }
+            _drag = mouse.ButtonIndex;
+            _orbitDrag = FreeMode || _drag == MouseButton.Middle;
+        }
+        if (input is InputEventMouseMotion motion && _drag != MouseButton.None)
+        {
+            if (!Input.IsMouseButtonPressed(_drag))
+            {
+                _drag = MouseButton.None;
+                return;
+            }
+            if (_orbitDrag)
+                Look(motion.Relative.X, motion.Relative.Y);
+            else
+                Pan(motion.Relative.X, motion.Relative.Y);
+        }
     }
     public Vector3 GroundPoint(TerrainGenerator generator)
     {
