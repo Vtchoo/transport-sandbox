@@ -62,6 +62,7 @@ public static class TrainOrderChecks
     public static async Task Run(Action<bool, string> check, Func<Task> frame, Node parent)
     {
         ModelAndRouting(check);
+        LongTrainRouteChecks.Run(check);
         var network = new TrackNetwork();
         var generator = new TerrainGenerator();
         var camera = new WorldCamera { Position = new(250, 350, 500) };
@@ -140,6 +141,35 @@ public static class TrainOrderChecks
                     if (editor.RoutingPending) await Task.Delay(1);
                 }
                 return done();
+            }
+            check(await DriveUntil(() => parked.Journey?.Reachable == true), "Train obtains a station journey with an explicit destination position");
+            check(await DriveUntil(() => train.Speed > 3, 80), "Invalidation fixture begins with a moving scheduled train");
+            var installed = parked.Journey;
+            double speedBeforeEdit = train.Speed;
+            long searchesBeforeEdit = editor.RoutingStats.Searches;
+            var remoteA = network.AddNode(new(2000, 0, 0)); var remoteB = network.AddNode(new(2000, 0, 400));
+            network.ConnectNodes(remoteA, remoteB);
+            editor.AdvanceMovement(.01);
+            check(ReferenceEquals(installed, parked.Journey) && train.Speed >= speedBeforeEdit && parked.Supported,
+                "An isolated edit does not brake or replace an installed journey while its snapshot is pending");
+            check(await DriveUntil(() => !editor.RoutingPending, 80) && ReferenceEquals(installed, parked.Journey)
+                && editor.RoutingStats.Searches == searchesBeforeEdit,
+                "An unrelated component edit retains the journey and performs no new destination search");
+            var branchEnd = network.AddNode(new(400, 0, 1600));
+            var remoteBranch = network.ConnectNodes(d, branchEnd)!;
+            speedBeforeEdit = train.Speed;
+            editor.AdvanceMovement(.01);
+            check(ReferenceEquals(installed, parked.Journey) && train.Speed >= speedBeforeEdit,
+                "A remote branch edit in the same network keeps the train moving during replanning");
+            check(await DriveUntil(() => parked.Journey != installed && parked.Journey?.Reachable == true, 80)
+                && train.Speed >= speedBeforeEdit && parked.Supported,
+                "Background replanning replaces an unaffected path without stopping the train");
+            network.Edges.Remove(remoteBranch.Id); network.NotifyChanged();
+            if (parked.Journey is { } premature)
+            {
+                premature.Distance = 0; train.Speed = 0; editor.AdvanceMovement(.01);
+                check(train.Orders.Index == 0 && parked.Poses[0].Center.Z < 400,
+                    "An exhausted distance counter cannot complete an order away from its actual station");
             }
             check(await DriveUntil(() => train.Orders.Index == 1 && train.Orders.WaitRemaining > 0), "Train navigates to its station and starts the following timed wait");
             check(Math.Abs(train.Speed) < .001 && Math.Abs(parked.Poses[0].Center.Z + train.Length / 2 - 798) < .15, "Station arrival stops the leading coupler two metres before the platform end");
@@ -225,6 +255,10 @@ public static class TrainOrderChecks
             editor.ToggleRunning(id); for (int i = 0; i < 10; i++) editor.AdvanceMovement(.1);
             check(serviceTicks == beforePause && parked.Wandering.Servicing, "Manually stopping a wandering train pauses station work");
             editor.ToggleRunning(id);
+            var servicingState = parked.Wandering;
+            network.NotifyChanged(); editor.AdvanceMovement(.01);
+            check(ReferenceEquals(servicingState, parked.Wandering) && parked.Wandering!.Servicing,
+                "Unrelated network notifications do not restart an active wandering station service");
             busy = false;
             check(await DriveUntil(() => parked.Poses[0].Center.Z + train.Length / 2 > 820)
                 && Math.Abs(train.Speed) > 1 && train.Orders.Items.Count == 0,
@@ -245,6 +279,35 @@ public static class TrainOrderChecks
                 "Dead-end station arrivals use the same two-metre stopping clearance");
             editor.ServiceStation = null;
             check(await DriveUntil(() => train.TravelDirection == 1, 20), "With no cargo work, the wandering train departs and reverses without an artificial delay");
+            var farJunction = network.AddNode(new(0, 0, 5200)); network.ConnectNodes(d, farJunction);
+            var unusedEnd = network.AddNode(new(0, 0, 6200)); network.ConnectNodes(farJunction, unusedEnd);
+            var platformStart = network.AddNode(new(500, 0, 5600)); network.ConnectNodes(farJunction, platformStart);
+            var destinationEnd = network.AddNode(new(1000, 0, 6300));
+            var farPlatform = network.ConnectNodes(platformStart, destinationEnd)!; network.AddStation(farPlatform, 1);
+            train.Orders.Add(TrainOrderKind.Station, farPlatform.Station); editor.OrdersChanged(id); ResetTrain();
+            double expectedU = 1 - 2 / editor.Placement.Curve(farPlatform).Length;
+            check(await DriveUntil(() =>
+            {
+                var head = parked.Route!.Sample(parked.Position, train.Length / 2).Position;
+                return head.Edge == farPlatform.Id && Math.Abs(head.U - expectedU) * editor.Placement.Curve(farPlatform).Length < .15 && Math.Abs(train.Speed) < .001;
+            }, 6000), "A simulated train retains its route through a junction over five kilometres away and stops at the actual ordered platform");
+            check(train.Running && parked.Supported && train.Orders.Current?.Target == farPlatform.Station,
+                "Long-distance routing reaches the destination without false completion or losing track support");
+            foreach (var order in train.Orders.Items.ToArray()) train.Orders.Remove(order.Id);
+            foreach (int side in ab.Platforms.ToArray()) network.RemovePlatform(ab, side);
+            train.Orders.Add(TrainOrderKind.Station, bc.Station); editor.OrdersChanged(id); ResetTrain();
+            check(await DriveUntil(() => train.Speed > 3, 80), "Broken-path fixture starts with a moving train");
+            network.Edges.Remove(bc.Id); network.NotifyChanged();
+            editor.AdvanceMovement(.01);
+            check(parked.Supported && train.Running, "Removing future track does not remove the train's support or start command");
+            check(await DriveUntil(() => train.Orders.Status.Contains("Can't find a route") && Math.Abs(train.Speed) < .001, 150)
+                && parked.Supported && parked.Position.Edge == ab.Id,
+                "Removing a planned segment brakes safely and reports an unreachable destination");
+            network.Edges.Add(bc.Id, bc); network.NotifyChanged();
+            check(await DriveUntil(() => train.Speed > 3, 100), "Restoring a deleted path automatically resumes its retained order");
+            network.Edges.Remove(ab.Id); network.NotifyChanged(); editor.AdvanceMovement(.01);
+            check(!parked.Supported && !train.Running && train.Speed == 0,
+                "Removing occupied track still stops and marks the train unsupported immediately");
             await frame();
         }
         finally

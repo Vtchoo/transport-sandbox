@@ -15,6 +15,8 @@ public static class RailPathfindingChecks
     }).ToArray();
     public static async Task Run(Action<bool, string> check)
     {
+        CorridorRoutingChecks.Run(check);
+        await RoutingInvalidationChecks.Run(check);
         RailRoutingEdge Edge(int id, int a, int b, int sideA, int sideB, double length) =>
             new(id, a, b, 1435, sideA, sideB, 0, default, default, default, default, length);
         var detour = new[]
@@ -159,7 +161,7 @@ public static class RailPathfindingChecks
         await Until(() => scheduler.Ready);
         await Until(() => scheduler.TryGet(shared, out _));
         scheduler.TryGet(shared, out var empty);
-        check(empty!.Plan(new(platform.Id, .5), 1) == null && scheduler.Stats.Revision == 2, "Edited graphs discard all cached and in-flight routes from older revisions");
+        check(empty!.Plan(new(platform.Id, .5), 1) == null && scheduler.Stats.Revision == 2, "Removed components discard their cached and in-flight routes");
         foreach (var destination in targets.Take(4).Select(t => t.Destination))
             await Until(() => scheduler.TryGet(destination, out _));
         check(scheduler.Stats.Cached <= 2 && scheduler.Stats.CacheBytes <= scheduler.CacheBudget, "Destination cache obeys count and memory budgets under eviction");

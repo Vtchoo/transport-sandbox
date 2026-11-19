@@ -12,16 +12,36 @@ public readonly record struct RailRoutingEdge(int Id, int A, int B, int Gauge, i
 /// <summary>Immutable directed graph. Build and search use managed data only, never the scene tree.</summary>
 public sealed class RailRoutingGraph
 {
+    private static long _nextVersion;
+    public long Version { get; } = Interlocked.Increment(ref _nextVersion);
     private readonly RailRoutingEdge[] _edges;
     private readonly Dictionary<int, int> _indices;
     private readonly Dictionary<int, int[]> _incident, _stations;
     private readonly double[] _length;
     private readonly int[][] _next, _previous;
+    private readonly bool[] _corridor;
     public int StateCount => _length.Length;
+    public int CorridorStateCount { get; }
     public int IntegratedEdges { get; private set; }
+    internal bool Matches(RailRoutingEdge[] edges) => edges.Length == _edges.Length && edges.All(edge =>
+        _indices.TryGetValue(edge.Id, out int index) && Equivalent(edge, _edges[index]));
+    internal static bool Equivalent(RailRoutingEdge a, RailRoutingEdge b) => a with { KnownLength = 0 } == b with { KnownLength = 0 };
+    internal double ReusableLength(RailRoutingEdge edge)
+    {
+        if (!_indices.TryGetValue(edge.Id, out int index)) return -1;
+        var old = _edges[index];
+        return old.P0 == edge.P0 && old.P1 == edge.P1 && old.P2 == edge.P2 && old.P3 == edge.P3 ? _length[index * 2] : -1;
+    }
     private RailRoutingGraph(RailRoutingEdge[] edges, Dictionary<int, int> indices, Dictionary<int, int[]> incident,
         Dictionary<int, int[]> stations, double[] length, int[][] next, int[][] previous)
-    { _edges = edges; _indices = indices; _incident = incident; _stations = stations; _length = length; _next = next; _previous = previous; }
+    {
+        _edges = edges; _indices = indices; _incident = incident; _stations = stations; _length = length; _next = next; _previous = previous;
+        _corridor = new bool[length.Length];
+        for (int state = 0; state < length.Length; state++)
+            if (next[state].Length == 1 && previous[state].Length == 1 && next[state][0] != (state ^ 1) && previous[state][0] != (state ^ 1)
+                && edges[state / 2].Station == edges[next[state][0] / 2].Station && edges[state / 2].Station == edges[previous[state][0] / 2].Station)
+            { _corridor[state] = true; CorridorStateCount++; }
+    }
 
     public static RailRoutingGraph Build(RailRoutingEdge[] source, CancellationToken token = default, RailRoutingGraph? reuse = null)
     {
@@ -129,7 +149,7 @@ public sealed class RailRoutingGraph
             || destination.Kind == TrainOrderKind.Station && destination.Target == station
             ? 0 : RailRoutingPolicy.UnorderedStationPenalty;
     }
-    public RailDestinationField Search(RailDestination destination, CancellationToken token = default, RailRoutingPolicy? policy = null)
+    public RailDestinationField Search(RailDestination destination, CancellationToken token = default, RailRoutingPolicy? policy = null, bool compressCorridors = true)
     {
         policy ??= RailRoutingPolicy.Empty;
         var targets = Targets(destination);
@@ -142,22 +162,36 @@ public sealed class RailRoutingGraph
             double cost = _length[state] * ((state & 1) != 0 ? u : 1 - u);
             costs[state] = cost; reversals[state] = 0; heap.Enqueue(state, (0, cost, state));
         }
-        int visits = 0;
+        int visits = 0, heapPops = 0, relaxed = 0;
         while (heap.TryDequeue(out int state, out var priority))
         {
             if ((visits++ & 255) == 0) token.ThrowIfCancellationRequested();
+            heapPops++;
             if (priority.Reversals != reversals[state] || priority.Cost != costs[state]) continue;
-            foreach (int previous in _previous[state])
+            foreach (int predecessor in _previous[state])
             {
-                double cost = priority.Cost + _length[previous] + EntryPenalty(previous, state, destination, policy);
-                int turns = priority.Reversals + (state == (previous ^ 1) ? 1 : 0);
-                if (turns > reversals[previous] || turns == reversals[previous] && cost >= costs[previous]) continue;
-                costs[previous] = cost; reversals[previous] = turns; next[previous] = state;
-                heap.Enqueue(previous, (turns, cost, previous));
+                int previous = predecessor, successor = state;
+                double suffixCost = priority.Cost; int suffixTurns = priority.Reversals;
+                while (true)
+                {
+                    if ((visits++ & 255) == 0) token.ThrowIfCancellationRequested();
+                    double cost = suffixCost + _length[previous] + EntryPenalty(previous, successor, destination, policy);
+                    int turns = suffixTurns + (successor == (previous ^ 1) ? 1 : 0);
+                    if (turns > reversals[previous] || turns == reversals[previous] && cost >= costs[previous]) break;
+                    costs[previous] = cost; reversals[previous] = turns; next[previous] = successor; relaxed++;
+                    if (!compressCorridors || !_corridor[previous] || targets.ContainsKey(previous))
+                    {
+                        heap.Enqueue(previous, (turns, cost, previous));
+                        break;
+                    }
+                    // A unique continuation has the settled suffix's exact cost. Walk the
+                    // corridor directly; junctions, station boundaries and targets remain heap vertices.
+                    successor = previous; previous = _previous[previous][0]; suffixCost = cost; suffixTurns = turns;
+                }
             }
         }
         token.ThrowIfCancellationRequested();
-        return new(this, costs, reversals, next, targets, destination, policy);
+        return new(this, costs, reversals, next, targets, destination, policy, heapPops, relaxed);
     }
     public sealed class RailDestinationField
     {
@@ -168,9 +202,12 @@ public sealed class RailRoutingGraph
         private readonly Dictionary<int, double> _targets;
         private readonly RailDestination _destination;
         private readonly RailRoutingPolicy _policy;
+        public long GraphVersion => _graph.Version;
+        public int HeapPops { get; }
+        public int RelaxedStates { get; }
         internal RailDestinationField(RailRoutingGraph graph, double[] costs, int[] reversals, int[] next, Dictionary<int, double> targets,
-            RailDestination destination, RailRoutingPolicy policy)
-        { _graph = graph; _costs = costs; _reversals = reversals; _next = next; _targets = targets; _destination = destination; _policy = policy; }
+            RailDestination destination, RailRoutingPolicy policy, int heapPops, int relaxed)
+        { _graph = graph; _costs = costs; _reversals = reversals; _next = next; _targets = targets; _destination = destination; _policy = policy; HeapPops = heapPops; RelaxedStates = relaxed; }
         public long Bytes => (long)_costs.Length * 16 + _targets.Count * 32L;
         public double TargetU(int externalState) => _targets[_graph._indices[externalState / 2] * 2 + (externalState & 1)];
         public RailPath? Plan(TrainPosition start, int travelDirection)

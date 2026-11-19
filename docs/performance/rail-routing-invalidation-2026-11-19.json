@@ -1,0 +1,12 @@
+{
+  "segments": 100000,
+  "components": 20,
+  "workers": 2,
+  "after_edit_ms": 108.0534,
+  "full_reset_ms": 220.7932,
+  "reused_components": 19,
+  "after_edit_searches": 1,
+  "full_reset_searches": 20,
+  "cache_bytes": 3200640,
+  "note": "One headless run; immutable input preallocated; supplied arc lengths; snapshot build and twenty field requests included; simulation and rendering excluded."
+}

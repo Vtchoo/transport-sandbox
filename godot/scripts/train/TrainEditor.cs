@@ -14,6 +14,7 @@ public sealed class ParkedTrain
     public double Effort;
     public TrainPosition Position;
     public bool Supported = true;
+    public int SupportRevision = -1;
     public VehiclePose[] Poses = Array.Empty<VehiclePose>();
     public PosedVehicleVisual[] Visuals = Array.Empty<PosedVehicleVisual>();
 }

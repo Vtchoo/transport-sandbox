@@ -5,7 +5,7 @@ namespace TransportSandbox;
 public sealed class TrainWanderingState
 {
     public TrainRoute Route = null!;
-    public int Revision, Direction, Station, EndRouteIndex;
+    public int Revision, Direction, Station, EndRouteIndex, EndEdge;
     public int ServicedStation, ServicedIndex = int.MinValue;
     public double Distance = double.PositiveInfinity, ScanTimer;
     public bool Servicing;
@@ -18,8 +18,24 @@ public partial class TrainEditor
     private (bool Hold, double StopDistance) ExecuteWandering(ParkedTrain parked, TrainConsist train, TrainRoute route, double dt, double lookahead)
     {
         parked.Journey = null;
-        if (parked.Wandering is not { } state || state.Revision != _revision || state.Direction != train.TravelDirection || state.Route != route)
+        if (parked.Wandering is not { } state || state.Direction != train.TravelDirection || state.Route != route)
+        {
+            if (route.PlannedLegCount > 0)
+                route.ClearPlan(route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position, train.TravelDirection);
             parked.Wandering = state = new() { Route = route, Revision = _revision, Direction = train.TravelDirection };
+        }
+        if (state.Revision != _revision)
+        {
+            // Preserve in-progress service and visit history across unrelated construction.
+            state.Revision = _revision;
+            bool sameStop = Network.Edges.TryGetValue(state.EndEdge, out var end) && end.Station == state.Station;
+            if (!state.Servicing || !sameStop)
+            {
+                var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
+                route.ClearPlan(leading, train.TravelDirection);
+                state.Station = 0; state.Servicing = false; state.Distance = double.PositiveInfinity; state.ScanTimer = 0;
+            }
+        }
         if (!train.Running) return (true, double.PositiveInfinity);
         if (state.Servicing)
         {
@@ -36,7 +52,7 @@ public partial class TrainEditor
                 var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
                 var stop = route.NextStation(leading, train.TravelDirection, lookahead, state.ServicedStation, state.ServicedIndex);
                 if (stop != null)
-                { state.Station = stop.Station; state.EndRouteIndex = stop.EndRouteIndex; state.Distance = stop.Distance; }
+                { state.Station = stop.Station; state.EndRouteIndex = stop.EndRouteIndex; state.EndEdge = stop.EndEdge; state.Distance = stop.Distance; }
             }
         }
         if (state.Station != 0 && state.Distance <= .05 && Math.Abs(train.Speed) < .1)

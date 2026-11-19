@@ -69,12 +69,23 @@ public partial class TrainEditor
             try
             {
                 var route = RouteFor(parked);
+                if (parked.SupportRevision != _revision)
+                {
+                    try { Placement.Poses(train, parked.Position, route.Sample); }
+                    catch (RouteBlocked) { throw new InvalidOperationException("Track supporting this train was disconnected."); }
+                    parked.SupportRevision = _revision;
+                }
                 var performance = TrainPhysics.Performance(definitions, HoPhysics, catalogMax);
                 double grade = train.Items.Select((item, i) => item.Definition.Physics.MassKg * route.Sample(parked.Position, offsets[i]).Tangent.Y * direction).Sum() / performance.Mass;
                 double braking = TrainPhysics.BrakingDeceleration(grade, HoPhysics);
                 double lookahead = Math.Max(100, train.Speed * train.Speed / (2 * braking) + 50);
                 var command = ExecuteOrders(parked, train, route, dt, lookahead);
                 double clearance = Math.Max(0, route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2 - 2);
+                if (route.BlockedAhead)
+                {
+                    command = (true, command.StopDistance);
+                    if (parked.Journey is { Reachable: true } blocked) { blocked.NeedsReplan = true; blocked.HoldForReplan = true; }
+                }
                 double free = Math.Min(clearance, command.StopDistance);
                 var others = Parked.Where(p => p != parked).ToArray();
                 if (others.Length > 0)
@@ -130,6 +141,12 @@ public partial class TrainEditor
                 parked.Supported = true;
                 train.Speed = next.Distance > free && free < .1 ? 0 : next.Speed * direction;
                 route.Trim(position, length + 3000);
+            }
+            catch (RouteBlocked)
+            {
+                // A broken future itinerary is different from missing supporting track.
+                train.Speed = 0;
+                if (parked.Journey is { } journey) { journey.NeedsReplan = true; journey.HoldForReplan = true; }
             }
             catch (InvalidOperationException error)
             {

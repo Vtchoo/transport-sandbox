@@ -5,9 +5,14 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-public sealed record WanderingStationStop(int Station, int EndRouteIndex, double Distance);
+public sealed record WanderingStationStop(int Station, int EndRouteIndex, double Distance, int EndEdge);
 
 public sealed class RouteEnd(double distance) : InvalidOperationException("End of connected track.")
+{
+    public double Distance { get; } = distance;
+}
+
+public sealed class RouteBlocked(double distance) : InvalidOperationException("Track changed ahead of this train.")
 {
     public double Distance { get; } = distance;
 }
@@ -17,6 +22,12 @@ public sealed class TrainRoute
 {
     private readonly TrainPlacement _placement;
     private readonly Dictionary<int, (int Edge, int Facing)> _legs = new();
+    // A plan is immutable and independent of the bounded, materialized traversal history.
+    private int[] _plan = Array.Empty<int>();
+    private int _planStart, _planStep = 1;
+    public int PlannedLegCount => _plan.Length;
+    public int CachedLegCount => _legs.Count;
+    public bool BlockedAhead { get; private set; }
     private uint _random;
     public TrainRoute(TrainPlacement placement, TrainPosition position, uint seed)
     {
@@ -30,24 +41,53 @@ public sealed class TrainRoute
         copy._legs.Clear();
         foreach (var leg in _legs)
             copy._legs.Add(leg.Key, leg.Value);
+        copy._plan = _plan; copy._planStart = _planStart; copy._planStep = _planStep;
         return copy;
+    }
+    private bool TryLeg(int index, out (int Edge, int Facing) leg)
+    {
+        if (_legs.TryGetValue(index, out leg)) return true;
+        long offset = ((long)index - _planStart) * _planStep;
+        if (offset < 0 || offset >= _plan.Length) return false;
+        int state = _plan[(int)offset];
+        leg = (state / 2, RailRouter.Direction(state) * _planStep);
+        return true;
+    }
+    public int TravelStep(TrainPosition position, int direction)
+    {
+        if (!TryLeg(position.RouteIndex, out var leg) || leg.Edge != position.Edge)
+            throw new InvalidOperationException("Train route no longer matches its track.");
+        return (position.Facing == leg.Facing ? 1 : -1) * direction;
+    }
+    public TrainPosition PathTarget(TrainPosition leading, int travelDirection, IReadOnlyList<int> states, double u)
+    {
+        int last = states[^1];
+        return new(last / 2, u, RailRouter.Direction(last) * travelDirection,
+            leading.RouteIndex + TravelStep(leading, travelDirection) * (states.Count - 1));
+    }
+    public void ClearPlan(TrainPosition leading, int travelDirection)
+    {
+        int step = TravelStep(leading, travelDirection);
+        if (TryLeg(leading.RouteIndex, out var current)) _legs[leading.RouteIndex] = current;
+        foreach (int index in _legs.Keys.Where(index => ((long)index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
+        _plan = Array.Empty<int>();
     }
     /// <summary>Replace only future legs beyond the leading coupler; preserve occupied junctions.</summary>
     public void SetPath(TrainPosition leading, int travelDirection, IReadOnlyList<int> states)
     {
-        if (states.Count == 0 || states[0] / 2 != leading.Edge || !_legs.TryGetValue(leading.RouteIndex, out var current))
+        if (states.Count == 0 || states[0] / 2 != leading.Edge || !TryLeg(leading.RouteIndex, out var current))
             throw new InvalidOperationException("Route start no longer matches the train.");
         int step = (leading.Facing == current.Facing ? 1 : -1) * travelDirection;
         foreach (int index in _legs.Keys.Where(index => (index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
-        for (int i = 1; i < states.Count; i++)
-            _legs[leading.RouteIndex + step * i] = (states[i] / 2, RailRouter.Direction(states[i]) * step);
+        _legs[leading.RouteIndex] = current;
+        _plan = states.ToArray(); _planStart = leading.RouteIndex; _planStep = step;
     }
     public TrainSample Sample(TrainPosition position, double distance)
     {
         if (!double.IsFinite(distance) || !double.IsFinite(position.U) || position.U < 0 || position.U > 1)
             throw new InvalidOperationException("Invalid train route position.");
         int index = position.RouteIndex;
-        if (!_legs.TryGetValue(index, out var leg) || leg.Edge != position.Edge)
+        if (!TryLeg(index, out var leg) || leg.Edge != position.Edge)
             throw new InvalidOperationException("Train route no longer matches its track.");
         int orientation = position.Facing == leg.Facing ? 1 : -1;
         int step = (distance < 0 ? -1 : 1) * orientation;
@@ -72,22 +112,23 @@ public sealed class TrainRoute
             remaining -= available;
             travelled += available;
             int node = direction > 0 ? edge.B : edge.A;
-            var options = network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == edge.Gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).OrderBy(e => e.Id).ToArray();
-            if (_legs.TryGetValue(index + step, out var next))
+            if (TryLeg(index + step, out var next))
             {
-                var segment = options.FirstOrDefault(e => e.Id == next.Edge);
-                if (segment == null || (segment.A == node ? 1 : -1) != next.Facing * step)
-                    throw new InvalidOperationException("Track changed along the train route.");
+                if (!network.Edges.TryGetValue(next.Edge, out var segment) || segment.Id == edge.Id || segment.Gauge != edge.Gauge
+                    || segment.A != node && segment.B != node || TrackNetwork.SideAt(segment, node) == TrackNetwork.SideAt(edge, node)
+                    || (segment.A == node ? 1 : -1) != next.Facing * step)
+                    throw new RouteBlocked(travelled);
             }
             else
             {
+                var options = network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == edge.Gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).OrderBy(e => e.Id).ToArray();
                 if (options.Length == 0)
                     throw new RouteEnd(travelled);
                 _random = unchecked(_random * 1664525 + 1013904223);
                 var chosen = options[(int)(_random / 4294967296.0 * options.Length)];
                 next = (chosen.Id, (chosen.A == node ? 1 : -1) * step);
-                _legs[index + step] = next;
             }
+            _legs[index + step] = next;
             index += step;
             leg = next;
             u = step * leg.Facing > 0 ? 0 : 1;
@@ -96,12 +137,14 @@ public sealed class TrainRoute
     }
     public double Clearance(TrainPosition position, double distance)
     {
+        BlockedAhead = false;
         try
         {
             Sample(position, distance);
             return Math.Abs(distance);
         }
         catch (RouteEnd end) { return end.Distance; }
+        catch (RouteBlocked blocked) { BlockedAhead = true; return blocked.Distance; }
     }
     /// <summary>Find the next platform run on this seeded itinerary, without choosing a destination or changing junction rules.</summary>
     public WanderingStationStop? NextStation(TrainPosition leading, int travelDirection, double lookahead,
@@ -120,12 +163,13 @@ public sealed class TrainRoute
             TrainPosition? next = null;
             try { next = Sample(location, travelDirection * (available + .001)).Position; }
             catch (RouteEnd) { }
+            catch (RouteBlocked) { }
             int nextStation = next is { } following ? _placement.Network.Edges[following.Edge].Station : 0;
             if (edge.Station != 0 && nextStation != edge.Station)
             {
                 double distance = travelled + available - 2;
                 if (distance >= -.02 && (edge.Station != servicedStation || location.RouteIndex != servicedIndex))
-                    return new(edge.Station, location.RouteIndex, Math.Max(0, distance));
+                    return new(edge.Station, location.RouteIndex, Math.Max(0, distance), edge.Id);
             }
             if (next == null || travelled + available > lookahead) return null;
             travelled += available + .001;
@@ -143,6 +187,7 @@ public sealed class TrainRoute
                 return Sample(position, d);
             }
             catch (RouteEnd) { return center; }
+            catch (RouteBlocked) { return center; }
         }
         var a = Nearby(-2);
         var b = Nearby(2);

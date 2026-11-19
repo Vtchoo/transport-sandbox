@@ -1,0 +1,103 @@
+{
+  "cpu": "AMD Ryzen 7 7700 8-Core Processor",
+  "logicalCpus": 16,
+  "runtime": "10.0.13",
+  "segments": 99900,
+  "states": 199800,
+  "corridorStates": 156576,
+  "graphBuildMs": 120.923,
+  "workers": 2,
+  "trains": 500,
+  "destinations": 16,
+  "samples": [
+    {
+      "run": 0,
+      "compressed": false,
+      "searchesMs": 392.0954,
+      "warm500Ms": 10.2072,
+      "warmP99Ms": 0.0427,
+      "warmMaxMs": 1.0687,
+      "heapPops": 3196800,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 0,
+      "compressed": true,
+      "searchesMs": 110.4369,
+      "warm500Ms": 19.8245,
+      "warmP99Ms": 0.0438,
+      "warmMaxMs": 11.6426,
+      "heapPops": 691584,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 1,
+      "compressed": true,
+      "searchesMs": 110.4371,
+      "warm500Ms": 7.1435,
+      "warmP99Ms": 0.0327,
+      "warmMaxMs": 0.0474,
+      "heapPops": 691584,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 1,
+      "compressed": false,
+      "searchesMs": 254.6831,
+      "warm500Ms": 7.7495,
+      "warmP99Ms": 0.0334,
+      "warmMaxMs": 0.4346,
+      "heapPops": 3196800,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 2,
+      "compressed": false,
+      "searchesMs": 274.9583,
+      "warm500Ms": 7.3907,
+      "warmP99Ms": 0.0439,
+      "warmMaxMs": 0.1399,
+      "heapPops": 3196800,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 2,
+      "compressed": true,
+      "searchesMs": 75.2244,
+      "warm500Ms": 9.4918,
+      "warmP99Ms": 0.0349,
+      "warmMaxMs": 2.3738,
+      "heapPops": 691584,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 3,
+      "compressed": true,
+      "searchesMs": 73.14,
+      "warm500Ms": 7.1115,
+      "warmP99Ms": 0.031,
+      "warmMaxMs": 0.0551,
+      "heapPops": 691584,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    },
+    {
+      "run": 3,
+      "compressed": false,
+      "searchesMs": 213.5471,
+      "warm500Ms": 7.429,
+      "warmP99Ms": 0.0342,
+      "warmMaxMs": 0.3567,
+      "heapPops": 3196800,
+      "relaxed": 3196738,
+      "cacheMiB": 48.78118896484375
+    }
+  ],
+  "scope": "Routing-only A/B on identical managed graph. Graph lengths supplied analytically. Run 0 is warmup; excludes scene updates, physics, route installation and rendering."
+}

@@ -81,7 +81,11 @@ public sealed class TrainOrders
 public sealed class TrainOrderJourney
 {
     public TrainOrder? BlockedOrder;
+    public TrainPosition? TargetPosition;
     public int Order, OrdersRevision, NetworkRevision, Direction;
+    public long GraphVersion;
+    public readonly HashSet<int> Dependencies = new();
+    public bool NeedsReplan, HoldForReplan;
     public double Distance = double.PositiveInfinity;
     public bool Reachable, ViaDeadEnd;
 }

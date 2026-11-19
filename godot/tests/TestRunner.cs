@@ -65,6 +65,12 @@ public partial class TestRunner : Node
                 case "routing-performance":
                     await RailPathfindingChecks.Benchmark(Check);
                     break;
+                case "corridor-performance":
+                    await CorridorRoutingChecks.Benchmark(Check);
+                    break;
+                case "invalidation-performance":
+                    await RoutingInvalidationChecks.Benchmark(Check);
+                    break;
                 case "all":
                     Core();
                     await WorldVisualChecks.Run(Check, Frame, this);

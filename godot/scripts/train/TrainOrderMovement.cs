@@ -100,14 +100,18 @@ public partial class TrainEditor
     {
         var result = new TrainOrderJourney { Order = order.Id, OrdersRevision = train.Orders.Revision, NetworkRevision = _revision, Direction = train.TravelDirection };
         var policy = train.Orders.RoutingPolicy;
-        if (!_pathfinder.Ready || !_pathfinder.TryGet(new(order.Kind, order.Target), out var field, policy: policy)) return null;
         var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
+        if (!_pathfinder.TryGet(new(order.Kind, order.Target), out var field, policy: policy, startEdge: leading.Edge)) return null;
+        result.GraphVersion = field!.GraphVersion;
         var path = field!.Plan(leading, train.TravelDirection);
         if (path == null) return result;
+        result.Dependencies.UnionWith(path.States.Select(state => state / 2));
         var states = UntilReversal(path.States);
         result.Reachable = true;
         result.ViaDeadEnd = states.Length != path.States.Length;
         result.Distance = result.ViaDeadEnd ? double.PositiveInfinity : path.Distance;
+        if (!result.ViaDeadEnd)
+            result.TargetPosition = route.PathTarget(leading, train.TravelDirection, path.States, field.TargetU(path.States[^1]));
         if (!result.ViaDeadEnd && order.Kind == TrainOrderKind.Waypoint && train.Orders.Items.Count > 1)
         {
             // Seed the exit beyond a pass-through waypoint from the next travel order,
@@ -116,7 +120,7 @@ public partial class TrainEditor
             if (next.Kind != TrainOrderKind.Wait)
             {
                 int last = states[^1], direction = RailRouter.Direction(last);
-                if (!_pathfinder.TryGet(new(next.Kind, next.Target), out var nextField, urgent: true, policy: policy)) return null;
+                if (!_pathfinder.TryGet(new(next.Kind, next.Target), out var nextField, urgent: true, policy: policy, startEdge: last / 2)) return null;
                 double u = field.TargetU(last);
                 var after = nextField!.Plan(new(last / 2, u, direction * train.TravelDirection), train.TravelDirection);
                 if (after == null)
@@ -126,6 +130,7 @@ public partial class TrainEditor
                     return result;
                 }
                 states = states.Concat(UntilReversal(after.States).Skip(1)).ToArray();
+                result.Dependencies.UnionWith(after.States.Select(state => state / 2));
             }
         }
         route.SetPath(leading, train.TravelDirection, states);
@@ -150,14 +155,30 @@ public partial class TrainEditor
             return (true, double.PositiveInfinity);
         }
         bool plannedNow = false;
-        if (parked.Journey is not { } journey || journey.Order != order.Id || journey.OrdersRevision != orders.Revision || journey.NetworkRevision != _revision || journey.Direction != train.TravelDirection)
+        var journey = parked.Journey;
+        if (journey != null && (journey.Order != order.Id || journey.OrdersRevision != orders.Revision || journey.Direction != train.TravelDirection))
+            parked.Journey = journey = null;
+        if (journey != null && _pathfinder.Ready && journey.NetworkRevision != _revision)
+        {
+            if (journey.GraphVersion != _pathfinder.ComponentVersion(parked.Position.Edge))
+            {
+                journey.NeedsReplan = true;
+                journey.HoldForReplan |= !journey.Reachable || _pathfinder.AffectsSince(journey.NetworkRevision, journey.Dependencies);
+            }
+            journey.NetworkRevision = _revision;
+        }
+        if (journey == null || journey.NeedsReplan)
         {
             var planned = PlanOrder(parked, train, order, route);
-            if (planned == null) { orders.Status = "Finding route..."; return (true, double.PositiveInfinity); }
-            parked.Journey = journey = planned;
-            plannedNow = true;
+            if (planned != null)
+            {
+                plannedNow = planned.Reachable || journey == null || journey.Reachable || journey.BlockedOrder != planned.BlockedOrder;
+                parked.Journey = journey = planned;
+            }
+            else if (journey == null || journey.HoldForReplan)
+            { orders.Status = "Finding route..."; return (true, double.PositiveInfinity); }
         }
-        var target = journey.BlockedOrder ?? order;
+        var target = journey!.BlockedOrder ?? order;
         string destination = target.Kind == TrainOrderKind.Station ? $"Station {target.Target}" : $"Waypoint {target.Target}";
         if (!journey.Reachable)
         {
@@ -172,6 +193,23 @@ public partial class TrainEditor
         orders.Status = "Go to " + destination + (journey.ViaDeadEnd ? " - via dead-end reversal" : "");
         if (journey.Distance <= .05 && (order.Kind == TrainOrderKind.Waypoint || Math.Abs(train.Speed) < .1))
         {
+            var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
+            bool arrived = false;
+            if (journey.TargetPosition is { } targetPosition)
+            {
+                int progress = (leading.RouteIndex - targetPosition.RouteIndex) * route.TravelStep(leading, train.TravelDirection);
+                if (order.Kind == TrainOrderKind.Waypoint && progress > 0) arrived = true;
+                else if (progress == 0 && leading.Edge == targetPosition.Edge)
+                {
+                    double remaining = (targetPosition.U - leading.U) * targetPosition.Facing * train.TravelDirection * Placement.Curve(Network.Edges[leading.Edge]).Length;
+                    arrived = order.Kind == TrainOrderKind.Waypoint ? remaining <= .05 : Math.Abs(remaining) <= .1;
+                }
+            }
+            if (!arrived)
+            {
+                parked.Journey = null; orders.Status = "Finding route...";
+                return (true, double.PositiveInfinity);
+            }
             if (order.Kind == TrainOrderKind.Station) train.Speed = 0;
             orders.Advance(); parked.Journey = null;
             return (order.Kind == TrainOrderKind.Station, double.PositiveInfinity);
