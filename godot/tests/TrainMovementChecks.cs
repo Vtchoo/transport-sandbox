@@ -10,6 +10,7 @@ public static class TrainMovementChecks
     private static TrainPosition Position(JsonElement data) => new(data.GetProperty("edge").GetInt32(), data.GetProperty("u").GetDouble(), data.GetProperty("facing").GetInt32(), data.TryGetProperty("routeIndex", out var index) ? index.GetInt32() : 0);
     public static void Parity(Action<bool, string> check)
     {
+        HoBehavior(check);
         var data = JsonData.Read("res://tests/train-movement-fixtures.json");
         foreach (var scenario in data.GetProperty("routes").EnumerateArray())
         {
@@ -53,6 +54,30 @@ public static class TrainMovementChecks
                     check(Math.Abs(speed - expected.GetProperty("speed").GetDouble()) < 1e-8 && Math.Abs(distance - expected.GetProperty("distance").GetDouble()) < 1e-7, "Realistic/HO acceleration, grade and braking trajectories match browser");
             }
         }
+    }
+    private static void HoBehavior(Action<bool, string> check)
+    {
+        // Source-controller reference speeds converted to m/s.
+        var engine = new[] { new VehiclePhysics(100000, 745699.8715822702, 100000, 50) };
+        double expected = 9.077771484374999;
+        check(Math.Abs(TrainPhysics.Step(engine, 8.9408, true, 0, true, .031).Speed - expected) < 1e-12,
+            "HO acceleration matches OpenLoco power/weight and speed-squared drag at one native tick");
+        expected = 8.7192425056;
+        check(Math.Abs(TrainPhysics.Step(engine, 8.9408, false, 0, true, .031).Speed - expected) < 1e-12,
+            "HO service braking matches OpenLoco's speed-dependent brake law");
+        var heavy = new[] { new VehiclePhysics(2500000, 1118549.8073734054, 200000, 45) };
+        foreach (double initial in new[] { 0d, 10d })
+        {
+            double speed = initial;
+            for (int i = 0; i < 8000; i++) speed = TrainPhysics.Step(heavy, speed, true, .4, true, .031).Speed;
+            check(Math.Abs(speed - TrainPhysics.HoMinimumSpeed) < 1e-10, "HO hill floor prevents stalling both from rest and while climbing");
+            for (int i = 0; i < 1000; i++) speed = TrainPhysics.Step(heavy, speed, true, .4, true, .031, 1).Speed;
+            check(speed == 1, "Safety speed targets below 8.05 km/h override the hill floor");
+            for (int i = 0; i < 1000; i++) speed = TrainPhysics.Step(heavy, speed, true, .4, true, .031, 0).Speed;
+            check(speed == 0, "Station and red-signal stops override the HO hill floor completely");
+        }
+        check(TrainPhysics.Performance(engine, true).MaxSpeed == 50,
+            "HO uses the catalog's vehicle speed limit without the former compressed cap");
     }
     public static void Movement(Action<bool, string> check, TrainEditor editor, TrainWindows ui, int id)
     {

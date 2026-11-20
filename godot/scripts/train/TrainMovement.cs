@@ -38,6 +38,8 @@ public partial class TrainEditor
     /// <summary>Same bounded 1/60 s substeps as the browser; all distances and forces remain SI.</summary>
     public void AdvanceMovement(double delta)
     {
+        _detourBudget = 2;
+        foreach (var parked in Parked) parked.DetourCooldown = Math.Max(0, parked.DetourCooldown - Math.Clamp(delta, 0, .1));
         PrepareRouting();
         bool moving = Parked.Any(p => !Builder.Get(p.Id).Stopped);
         for (double remaining = Math.Clamp(delta, 0, .1); remaining > 1e-8;)
@@ -100,6 +102,16 @@ public partial class TrainEditor
                 if (Network.Signals.Count > 0)
                 {
                     var signal = Interlocking.Limit(new(train.Id, route, parked.Position, length, direction), lookahead);
+                    if (!command.Hold && TryTrafficDetour(parked, train, signal, lookahead))
+                    {
+                        route = RouteFor(parked);
+                        command = ExecuteOrders(parked, train, route, dt, lookahead);
+                        endClearance = route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2;
+                        stationAtEnd = !route.BlockedAhead && double.IsFinite(command.StopDistance) && Math.Abs(endClearance - command.StopDistance) < .1;
+                        clearance = Math.Max(0, endClearance - (stationAtEnd ? 0 : 2));
+                        free = Math.Min(clearance, command.StopDistance);
+                        signal = Interlocking.Limit(new(train.Id, route, parked.Position, length, direction), lookahead);
+                    }
                     free = Math.Min(free, signal.Distance);
                     reverseAtSignal = signal.CanReverse && signal.Distance < .05;
                     if (signal.Message.Length > 0) train.Orders.Status = signal.Message;

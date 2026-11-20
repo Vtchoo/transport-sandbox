@@ -91,9 +91,54 @@ public static class SignalChecks
         control.Update(new[] { reverse });
         check(control.Limit(reverse, 200).CanReverse, "A wrong-way signal requests reversal after braking to a stop");
         ParallelPaths(check);
+        ChainJunction(check);
         Crossing(check);
         network.DeleteNode(line.Nodes[1].Id);
         check(!network.Signals.Keys.Any(key => key.Node == line.Nodes[1].Id), "Deleting a node removes both of its signals");
+    }
+    private static void ChainJunction(Action<bool, string> check)
+    {
+        var network = new TrackNetwork(); var line = Line(network, 0, 9);
+        var fork = network.AddNode(new(80, 0, 400));
+        var exit = network.AddNode(new(80, 0, 500));
+        var tail = network.AddNode(new(80, 0, 600));
+        var end = network.AddNode(new(80, 0, 700));
+        var branch = new[] { network.ConnectNodes(line.Nodes[3], fork)!, network.ConnectNodes(fork, exit)!,
+            network.ConnectNodes(exit, tail)!, network.ConnectNodes(tail, end)! };
+        var branchRoute = line.Edges.Take(3).Concat(branch).ToArray();
+        network.SetSignal(line.Nodes[1].Id, 1, RailSignalKind.Chain);
+        network.SetSignal(line.Nodes[5].Id, 1, RailSignalKind.Normal);
+        network.SetSignal(exit.Id, 1, RailSignalKind.Normal);
+        using var placement = new TrainPlacement(network); using var control = new RailInterlocking(network, placement);
+        var straight = Train(placement, 1, line.Edges);
+        var turning = Train(placement, 1, branchRoute);
+        var blocker = Train(placement, 2, branchRoute, 5);
+        var entry = network.Signals[new(line.Nodes[1].Id, 1)];
+        control.Update(new[] { straight, blocker });
+        check(entry.Aspect == RailSignalAspect.Blue,
+            "A chain before an unsignalled junction shows mixed exits beyond intermediate unsignalled nodes");
+        check(double.IsPositiveInfinity(control.Limit(straight, 80, commit: false).Distance)
+            && double.IsFinite(control.Limit(turning, 80, commit: false).Distance) && control.ReservationCount == 0,
+            "Chain permission follows the chosen junction exit, skipping plain nodes and checking its receiving block");
+        check(double.IsPositiveInfinity(control.Limit(straight, 80).Distance) && control.ReservationCount == 2,
+            "The clear junction route reserves both blocks across several plain nodes");
+        control.Update(new[] { turning, blocker });
+        check(double.IsFinite(control.Limit(turning, 80).Distance) && control.ReservationCount == 0,
+            "Changing to the blocked junction exit drops pending leases and acquires no partial chain reservation");
+        control.Update(new[] { straight });
+        // Force an aspect refresh after changing occupancy without a topology edit.
+        for (int i = 0; i < 12; i++) control.Update(new[] { straight });
+        check(entry.Aspect == RailSignalAspect.Green, "A chain turns green when both junction exits are clear");
+        network.SetSignal(line.Nodes[5].Id, 1, RailSignalKind.Chain);
+        network.SetSignal(line.Nodes[7].Id, 1, RailSignalKind.Normal);
+        blocker = Train(placement, 2, line.Edges, 7);
+        control.Update(new[] { straight, blocker });
+        check(entry.Aspect == RailSignalAspect.Blue && double.IsFinite(control.Limit(straight, 80, commit: false).Distance),
+            "Chains propagate a blocked normal exit through another chain and intervening plain nodes");
+        network.RemoveSignal(exit.Id, 1); network.SetSignal(exit.Id, -1, RailSignalKind.Normal);
+        control.Update(new[] { straight });
+        check(entry.Aspect == RailSignalAspect.Blue && double.IsFinite(control.Limit(turning, 80, commit: false).Distance),
+            "An opposite-facing signal blocks only its reachable exit and is not treated as a clear exit");
     }
     private static void ParallelPaths(Action<bool, string> check)
     {

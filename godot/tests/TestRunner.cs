@@ -46,6 +46,12 @@ public partial class TestRunner : Node
                 case "signals":
                     SignalChecks.Run(Check);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
+                    await ChainStationChecks.Run(Check, Frame, this);
+                    await RailDetourChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
+                case "chain-stations":
+                    await ChainStationChecks.Run(Check, Frame, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
                     break;
                 case "performance":
@@ -79,6 +85,8 @@ public partial class TestRunner : Node
                 case "all":
                     SignalChecks.Run(Check);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
+                    await ChainStationChecks.Run(Check, Frame, this);
+                    await RailDetourChecks.Run(Check, Frame, this);
                     Core();
                     await WorldVisualChecks.Run(Check, Frame, this);
                     await Menu();
@@ -220,7 +228,7 @@ public partial class TestRunner : Node
         {
             var result = TrainPhysics.Step(cars, Number(test, "speed"), test.GetProperty("started").GetBoolean(), Number(test, "grade"), test.GetProperty("ho").GetBoolean(), Number(test, "dt"), Number(test, "limit"));
             var expected = test.GetProperty("result");
-            Check(Math.Abs(result.Speed - Number(expected, "speed")) < 1e-10 && Math.Abs(result.Distance - Number(expected, "distance")) < 1e-10 && Math.Abs(result.Effort - Number(expected, "effort")) < 1e-10, "Physics matches previous implementation");
+            Check(Math.Abs(result.Speed - Number(expected, "speed")) < 1e-10 && Math.Abs(result.Distance - Number(expected, "distance")) < 1e-10 && Math.Abs(result.Effort - Number(expected, "effort")) < 1e-10, "Realistic and OpenLoco-style HO physics match browser fixtures");
         }
         Check(Math.Abs(TrainPhysics.CurveLimit(100, true) / TrainPhysics.CurveLimit(100, false) - 3) < 1e-10, "HO corner speed scaling preserved");
     }

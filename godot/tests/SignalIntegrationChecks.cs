@@ -90,9 +90,9 @@ public static class SignalIntegrationChecks
             int id = Place(50); int obstacle = Place(250);
             var consist = trains.Builder.Get(id); var parked = trains.Parked.Single(p => p.Id == id);
             consist.Orders.Add(TrainOrderKind.Waypoint, nodes[6].Id); trains.OrdersChanged(id); trains.ToggleRunning(id);
-            async Task<bool> Drive(Func<bool> done, int count = 1500)
+            async Task<bool> Drive(Func<bool> done, int count = 1500, double dt = .1)
             {
-                for (int i = 0; i < count && !done(); i++) { trains.AdvanceMovement(.1); if (trains.RoutingPending) await Task.Delay(1); }
+                for (int i = 0; i < count && !done(); i++) { trains.AdvanceMovement(dt); if (trains.RoutingPending) await Task.Delay(1); }
                 return done();
             }
             check(await Drive(() => parked.Poses[0].Center.Z > 150 && Math.Abs(consist.Speed) < .001)
@@ -111,7 +111,7 @@ public static class SignalIntegrationChecks
             network.RemoveSignal(nodes[4].Id, 1); network.SetSignal(nodes[4].Id, -1, RailSignalKind.Normal);
             consist.Orders.Remove(consist.Orders.Items.Single().Id);
             consist.Orders.Add(TrainOrderKind.Waypoint, nodes[1].Id); trains.OrdersChanged(id);
-            check(await Drive(() => consist.TravelDirection == -1) && Math.Abs(consist.Speed) < .001
+            check(await Drive(() => consist.TravelDirection == -1, 9000, 1.0 / 60) && Math.Abs(consist.Speed) < .001
                 && Math.Abs(parked.Poses[0].Center.Z + consist.Length / 2 - 398) < .15 && parked.Supported,
                 "A scheduled train stops two metres before a wrong-way signal, then reverses without crossing it");
             check(await Drive(() => parked.Poses[0].Center.Z < 330, 200) && consist.Speed < -1,

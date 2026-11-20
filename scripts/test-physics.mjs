@@ -6,7 +6,7 @@ const load = async entry => {
   const { outputFiles } = buildSync({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', external: ['three'] });
   return import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text.replace(/"three(?:\/[^\"]*)?"/g, spec => JSON.stringify(import.meta.resolve(JSON.parse(spec))))).toString('base64')}`);
 };
-const { physicsStep, trainPerformance, curveSpeedLimit, brakingDeceleration } = await load('src/train/physics.ts');
+const { physicsStep, trainPerformance, curveSpeedLimit, brakingDeceleration, HO_MINIMUM_SPEED } = await load('src/train/physics.ts');
 const { TrainRoute, RouteEnd } = await load('src/train/route.ts');
 const { TrackNetwork } = await load('src/track/model.ts');
 const { TrainEditor } = await load('src/train/editor.ts');
@@ -24,12 +24,12 @@ test('vehicle mass, locomotive power and grades affect acceleration; unpowered c
   assert.equal(trainPerformance([coach], 'realistic').maxSpeed, 0);
 });
 test('HO responds faster, preserves relative model top speeds, and braking reaches zero without reversing', () => {
-  assert.ok(physicsStep([f7, coach], 0, true, 0, 'ho', 0.05).speed > physicsStep([f7, coach], 0, true, 0, 'realistic', 0.05).speed * 8);
+  assert.ok(physicsStep([f7, coach], 0, true, 0, 'ho', 0.05).speed > physicsStep([f7, coach], 0, true, 0, 'realistic', 0.05).speed);
   const fastest = VEHICLES.find(d => d.id === 'tgv-sud-est-power');
-  assert.ok(Math.abs(trainPerformance([fastest], 'ho').maxSpeed * 3.6 - 120) < 0.001);
+  assert.ok(Math.abs(trainPerformance([fastest], 'ho').maxSpeed * 3.6 - fastest.physics.maxSpeedMps * 3.6) < 0.001);
   assert.ok(Math.abs(trainPerformance([ge], 'ho').maxSpeed / trainPerformance([f7], 'ho').maxSpeed - ge.physics.maxSpeedMps / f7.physics.maxSpeedMps) < 1e-8);
   const stop = mode => { let v=10, distance=0, seconds=0; while(v>0 && seconds<100) { const next=physicsStep([f7, coach],v,false,0,mode,0.05);v=next.speed;distance+=next.distance;seconds+=0.05; } assert.equal(v,0);return distance; };
-  assert.ok(stop('ho') < stop('realistic') / 8);
+  assert.ok(stop('ho') < stop('realistic') / 3);
 });
 test('GE with passenger coaches reaches its flat-track rating and loses speed progressively uphill', () => {
   const settle = (grade, mode) => {
@@ -44,33 +44,44 @@ test('GE with passenger coaches reaches its flat-track rating and loses speed pr
     const steep=settle(.08,mode);assert.ok(steep>0&&steep<limit*.8,'Grade must still reduce the power-limited equilibrium speed');
   }
 });
-test('HO regulated motors reach the same target uphill or downhill, with load affecting acceleration', () => {
-  for (const definitions of [[ge,coach,coach],[f7,...Array(20).fill(coach)]]) {
-    const limit=trainPerformance(definitions,'ho').maxSpeed;
-    for (const grade of [-.4,0,.02,.08,.4]) {
-      let speed=0;
-      const initial=physicsStep(definitions,speed,true,grade,'ho',.05).speed;
-      assert.ok(initial>0&&initial<limit,'Acceleration must be finite');
-      for(let i=0;i<2000;i++)speed=physicsStep(definitions,speed,true,grade,'ho',.05).speed;
-      assert.ok(Math.abs(speed-limit)<1e-8,'Grade/load must not lower HO equilibrium speed');
-    }
-  }
-  const light=physicsStep([ge],0,true,.3,'ho',.05).speed,heavy=physicsStep([ge,coach,dome],0,true,.3,'ho',.05).speed;
-  assert.ok(light>heavy);
-  assert.equal(physicsStep([coach],0,true,-.4,'ho',.05).speed,0,'Unpowered cars cannot drive themselves');
+test('HO follows OpenLoco power/weight, speed drag and speed-dependent braking at its native tick', () => {
+  const dt = .031;
+  const locomotive = {physics:{massKg:100000,powerW:745699.8715822702,tractiveEffortN:100000,maxSpeedMps:50}};
+  const speed = 8.9408; // m/s
+  const flat = physicsStep([locomotive],speed,true,0,'ho',dt);
+  const expected = 9.077771484374999; // Source-controller reference converted to m/s.
+  assert.ok(Math.abs(flat.speed-expected)<1e-12);
+  const uphill = physicsStep([locomotive],speed,true,.1,'ho',dt);
+  assert.ok(Math.abs(uphill.speed-9.060308984375)<1e-12);
+  const braking = physicsStep([locomotive],speed,false,0,'ho',dt);
+  assert.ok(Math.abs(braking.speed-8.7192425056)<1e-12);
+  assert.ok(physicsStep([ge],10,true,0,'ho',dt).speed>physicsStep([ge,coach,dome],10,true,0,'ho',dt).speed);
 });
-test('HO respects curve/obstacle targets and brakes to rest with the grade-independent planning rate', () => {
-  for(const grade of [-.4,0,.4]) {
+
+test('HO hill-speed floor prevents stalling, including hill starts, but yields to every safety target', () => {
+  const definitions = [f7,...Array(40).fill(coach)];
+  for (const initial of [0,10]) {
+    let speed=initial;
+    for(let i=0;i<8000;i++)speed=physicsStep(definitions,speed,true,.4,'ho',.031).speed;
+    assert.ok(Math.abs(speed-HO_MINIMUM_SPEED)<1e-10);
+    for(let i=0;i<1000;i++)speed=physicsStep(definitions,speed,true,.4,'ho',.031,1).speed;
+    assert.equal(speed,1,'A low curve/obstacle limit overrides the hill floor');
+    for(let i=0;i<1000;i++)speed=physicsStep(definitions,speed,true,.4,'ho',.031,0).speed;
+    assert.equal(speed,0,'A red signal or station stop overrides the hill floor');
+  }
+  assert.equal(physicsStep([coach],0,true,-.4,'ho',.031).speed,0);
+  const light=physicsStep([ge],0,true,.3,'ho',.031).speed;
+  const heavy=physicsStep([ge,coach,dome],0,true,.3,'ho',.031).speed;
+  assert.ok(light>heavy && heavy>0,'Hill-start acceleration remains finite and load dependent');
+  for (const grade of [-.4,0,.4]) {
     let speed=10;
-    const initial=physicsStep([ge,coach],speed,true,grade,'ho',.05,3);
-    assert.ok(initial.speed<speed&&initial.speed>3,'Lower targets require finite braking');
-    assert.ok(Math.abs((speed-initial.speed)/.05-brakingDeceleration(grade,'ho'))<1e-8);
-    for(let i=0;i<100;i++)speed=physicsStep([ge,coach],speed,true,grade,'ho',.05,3).speed;
-    assert.equal(speed,3);
-    for(let i=0;i<100;i++)speed=physicsStep([ge,coach],speed,false,grade,'ho',.05).speed;
+    const next=physicsStep([ge],speed,true,grade,'ho',.031,3);
+    assert.ok((speed-next.speed)/.031>=brakingDeceleration(grade,'ho'));
+    for(let i=0;i<1000;i++)speed=physicsStep([ge],speed,false,grade,'ho',.031).speed;
     assert.equal(speed,0);
   }
 });
+
 test('curve speed follows radius and HO lateral response while realistic traction remains power limited', () => {
   assert.equal(curveSpeedLimit(Infinity,'realistic'),Infinity);
   assert.ok(Math.abs(curveSpeedLimit(400,'realistic') / curveSpeedLimit(100,'realistic') - 2) < 1e-8);

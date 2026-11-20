@@ -12,6 +12,7 @@ public sealed class ParkedTrain
     public TrainOrderJourney? Journey;
     public TrainWanderingState? Wandering;
     public double Effort;
+    public double DetourCooldown;
     public TrainPosition Position;
     public bool Supported = true;
     public int SupportRevision = -1;

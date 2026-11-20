@@ -29,6 +29,7 @@ public sealed class RailInterlocking : IDisposable
     private readonly List<Lease> _leases = new();
     private readonly Dictionary<(int, int), bool> _crossings = new();
     private readonly Dictionary<int, (TrackVector Min, TrackVector Max)> _bounds = new();
+    private readonly Dictionary<(int Edge, int From), SignalKey?[]> _nextSignals = new();
     private bool _dirty = true;
     private int _aspectTick;
     public int ReservationCount => _leases.Count;
@@ -39,6 +40,7 @@ public sealed class RailInterlocking : IDisposable
     private void Rebuild()
     {
         _dirty = false; _block.Clear(); _blocks.Clear(); _incident.Clear(); _leases.Clear(); _crossings.Clear(); _bounds.Clear();
+        _nextSignals.Clear();
         foreach (var edge in _network.Edges.Values)
             foreach (int node in new[] { edge.A, edge.B })
             { if (!_incident.TryGetValue(node, out var list)) _incident[node] = list = new(); list.Add(edge); }
@@ -53,9 +55,11 @@ public sealed class RailInterlocking : IDisposable
                 members.Add(edge.Id);
                 foreach (int node in new[] { edge.A, edge.B })
                 {
-                    if (_network.SignalMask(node) != 3 || _network.Signals.ContainsKey(new(node, 1))) continue;
+                    bool boundary = _network.SignalMask(node) != 3 || _network.Signals.ContainsKey(new(node, 1));
                     foreach (var next in _incident[node])
-                        if (next.Gauge == start.Gauge && !_block.ContainsKey(next.Id))
+                        // A signal separates the two approach halves, not branches on the same half.
+                        if (next.Gauge == start.Gauge && !_block.ContainsKey(next.Id)
+                            && (!boundary || TrackNetwork.SideAt(next, node) == TrackNetwork.SideAt(edge, node)))
                         { _block[next.Id] = id; queue.Enqueue(next); }
                 }
             }
@@ -128,6 +132,42 @@ public sealed class RailInterlocking : IDisposable
         }
         return true;
     }
+    internal bool DetourEdgeClear(int edge, int train) => Clear(new() { edge }, train);
+    internal bool CanDetour(int train, int[] oldStates, int[] newStates)
+    {
+        var changed = oldStates.Select(state => state / 2).ToHashSet();
+        changed.SymmetricExceptWith(newStates.Select(state => state / 2));
+        return !_leases.Any(lease => lease.Train == train && lease.Entered && lease.Edges.Overlaps(changed));
+    }
+    internal void ReleasePending(int train) => _leases.RemoveAll(lease => lease.Train == train && !lease.Entered);
+    /// <summary>Directed exits of a signal block. Plain nodes are connections, never boundaries.</summary>
+    private SignalKey?[] NextSignals(TrackEdge first, int from)
+    {
+        var start = (first.Id, from);
+        if (_nextSignals.TryGetValue(start, out var cached)) return cached;
+        var exits = new HashSet<SignalKey?>();
+        var visited = new HashSet<(int Edge, int From)>();
+        var queue = new Queue<(TrackEdge Edge, int From)>();
+        queue.Enqueue((first, from));
+        while (queue.TryDequeue(out var leg))
+        {
+            if (!visited.Add((leg.Edge.Id, leg.From))) continue;
+            int node = leg.Edge.A == leg.From ? leg.Edge.B : leg.Edge.A;
+            int side = -TrackNetwork.SideAt(leg.Edge, node);
+            if (_network.Signals.ContainsKey(new(node, -1)) || _network.Signals.ContainsKey(new(node, 1)))
+            {
+                var key = new SignalKey(node, side);
+                // A wrong-way signal is a blocked exit, not permission from its opposite face.
+                exits.Add(_network.Signals.ContainsKey(key) ? key : null);
+                continue;
+            }
+            var next = Outgoing(new(node, side)).Where(edge => edge.Gauge == first.Gauge).ToArray();
+            if (next.Length == 0) exits.Add(null);
+            foreach (var edge in next) queue.Enqueue((edge, node));
+        }
+        if (exits.Count == 0) exits.Add(null); // An unsignalled closed loop has no normal exit.
+        return _nextSignals[start] = exits.ToArray();
+    }
     private RailSignalAspect IdleAspect(TrackSignal signal, HashSet<SignalKey> visited)
     {
         if (!visited.Add(signal.Key)) return RailSignalAspect.Red;
@@ -135,24 +175,18 @@ public sealed class RailInterlocking : IDisposable
         foreach (var edge in Outgoing(signal.Key))
         {
             var block = _blocks[_block[edge.Id]];
-            bool clear = Clear(block, -1);
-            if (clear && signal.Kind != RailSignalKind.Normal)
+            if (!Clear(block, -1)) { red = true; continue; }
+            if (signal.Kind == RailSignalKind.Normal) { green = true; continue; }
+            foreach (var exit in NextSignals(edge, signal.Key.Node))
             {
-                clear = false;
-                foreach (int id in block)
-                    foreach (int node in new[] { _network.Edges[id].A, _network.Edges[id].B })
-                    {
-                        if (node == signal.Key.Node) continue;
-                        int side = -TrackNetwork.SideAt(_network.Edges[id], node);
-                        if (_network.Signals.TryGetValue(new(node, side), out var exit)
-                            && IdleAspect(exit, new(visited)) != RailSignalAspect.Red) clear = true;
-                    }
+                var aspect = exit is { } key ? IdleAspect(_network.Signals[key], new(visited)) : RailSignalAspect.Red;
+                green |= aspect != RailSignalAspect.Red;
+                red |= aspect != RailSignalAspect.Green;
             }
-            green |= clear; red |= !clear;
         }
         return green ? red && signal.Kind == RailSignalKind.Chain ? RailSignalAspect.Blue : RailSignalAspect.Green : RailSignalAspect.Red;
     }
-    public SignalLimit Limit(SignalTrain train, double lookahead)
+    public SignalLimit Limit(SignalTrain train, double lookahead, bool commit = true)
     {
         if (_network.Signals.Count == 0) return new(double.PositiveInfinity, "");
         var leading = train.Route.Sample(train.Position, train.Direction * train.Length / 2).Position;
@@ -167,16 +201,17 @@ public sealed class RailInterlocking : IDisposable
                 if (_network.SignalMask(key.Node) == 3 && !_network.Signals.ContainsKey(new(key.Node, 1))) continue;
                 if (!_network.Signals.TryGetValue(key, out var signal))
                     return new(Math.Max(0, distance - 2), "Wrong-way signal: stopping to reverse", CanReverse: true);
-                if (_leases.Any(lease => lease.Train == train.Id && lease.Signal == key))
-                { signal.Aspect = RailSignalAspect.Green; continue; }
-                if (!Reserve(train, signal, span))
-                { signal.Aspect = RailSignalAspect.Red; return new(Math.Max(0, distance - 2), "Waiting at " + signal.Kind.ToString().ToLowerInvariant() + " signal"); }
-                signal.Aspect = RailSignalAspect.Green;
+                if (_leases.Any(lease => lease.Train == train.Id && lease.Signal == key
+                    && (lease.Entered || lease.Route == train.Route && lease.PlanRevision == train.Route.PlanRevision && lease.Direction == train.Direction)))
+                { if (commit) signal.Aspect = RailSignalAspect.Green; continue; }
+                if (!Reserve(train, signal, span, commit))
+                { if (commit) signal.Aspect = RailSignalAspect.Red; return new(Math.Max(0, distance - 2), "Waiting at " + signal.Kind.ToString().ToLowerInvariant() + " signal"); }
+                if (commit) signal.Aspect = RailSignalAspect.Green;
             }
         }
         return new(double.PositiveInfinity, "");
     }
-    private bool Reserve(SignalTrain train, TrackSignal entry, RouteSpan approach)
+    private bool Reserve(SignalTrain train, TrackSignal entry, RouteSpan approach, bool commit)
     {
         TrainPosition start;
         try { start = train.Route.Sample(approach.Position, train.Direction * (approach.Length + .00001)).Position; }
@@ -197,7 +232,7 @@ public sealed class RailInterlocking : IDisposable
                 exitLength += span.Length;
                 if (entry.Kind == RailSignalKind.Normal || exitLength >= train.Length + 4)
                 {
-                    units.Add((key, edges)); return Acquire(train, units);
+                    units.Add((key, edges)); return Acquire(train, units, commit);
                 }
             }
             bool boundary = _network.Signals.ContainsKey(new(span.Node, -1)) || _network.Signals.ContainsKey(new(span.Node, 1));
@@ -207,7 +242,7 @@ public sealed class RailInterlocking : IDisposable
             if (exitBlock)
             {
                 if (entry.Kind != RailSignalKind.Normal && exitLength < train.Length + 4) return false;
-                return Acquire(train, units);
+                return Acquire(train, units, commit);
             }
             key = new(span.Node, span.Side);
             if (!seen.Add(key)) return false;
@@ -217,11 +252,12 @@ public sealed class RailInterlocking : IDisposable
         if (!exitBlock || edges.Count == 0) return false; // Chain/path entries require a normal exit.
         if (entry.Kind != RailSignalKind.Normal && exitLength < train.Length + 4) return false;
         units.Add((key, edges));
-        return Acquire(train, units);
+        return Acquire(train, units, commit);
     }
-    private bool Acquire(SignalTrain train, List<(SignalKey Key, HashSet<int> Edges)> units)
+    private bool Acquire(SignalTrain train, List<(SignalKey Key, HashSet<int> Edges)> units, bool commit)
     {
         if (units.Any(unit => !Clear(unit.Edges, train.Id))) return false;
+        if (!commit) return true;
         foreach (var unit in units)
             if (!_leases.Any(lease => lease.Train == train.Id && lease.Signal == unit.Key))
                 _leases.Add(new(train, unit.Key, unit.Edges));
@@ -234,13 +270,15 @@ public sealed class RailInterlocking : IDisposable
         int common = first.A == second.A || first.A == second.B ? first.A : first.B == second.A || first.B == second.B ? first.B : 0;
         if (common != 0) return _incident[common].Count >= 3; // Junction conflict; ordinary signal boundaries remain independent.
         var key = a < b ? (a, b) : (b, a);
-        if (_crossings.TryGetValue(key, out bool result)) return result;
         double width = Math.Max(3.5, (first.Gauge + second.Gauge) / 2000.0 + 2);
         var ba = Bounds(first); var bb = Bounds(second);
         bool nearby = ba.Min.X <= bb.Max.X + width && bb.Min.X <= ba.Max.X + width
             && ba.Min.Z <= bb.Max.Z + width && bb.Min.Z <= ba.Max.Z + width
             && ba.Min.Y <= bb.Max.Y + 4.5 && bb.Min.Y <= ba.Max.Y + 4.5;
-        result = nearby && GeometricConflict(_placement.Curve(first), _placement.Curve(second), width);
+        // Far-away traffic must not evict the useful nearby crossing tests from the bounded cache.
+        if (!nearby) return false;
+        if (_crossings.TryGetValue(key, out bool result)) return result;
+        result = GeometricConflict(_placement.Curve(first), _placement.Curve(second), width);
         if (_crossings.Count >= 8192) _crossings.Clear();
         _crossings[key] = result; return result;
     }

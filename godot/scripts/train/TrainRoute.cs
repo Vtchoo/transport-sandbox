@@ -47,7 +47,33 @@ public sealed class TrainRoute
         copy._legs.Clear();
         foreach (var leg in _legs)
             copy._legs.Add(leg.Key, leg.Value);
-        copy._plan = _plan; copy._planStart = _planStart; copy._planStep = _planStep;
+        copy._plan = _plan; copy._planStart = _planStart; copy._planStep = _planStep; copy.PlanRevision = PlanRevision;
+        return copy;
+    }
+    /// <summary>Splice a forward detour into a copy, preserving occupied history and the original suffix.</summary>
+    public TrainRoute WithDetour(TrainPosition leading, int direction, int[] states, TrainPosition rejoin)
+    {
+        int step = TravelStep(leading, direction);
+        int skipped = (rejoin.RouteIndex - leading.RouteIndex) * step;
+        if (skipped <= 0 || states.Length < 2 || states[0] != RailRouter.StateId(leading.Edge, leading.Facing * direction)
+            || states[^1] != RailRouter.StateId(rejoin.Edge, rejoin.Facing * direction))
+            throw new InvalidOperationException("Detour must rejoin a future occurrence in the same direction.");
+        var copy = Copy();
+        int shift = (states.Length - 1 - skipped) * step;
+        copy._legs.Clear();
+        foreach (var (index, leg) in _legs)
+        {
+            int progress = (index - leading.RouteIndex) * step;
+            if (progress <= 0) copy._legs[index] = leg;
+            else if (progress >= skipped) copy._legs[index + shift] = leg;
+        }
+        int suffix = (rejoin.RouteIndex - _planStart) * _planStep;
+        copy._plan = _planStep == step && suffix >= 0 && suffix < _plan.Length
+            ? states.Concat(_plan.Skip(suffix + 1)).ToArray() : states.ToArray();
+        copy._planStart = leading.RouteIndex; copy._planStep = step;
+        for (int i = 0; i < states.Length; i++)
+            copy._legs[leading.RouteIndex + i * step] = (states[i] / 2, RailRouter.Direction(states[i]) * step);
+        copy.PlanRevision++;
         return copy;
     }
     private bool TryLeg(int index, out (int Edge, int Facing) leg)

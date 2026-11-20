@@ -7,24 +7,35 @@ The world, track and vehicle geometry always use metres at 1:1 scale. Physics mo
 Catalog inputs use kilograms, watts, newtons and metres per second. These are nominal operating values, not a simulation of every gearing option or rebuild.
 
 | Vehicle | Mass | Engine power | Starting traction | Speed limit |
+
 | --- | ---: | ---: | ---: | ---: |
+
 | Santa Fe F7A | 104,326 kg | 1,500 hp | 251,326 N | 102 mph |
+
 | GE 809 adaptation | 127,006 kg | 3,900 hp | 304,704 N | 70 mph |
+
 | Streamlined coach | 56,800 kg | None | None | 102 mph |
+
 | Pleasure Dome | 75,000 kg | None | None | 102 mph |
+
 | Rio Grande 2-8-0 + tender adaptation | 93,200 kg combined | 700 kW (estimate) | 142,608 N (prototype proxy) | 45 km/h (estimate) |
+
 | Rio Grande wooden baggage car | 20,000 kg (estimate) | None | None | 45 km/h |
+
 | Rio Grande wooden passenger coach | 24,000 kg (estimate) | None | None | 45 km/h |
 
 Sources and scope:
 
-- TGV Sud-Est: each power car uses 68,000 kg, 3,225 kW, an estimated 110 kN starting traction and a 270 km/h limit. Each coach uses an estimated 31,125 kg and no traction. Two power cars plus eight coaches total 385 tonnes and 6,450 kW, following the [UNECE high-speed study](https://unece.org/DAM/trans/main/ter/terdocs/TER_High-Speed_Master_Plan_Study.pdf). Power is allocated to the power cars, including the prototype's powered end-trailer contribution. Individual masses, bogie dimensions, 19 m power-car length and 20.275 m generic coach length are modeling approximations; coach variants and shared Jacobs bogies are not simulated. Coupler gaps add to the nominal 200.2 m sum. HO speed scaling now uses the fastest catalog rating, keeping the TGV at 120 km/h and other models proportionally slower.
+- TGV Sud-Est: each power car uses 68,000 kg, 3,225 kW, an estimated 110 kN starting traction and a 270 km/h limit. Each coach uses an estimated 31,125 kg and no traction. Two power cars plus eight coaches total 385 tonnes and 6,450 kW, following the [UNECE high-speed study](https://unece.org/DAM/trans/main/ter/terdocs/TER_High-Speed_Master_Plan_Study.pdf). Power is allocated to the power cars, including the prototype's powered end-trailer contribution. Individual masses, bogie dimensions, 19 m power-car length and 20.275 m generic coach length are modeling approximations; coach variants and shared Jacobs bogies are not simulated. Coupler gaps add to the nominal 200.2 m sum. Both physics modes use catalog vehicle speed ratings; HO no longer compresses the TGV to 120 km/h.
 
 - The Rio Grande set supports 914 and 1,435 mm track. Its mass/traction proxy comes from Frateschi's underlying Brazilian Baldwin prototype; geometry and performance assumptions are documented in [the model reference](models/rio-grande-reference.md). Tender mass is included in the single catalog item's mass, not counted twice.
 
 - [EMD F7A/F7B manufacturer specification scan](https://static1.squarespace.com/static/624efffd8ef1885fd8ab5ca1/t/67f0fb0fc36f4c2cecfc6b0c/1758061382489/EMD-SPEC-LOCO-F7A-F7B-1948.pdf): 1,500 hp and approximately 230,000 lb loaded. [EMD's F7 traction/gearing table](https://heritagerail.org/wp-content/uploads/2022/09/EMD-TABLE-7-SERIES-SHORT-TIME-RATINGS.pdf) lists gearing-dependent limits through 102 mph. We select the passenger-speed envelope; the starting-force cap is a simplified adhesion estimate rather than a complete traction-motor curve for that gearing.
+
 - [GE Series-8 handbook GEJ-6368, General Data](https://www.scribd.com/document/283488434/d8-hdbk): B39-8 class, 3,900 hp, 274,000–280,000 lb, starting force around 68,500–70,000 lbf, with 83:20 gearing giving 70 mph. We use a conservative 68,500 lbf cap and 280,000 lb mass. These are B39-8 class proxies for the experimental wide-cab No. 809 visual; the rebuilt prototype's exact operating configuration is not verified.
+
 - The coach's 56.8 t is a representative estimate based on a [1951 Budd car drawing with a 125,200 lb weight](https://img1.wikia.nocookie.net/__cb20141104154859/obts/images/3/32/1951.2xx2~WPxx.AARx_1.435~0025.91_Budd.Coch~PCRC.PDF), not an exact Santa Fe coach measurement.
+
 - The dome's 75 t is a representative estimate informed by [Alaska Railroad's 165,757 lb average for a Budd dome passenger coach](https://www.alaskarailroad.com/sites/default/files/procurement/25-74-213996_Rebuilt_NP_Budd_Dome_Pass_Coach_Trucks-Addendum_1_0.pdf). It is not a verified weight for the Pullman-Standard Pleasure Dome. Both passenger-car speed ratings are game assumptions to match the F7 passenger envelope. Passenger loading and fuel consumption are not yet modelled.
 
 ## Force model
@@ -37,9 +48,15 @@ Grade force is `mass × g × sin(slope)`, with each vehicle's local track grade 
 
 Curve limits follow `v = sqrt(lateralAcceleration × horizontalRadius)`. The realistic lateral allowance is a chosen comfort parameter of 0.65 m/s², with no cant. A numerical tangent/chord estimate measures radius; the occupied consist and braking approach are sampled every 5 m. The train brakes before tighter curves and stays constrained until its trailing vehicles clear them. Extremely short geometry features below the sampling interval are not resolved as a continuous analytical curvature maximum.
 
-HO uses ideal speed-controlled motors with unlimited available traction/power to compensate for grade and resistance. A locomotive is still required. Grade and car weight do not reduce the eventual target speed: nominal locomotive traction divided by the consist's effective mass sets a finite acceleration rate, multiplied by 9. More unpowered cars make acceleration slower, and additional locomotives improve response. Nominal traction is a response-setting parameter here, not a force ceiling; no infinite numeric forces are integrated.
+HO now adapts OpenLoco's automatic rail-vehicle controller from [Vehicle2.cpp](../OpenLoco/src/OpenLoco/src/Vehicles/Vehicle2.cpp), with its [31 ms update interval](../OpenLoco/src/OpenLoco/src/OpenLoco.cpp) converted to our simulation substeps. Attribution and the MIT license are in [OpenLoco-LICENSE.txt](../godot/third-party/OpenLoco-LICENSE.txt). This is the game's power/weight and drag model, rather than scaled realistic forces or an unlimited speed-controlled motor.
 
-Model top speeds are multiplied by `(120 km/h) / (102 mph)`. The motor controller approaches the lower of that model cap and the route's current curve/obstacle/end-of-track speed target. Deceleration is finite at `9 × 0.65 / 1.06` m/s², with the same grade-independent rate used by the braking planner. Stopping commands target zero and hold at rest. Lateral allowance remains multiplied by 9, giving three times the curve speed for a given radius before the model cap applies. Realistic mode retains power-limited traction and grade-dependent forces/braking. HO is a convenient miniature behavior preset, not an electromechanical simulation of an actual motor/controller. [NMRA defines HO as approximately 1:87.1](https://www.nmra.org/beginners-glossary); dimensions are not scaled in this game.
+The implementation uses SI throughout: speed `v` in m/s, power `P` in watts, mass `M` in kg, time in seconds, and the consist's mass-weighted uphill slope sine `g`. The equivalent acceleration law is `min(7.210322580645161, 0.6043251158594368*P/M - 0.00005633064516129032*M*g - 0.001101062549248678*q*q)` m/s^2, where `q = floor(v/0.44704)*0.44704` m/s preserves the source controller's drag resolution. These coefficients are converted once; the simulation never converts its speed to imperial units. Power uses the catalog's full engine rating. More locomotives improve acceleration; more car weight slows it and increases the climbing penalty. Downhill grades assist acceleration, and the slowest vehicle's catalog speed rating caps the consist. There is no catalog-wide speed compression.
+
+The 2.2352 m/s (8.04672 km/h) hill-speed floor prevents powered trains from stalling. A train starting below this floor receives finite power-to-weight acceleration even if the uphill balance is negative. Unlike the original controller's negative-speed fallback, this does not jump instantaneously to target speed. The floor is capped by the current safety target: curves, station stops, red signals, obstacles and stop commands can demand speeds below it, including zero. Unpowered consists receive no anti-stall drive.
+
+Service braking uses `0.5040322580645161*v + 2.640564335483871` m/s^2, yielding stronger braking at higher speeds. The stopping planner uses the conservative low-speed deceleration of 2.640564335483871 m/s^2; actual braking is at least this strong. Substeps scale the native increment by elapsed time instead of quantizing movement to the source game's tick. Continuous spline slopes replace OpenLoco's sprite-pitch lookup; floating-point catalog weights replace integer object weights. Wheel slip, breakdowns, manual throttle and rack-rail rules are not implemented. Existing radius-based curve limits remain continuous, retaining the HO lateral allowance of `9 * 0.65` m/s^2. Realistic mode retains its existing SI traction, resistance, gravity and braking model.
+
+`node scripts/export-godot-physics-fixtures.mjs` and `node scripts/export-godot-movement-fixtures.mjs` refresh browser/C# parity fixtures. Independent tests also check the native-tick formulas, load response, hill starts, the speed floor, low safety targets, full stops and unpowered vehicles.
 
 ## Routing and safety
 
