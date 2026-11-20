@@ -11,7 +11,7 @@ public static class RailPathfindingChecks
     public static RailRoutingEdge[] Capture(TrackNetwork network) => network.Edges.Values.Select(edge =>
     {
         var p = network.WorldControls(edge);
-        return new RailRoutingEdge(edge.Id, edge.A, edge.B, edge.Gauge, edge.SideA, edge.SideB, edge.Station, p[0], p[1], p[2], p[3]);
+            return new RailRoutingEdge(edge.Id, edge.A, edge.B, edge.Gauge, edge.SideA, edge.SideB, edge.Station, p[0], p[1], p[2], p[3], SignalA: network.SignalMask(edge.A), SignalB: network.SignalMask(edge.B));
     }).ToArray();
     public static async Task Run(Action<bool, string> check)
     {
@@ -55,7 +55,7 @@ public static class RailPathfindingChecks
         check(stationGraph.Search(finish).Plan(new(2, .5), 1)!.States.Contains(RailRouter.StateId(3, 1)),
             "A train already inside a station can leave without repeated segment penalties");
         var stationGoal = stationGraph.Search(new(TrainOrderKind.Station, 42)).Plan(new(1, .5), 1)!;
-        check(Math.Abs(stationGoal.Distance - 248) < 1e-8, "The current station destination is exempt even for direct routing API callers");
+        check(Math.Abs(stationGoal.Distance - 250) < 1e-8, "The current station destination is exempt even for direct routing API callers");
         var routeOrders = new TrainOrders(); routeOrders.Add(TrainOrderKind.Waypoint, 9); routeOrders.Add(TrainOrderKind.Station, 42);
         check(routeOrders.RoutingPolicy.Allows(42), "All station orders participate in the routing policy, including future stops");
         var oldPolicy = routeOrders.RoutingPolicy; routeOrders.Remove(routeOrders.Items[^1].Id);
@@ -93,8 +93,8 @@ public static class RailPathfindingChecks
         }
         targets.Add((new(TrainOrderKind.Station, platform.Station), new()
         {
-            [RailRouter.StateId(platform.Id, 1)] = 1 - 2 / placement.Curve(platform).Length,
-            [RailRouter.StateId(platform.Id, -1)] = 2 / placement.Curve(platform).Length
+            [RailRouter.StateId(platform.Id, 1)] = 1,
+            [RailRouter.StateId(platform.Id, -1)] = 0
         }));
         int cases = 0;
         foreach (var (destination, positions) in targets)

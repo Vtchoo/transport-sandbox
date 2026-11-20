@@ -111,6 +111,8 @@ public static class TrainMovementChecks
         editor.StartPlacement(incoming);
         if (editor.Facing != -1)
             editor.ReversePreview();
+        // Collision braking fixtures deliberately share a block; use the placement override.
+        editor.PlacementBlockOverride = () => true;
         editor.RefreshPreview(editor.Camera.UnprojectPosition(new(0, 0, 550)));
         check(editor.Valid && editor.CommitPreview(), "Collision fixture places an opposing train on the occupied line");
         editor.ToggleRunning(incoming);

@@ -110,7 +110,7 @@ public partial class TerrainBackend
                 Triangle(edge[i + 1], bottom[i + 1], bottom[i]);
             }
         }
-        var trees = vegetation && segments >= 64 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
+        var trees = vegetation && segments >= 32 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
         return new(segments, positions.Select(p => p.Float()).ToArray(), normals.ToArray(), colors.ToArray(), indices.ToArray(), trees, revision);
     }
 }

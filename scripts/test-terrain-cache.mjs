@@ -34,7 +34,7 @@ test('world reuses geometry on LOD return/unload and rejects cached or pending g
   want(32);assert.equal(worker.jobs.length,jobs);assert.equal(world.chunks.get('0,0').mesh.geometry,farther);
   const current=world.chunks.get('0,0');world.retireChunk(current);world.chunks.clear();want(16);
   assert.equal(worker.jobs.length,jobs);assert.equal(world.chunks.get('0,0').mesh.geometry,original);
-  world.setContours(true);want(32);assert.equal(world.chunks.get('0,0').trees,undefined);
+  world.setContours(true);want(32);assert.equal(world.chunks.get('0,0').trees.group.visible,false);
   // Natural geometry far from the earthwork stays reusable after the revision advances.
   world.setEarthworks([{points:[{x:10000,y:20,z:10000},{x:10100,y:20,z:10000}]}]);
   want(16);assert.equal(world.chunks.get('0,0').mesh.geometry,original);assert.equal(worker.jobs.length,jobs);

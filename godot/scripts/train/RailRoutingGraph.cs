@@ -7,7 +7,7 @@ namespace TransportSandbox;
 
 public readonly record struct RailDestination(TrainOrderKind Kind, int Target);
 public readonly record struct RailRoutingEdge(int Id, int A, int B, int Gauge, int SideA, int SideB, int Station,
-    TrackVector P0, TrackVector P1, TrackVector P2, TrackVector P3, double KnownLength = -1);
+    TrackVector P0, TrackVector P1, TrackVector P2, TrackVector P3, double KnownLength = -1, int SignalA = 3, int SignalB = 3);
 
 /// <summary>Immutable directed graph. Build and search use managed data only, never the scene tree.</summary>
 public sealed class RailRoutingGraph
@@ -100,8 +100,10 @@ public sealed class RailRoutingGraph
                 if (candidate.Id != edge.Id && candidate.Gauge == edge.Gauge && (fromA ? candidate.SideA : candidate.SideB) != side)
                     exits.Add(index * 2 + (fromA ? 1 : 0));
             }
-            // Reversal is possible only at a genuine directed dead end.
-            next[state] = exits.Count == 0 ? new[] { state ^ 1 } : exits.ToArray();
+            // A wrong-way signal is a directed dead end, even when rails continue beyond it.
+            int mask = forward ? edge.SignalB : edge.SignalA;
+            bool allowed = (mask & (side < 0 ? 2 : 1)) != 0;
+            next[state] = exits.Count == 0 || !allowed ? new[] { state ^ 1 } : exits.ToArray();
             foreach (int successor in next[state]) previous[successor].Add(state);
         }
         return new(edges, indices, incident.ToDictionary(p => p.Key, p => p.Value.ToArray()),
@@ -115,6 +117,9 @@ public sealed class RailRoutingGraph
             foreach (int index in incident)
             {
                 var edge = _edges[index]; int state = index * 2 + (edge.B == destination.Target ? 1 : 0);
+                int side = edge.B == destination.Target ? edge.SideB : edge.SideA;
+                int mask = edge.B == destination.Target ? edge.SignalB : edge.SignalA;
+                if ((mask & (side < 0 ? 2 : 1)) == 0) continue;
                 if (_length[state] <= 0) continue;
                 double buffer = DeadEnd(state) ? Math.Min(2, _length[state]) / _length[state] : 0;
                 targets[state] = (state & 1) != 0 ? 1 - buffer : buffer;
@@ -125,7 +130,7 @@ public sealed class RailRoutingGraph
                 {
                     int state = index * 2 + direction;
                     if (!DeadEnd(state) && _next[state].Any(s => _edges[s / 2].Station == destination.Target)) continue;
-                    double remaining = 2;
+                    double remaining = 0;
                     var visited = new HashSet<int>();
                     while (visited.Add(state))
                     {

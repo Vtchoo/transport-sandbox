@@ -29,6 +29,8 @@ public partial class TrainEditor : Node3D
     public TrainPlacement Placement = null!;
     public bool Placing { get; private set; }
     public bool Valid { get; private set; }
+    public bool OccupiedBlock { get; private set; }
+    public Func<bool> PlacementBlockOverride = () => Input.IsPhysicalKeyPressed(Key.Shift);
     public TrainPosition? Target { get; private set; }
     public int Facing { get; private set; } = 1;
     public bool ReverseAppend { get; private set; }
@@ -46,11 +48,13 @@ public partial class TrainEditor : Node3D
     private bool _trackDirty;
     private double _trackTimer;
     private int _revision;
-    private (Vector2 Mouse, Transform3D Camera, int Revision, int Facing, int? Train, bool Reverse)? _previewSignature;
+    private (Vector2 Mouse, Transform3D Camera, int Revision, int Facing, int? Train, bool Reverse, bool Override)? _previewSignature;
+    private Vector2 _previewMouse;
+    private double _previewTimer;
     public TrainInstances Instances = null!;
     public MenuSmoke Smoke = null!;
     public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); }
-    public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; Placement.Dispose(); _pathfinder.Dispose(); }
+    public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; _interlocking?.Dispose(); Placement.Dispose(); _pathfinder.Dispose(); }
     private void TrackChanged() { _trackDirty = true; _revision++; }
     public int? TrackGauge(int id) => Parked.FirstOrDefault(p => p.Id == id) is { } parked && Network.Edges.TryGetValue(parked.Position.Edge, out var edge) ? edge.Gauge : null;
     public void Select(int id) { if (Builder.Selected?.Id != id) CancelPlacement(); Builder.Selected = Builder.Get(id); }
@@ -172,7 +176,7 @@ public partial class TrainEditor : Node3D
         Message = "Hover track to preview. R reverses; Esc cancels."; Changed?.Invoke(null);
     }
     public void ReversePreview() { if (!Placing) return; Facing = -Facing; ReverseAppend = !ReverseAppend; RefreshPreview(GetViewport().GetMousePosition()); }
-    private void ClearGhosts() { RemoveVisuals(Ghosts); Ghosts.Clear(); _ghostKey = ""; Target = null; AppendTarget = null; Valid = false; _previewSignature = null; }
+    private void ClearGhosts() { RemoveVisuals(Ghosts); Ghosts.Clear(); _ghostKey = ""; Target = null; AppendTarget = null; Valid = false; OccupiedBlock = false; _previewSignature = null; }
     public void CancelPlacement() { Placing = false; ClearGhosts(); }
     public void SuspendPreview() { foreach (var ghost in Ghosts) ghost.Hide(); Valid = false; _previewSignature = null; }
     public TrainPosition? PickTrack(Vector2 mouse)
@@ -200,6 +204,7 @@ public partial class TrainEditor : Node3D
     public void RefreshPreview(Vector2 mouse)
     {
         if (!Placing || Builder.Selected is not { } train) return;
+        _previewMouse = mouse; OccupiedBlock = false;
         Target = PickTrack(mouse); AppendTarget = null; Valid = false; SnappedStation = null;
         string? appendError = null;
         (ParkedTrain Parked, bool Front)? nearest = null; float best = 28;
@@ -248,8 +253,13 @@ public partial class TrainEditor : Node3D
             for (int i = 0; i < poses.Length; i++) Ghosts[i].Apply(poses[i]);
             foreach (var parked in Parked)
                 if (Occupied(train, poses, new[] { parked }, parked == AppendTarget?.Train ? 0 : .08)) throw new InvalidOperationException("This train overlaps a parked train.");
+            var candidate = new SignalTrain(train.Id, new TrainRoute(Placement, target, 1), target, train.Length, 1);
+            OccupiedBlock = Interlocking.PlacementBlockOccupied(candidate, Parked.Where(p => p != AppendTarget?.Train)
+                .Select(p => new SignalTrain(p.Id, RouteFor(p).Copy(), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)));
+            if (OccupiedBlock && !PlacementBlockOverride())
+                throw new InvalidOperationException("Block occupied by another train. Hold Shift to place anyway.");
             Valid = true;
-            Message = AppendTarget is { } a ? $"Attach to {(a.Front ? "front" : "rear")} - {Builder.Get(a.Train.Id).Name}" : SnappedStation is { } station ? $"Front snapped to Station {station} end" : $"{train.Name} - ready to place";
+            Message = OccupiedBlock ? "Warning: placing in an occupied block (Shift override)." : AppendTarget is { } a ? $"Attach to {(a.Front ? "front" : "rear")} - {Builder.Get(a.Train.Id).Name}" : SnappedStation is { } station ? $"Front snapped to Station {station} end" : $"{train.Name} - ready to place";
         }
         catch (InvalidOperationException error)
         {
@@ -261,9 +271,14 @@ public partial class TrainEditor : Node3D
     }
     public bool CommitPreview()
     {
-        if (!Valid || Target is not { } target || Builder.Selected is not { } train) return false;
+        if (!Placing) return false;
+        // Occupancy and Shift may have changed since the last rendered preview.
+        RefreshPreview(_previewMouse);
+        if (!Valid || Target is not { } target || Builder.Selected is not { } train)
+        { if (OccupiedBlock) Warning?.Invoke(Message); return false; }
+        bool overridden = OccupiedBlock;
         var append = AppendTarget;
-        return Perform(append == null ? "Place train" : "Attach trains", () =>
+        bool placed = Perform(append == null ? "Place train" : "Attach trains", () =>
         {
             TrainConsist result = train; TrainPosition position = target;
             if (append is { } a)
@@ -275,6 +290,8 @@ public partial class TrainEditor : Node3D
             var visuals = CreateVisuals(result, poses, result.Items.Select(_ => gauge).ToArray());
             result.Placed = true; Parked.Add(new() { Id = result.Id, Position = position, Poses = poses, Visuals = visuals }); return true;
         });
+        if (placed && overridden) Warning?.Invoke("Warning: train placed in a block occupied by another train.");
+        return placed;
     }
     public void Revalidate()
     {
@@ -300,8 +317,9 @@ public partial class TrainEditor : Node3D
             if (Windows.HasModal || GetViewport().GuiGetHoveredControl() != null) SuspendPreview();
             else
             {
-                var signature = (GetViewport().GetMousePosition(), Camera.GlobalTransform, _revision, Facing, Builder.Selected?.Id, ReverseAppend);
-                if (_previewSignature != signature) { RefreshPreview(signature.Item1); _previewSignature = signature; }
+                _previewTimer += delta;
+                var signature = (GetViewport().GetMousePosition(), Camera.GlobalTransform, _revision, Facing, Builder.Selected?.Id, ReverseAppend, PlacementBlockOverride());
+                if (_previewSignature != signature || _previewTimer >= .1) { RefreshPreview(signature.Item1); _previewSignature = signature; _previewTimer = 0; }
             }
         }
     }

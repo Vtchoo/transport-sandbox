@@ -127,7 +127,9 @@ public partial class WorldCamera : Camera3D
         var keys = new HashSet<string>();
         if (!InputBlocked && !NavigationBlocked())
         {
-            if (GetViewport().GuiGetFocusOwner() is not (LineEdit or TextEdit or OptionButton))
+            var focus = GetViewport().GuiGetFocusOwner();
+            // Dropdowns retain focus after closing; only their open popup owns navigation.
+            if (focus is not (LineEdit or TextEdit) && !(focus is OptionButton select && select.GetPopup().Visible))
                 foreach (var (key, name) in new[] { (Key.W, "KeyW"), (Key.A, "KeyA"), (Key.S, "KeyS"), (Key.D, "KeyD"), (Key.Q, "KeyQ"), (Key.E, "KeyE"), (Key.Space, "Space"), (Key.Up, "ArrowUp"), (Key.Down, "ArrowDown"), (Key.Left, "ArrowLeft"), (Key.Right, "ArrowRight"), (Key.Shift, "ShiftLeft") })
                     if (Input.IsPhysicalKeyPressed(key))
                         keys.Add(name);

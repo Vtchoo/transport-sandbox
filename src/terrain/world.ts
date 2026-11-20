@@ -219,7 +219,7 @@ export class TerrainWorld {
   private mount(chunk: Chunk) {
     const key = this.key(chunk.x, chunk.z), previous = this.chunks.get(key);
     // Reparent the trees before retiring their terrain holder. No empty frame during edits.
-    if (chunk.segments >= 64)
+    if (chunk.segments >= 32)
       chunk.trees = this.treeStreaming.activate(key, chunk.mesh, chunk.prepared, this.contourEnabled.value > .5);
     else this.treeStreaming.deactivate(key);
     if (previous) { previous.trees = undefined; this.retireChunk(previous, false); }

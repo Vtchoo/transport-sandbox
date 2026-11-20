@@ -483,7 +483,7 @@ public partial class TrainWindows : Node
         }
         bool showHint = Editor.Placing && !Manager.HasModal && GetViewport().GuiGetHoveredControl() == null;
         if (showHint)
-            PlacementHint.Display(Editor.Message + "\n" + (Editor.Valid ? "Click to place" : "Choose a track position") + " - R reverse - Esc cancel", Editor.Valid, .2);
+            PlacementHint.Display(Editor.Message + "\n" + (Editor.Valid ? "Click to place" : "Choose a track position") + " - R reverse - Esc cancel", Editor.Valid && !Editor.OccupiedBlock, .2);
         else
             PlacementHint.Hide();
         Coupler.Visible = showHint && Editor.AppendTarget != null;

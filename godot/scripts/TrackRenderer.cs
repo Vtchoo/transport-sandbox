@@ -17,6 +17,7 @@ public partial class TrackRenderer : Node3D
     public Node3D Preview = null!;
     public int Selected;
     public Node3D Markers = new();
+    public SignalRenderer Signals = null!;
     private readonly record struct RenderKey(TrackVector A, TrackVector B, TrackVector C, TrackVector D, int Gauge, string Platforms, bool RailsOnly);
     private readonly Dictionary<int, RenderKey> _keys = new();
     private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
@@ -34,6 +35,7 @@ public partial class TrackRenderer : Node3D
         Network.Changed += MarkDirty;
         Network.Space.Rebased += Rebased;
         AddChild(Markers);
+        Signals = new() { Network = Network }; AddChild(Signals);
         Preview = new()
         {
             Name = "TrackPreview",

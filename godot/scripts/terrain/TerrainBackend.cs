@@ -93,7 +93,7 @@ public partial class TerrainBackend : RefCounted
         _jobs.Add(key, Task.Run(() =>
         {
             var data = Build(sampler, key, segments, token, earthworks, revision, false);
-            if (segments < 64)
+            if (segments < 32)
                 return data;
             var vegetation = VegetationFor(key, token);
             return data with
@@ -253,7 +253,7 @@ public partial class TerrainBackend : RefCounted
                 }
             }
         // Match browser scheduling: distant tiles omit vegetation, near LODs share identical data.
-        var trees = vegetation && segments >= 64 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
+        var trees = vegetation && segments >= 32 ? Vegetation.Generate(sampler, key.X, key.Y, token) : Array.Empty<float>();
         return new(segments, vertices, normals, colors, indices, trees, revision);
     }
 }

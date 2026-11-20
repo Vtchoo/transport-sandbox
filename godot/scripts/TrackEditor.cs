@@ -29,6 +29,7 @@ public partial class TrackEditor : Node
     private (int Source, int Side, int Target, Vector3 Point, float Angle)? _parallelGhostKey;
     private bool _parallelGhostValid;
     public Label Status = null!;
+    private PointerMessage _previewLength = null!;
     public OptionButton GaugePicker = null!, StationAction = null!, GridPicker = null!;
     public WorldTrackGrid GridOverlay = null!;
     private int _lastGridSpacing = 5;
@@ -62,7 +63,14 @@ public partial class TrackEditor : Node
     public override void _Ready()
     {
         BuildUI();
+        _previewLength = new(); Interface.AddChild(_previewLength);
+        _previewLength.TextLabel.CustomMinimumSize = new(100, 0);
         SetEnabled(false);
+    }
+    public override void _ExitTree()
+    {
+        Network.Changed -= GraphChanged; Network.Space.Rebased -= Rebased;
+        if (IsInstanceValid(_previewLength)) _previewLength.QueueFree();
     }
     private static Button Button(Node parent, string text, Action callback, string tooltip = "")
     {
@@ -94,6 +102,8 @@ public partial class TrackEditor : Node
         _trackTab.Icon = UiSkin.Icon("track");
         _trackTab.SetPressedNoSignal(true);
         _stationTab.Icon = UiSkin.Icon("station");
+        foreach (var tab in new[] { _trackTab, _stationTab }) { tab.Text = ""; tab.CustomMinimumSize = new(44, 36); }
+        BuildSignalUI(tabs, box, group);
         _trackOptions = new();
         box.AddChild(_trackOptions);
         UiSkin.Label(_trackOptions, "TRACK GAUGE", 9, "c0cbbd");
@@ -196,7 +206,7 @@ public partial class TrackEditor : Node
     {
         bool changed = Enabled != value;
         Enabled = value;
-        Renderer.Markers.Visible = value && Mode == "track";
+        Renderer.Markers.Visible = value && Mode is "track" or "signal";
         if (!value)
         {
             Cancel();
@@ -212,12 +222,14 @@ public partial class TrackEditor : Node
         Mode = value;
         _trackOptions.Visible = Mode == "track";
         _stationOptions.Visible = Mode == "station";
+        _signalOptions.Visible = Mode == "signal";
+        _signalTab.SetPressedNoSignal(Mode == "signal");
         _trackTab.SetPressedNoSignal(Mode == "track");
         _stationTab.SetPressedNoSignal(Mode == "station");
-        Renderer.Markers.Visible = Enabled && Mode == "track";
+        Renderer.Markers.Visible = Enabled && Mode is "track" or "signal";
         NodeMenu.Hide();
         SegmentMenu.Hide();
-        Status.Text = Mode == "station" ? "Click a segment to place a platform on the mouse's side." : "Click to place the first node. Esc ends construction.";
+        Status.Text = Mode == "signal" ? "Hover along a node's approach to choose signal direction. Click to place." : Mode == "station" ? "Click a segment to place a platform on the mouse's side." : "Click to place the first node. Esc ends construction.";
     }
     public void ToggleGrid()
     {
@@ -243,6 +255,7 @@ public partial class TrackEditor : Node
             Renderer.Dirty = true;
         }
         ClearPlatformPreview();
+        ClearSignalPreview();
         GridOverlay.Hide();
         Source = 0;
         BuildingParallel = false;
@@ -263,6 +276,7 @@ public partial class TrackEditor : Node
     }
     public override void _Process(double delta)
     {
+        _previewLength.Hide();
         if (!Enabled || Windows.HasModal || _drag != null)
         {
             if (_drag != null)
@@ -274,8 +288,17 @@ public partial class TrackEditor : Node
             if (IsInstanceValid(_splitMarker))
                 _splitMarker!.Hide();
             ClearPlatformPreview();
+            ClearSignalPreview();
             if (Windows.HasModal)
                 Renderer.Preview.Hide();
+            return;
+        }
+        if (Mode == "signal")
+        {
+            GridOverlay.Hide(); NodeMenu.Hide(); SegmentMenu.Hide(); Renderer.Preview.Hide();
+            if (IsInstanceValid(_splitMarker)) _splitMarker!.Hide();
+            if (GetViewport().GuiGetHoveredControl() == null) RefreshSignalHover(GetViewport().GetMousePosition());
+            else ClearSignalPreview();
             return;
         }
         if (Mode == "station")
@@ -339,6 +362,14 @@ public partial class TrackEditor : Node
             }
             else
                 Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge);
+            if (Renderer.Preview.Visible)
+            {
+                var lengths = Renderer.Preview.GetChildren().OfType<TrackVisual>()
+                    .Select(visual => visual.Geometry.Curve.Length).ToArray();
+                if (lengths.Length > 0)
+                    _previewLength.Display((lengths.Length == 1 ? "Length: " : "Lengths: ")
+                        + string.Join(" / ", lengths.Select(length => FormattableString.Invariant($"{length:F1} m"))), true, .2);
+            }
         }
         else if (hit != null && Mode == "track" && node == 0 && !Camera.IsPositionBehind(hit.Point) && Camera.Position.DistanceTo(hit.Point) <= ActionDistance)
         {
@@ -359,7 +390,6 @@ public partial class TrackEditor : Node
         RebuildSegmentMenu();
         UpdateMenuPositions();
     }
-    public override void _ExitTree() { Network.Changed -= GraphChanged; Network.Space.Rebased -= Rebased; }
     private void Rebased(TrackVector worldShift)
     {
         var shift = worldShift.Float();
@@ -617,6 +647,10 @@ public partial class TrackEditor : Node
         }
         if (input is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } mouse)
             return;
+        if (Mode == "signal")
+        {
+            CommitSignal(mouse.Position); GetViewport().SetInputAsHandled(); return;
+        }
         if ((Mode != "station" || StationAction.Selected != 1) && Source == 0 && Stations.OpenAt(Camera, mouse.Position))
         {
             ClearPlatformPreview();

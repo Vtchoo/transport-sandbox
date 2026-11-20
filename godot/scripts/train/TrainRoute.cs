@@ -6,6 +6,11 @@ using System.Linq;
 namespace TransportSandbox;
 
 public sealed record WanderingStationStop(int Station, int EndRouteIndex, double Distance, int EndEdge);
+public sealed record RouteSpan(TrackEdge Edge, TrainPosition Position, int Direction, double Distance, double Length, bool ReachesNode)
+{
+    public int Node => Direction > 0 ? Edge.B : Edge.A;
+    public int Side => -TrackNetwork.SideAt(Edge, Node);
+}
 
 public sealed class RouteEnd(double distance) : InvalidOperationException("End of connected track.")
 {
@@ -26,6 +31,7 @@ public sealed class TrainRoute
     private int[] _plan = Array.Empty<int>();
     private int _planStart, _planStep = 1;
     public int PlannedLegCount => _plan.Length;
+    public int PlanRevision { get; private set; }
     public int CachedLegCount => _legs.Count;
     public bool BlockedAhead { get; private set; }
     private uint _random;
@@ -71,6 +77,7 @@ public sealed class TrainRoute
         if (TryLeg(leading.RouteIndex, out var current)) _legs[leading.RouteIndex] = current;
         foreach (int index in _legs.Keys.Where(index => ((long)index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
         _plan = Array.Empty<int>();
+        PlanRevision++;
     }
     /// <summary>Replace only future legs beyond the leading coupler; preserve occupied junctions.</summary>
     public void SetPath(TrainPosition leading, int travelDirection, IReadOnlyList<int> states)
@@ -81,6 +88,7 @@ public sealed class TrainRoute
         foreach (int index in _legs.Keys.Where(index => (index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
         _legs[leading.RouteIndex] = current;
         _plan = states.ToArray(); _planStart = leading.RouteIndex; _planStep = step;
+        PlanRevision++;
     }
     public TrainSample Sample(TrainPosition position, double distance)
     {
@@ -146,6 +154,24 @@ public sealed class TrainRoute
         catch (RouteEnd end) { return end.Distance; }
         catch (RouteBlocked blocked) { BlockedAhead = true; return blocked.Distance; }
     }
+    /// <summary>Walk the already chosen itinerary. Traffic controls never choose junction exits.</summary>
+    public IEnumerable<RouteSpan> Trace(TrainPosition start, int travelDirection, double distance)
+    {
+        var position = start; double walked = 0;
+        for (int hop = 0; hop < 4096 && walked <= distance; hop++)
+        {
+            if (!_placement.Network.Edges.TryGetValue(position.Edge, out var edge)) yield break;
+            int direction = position.Facing * travelDirection;
+            double available = _placement.Curve(edge).Length * (direction > 0 ? 1 - position.U : position.U);
+            double length = Math.Min(available, distance - walked);
+            yield return new(edge, position, direction, walked, length, available <= distance - walked + 1e-8);
+            if (walked + available >= distance) yield break;
+            TrainPosition next;
+            try { next = Sample(position, travelDirection * (available + .00001)).Position; }
+            catch (InvalidOperationException) { yield break; }
+            walked += available + .00001; position = next;
+        }
+    }
     /// <summary>Find the next platform run on this seeded itinerary, without choosing a destination or changing junction rules.</summary>
     public WanderingStationStop? NextStation(TrainPosition leading, int travelDirection, double lookahead,
         int servicedStation = 0, int servicedIndex = int.MinValue)
@@ -167,7 +193,7 @@ public sealed class TrainRoute
             int nextStation = next is { } following ? _placement.Network.Edges[following.Edge].Station : 0;
             if (edge.Station != 0 && nextStation != edge.Station)
             {
-                double distance = travelled + available - 2;
+                double distance = travelled + available;
                 if (distance >= -.02 && (edge.Station != servicedStation || location.RouteIndex != servicedIndex))
                     return new(edge.Station, location.RouteIndex, Math.Max(0, distance), edge.Id);
             }

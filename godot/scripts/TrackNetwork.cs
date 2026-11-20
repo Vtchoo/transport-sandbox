@@ -189,10 +189,10 @@ public sealed partial class TrackNetwork
     }
     public TrackNode AddParallel(TrackNode node, int side)
     {
-        float spacing = node.Gauge / 1000f + 2.6f;
+        float spacing = DefaultParallelSpacing(node.Gauge);
         bool hasPlatform = Incident(node.Id).Any(edge => edge.Platforms.Contains(side * (edge.A == node.Id ? edge.SideA : -edge.SideB)));
         if (hasPlatform)
-            spacing = Math.Max(spacing, Math.Max(1.75f, node.Gauge / 2000f + 1.05f) * 2) + 6;
+            spacing = Math.Max(node.Gauge / 1000f + 2.6f, Math.Max(1.75f, node.Gauge / 2000f + 1.05f) * 2) + 6;
         if (node.Group == 0)
         {
             node.Group = _nextGroup++;
@@ -234,6 +234,7 @@ public sealed partial class TrackNetwork
     {
         if (!Nodes.TryGetValue(id, out var node))
             return;
+        Signals.Remove(new(id, -1)); Signals.Remove(new(id, 1));
         foreach (var edge in Incident(id))
             Edges.Remove(edge.Id);
         if (node.Group != 0)

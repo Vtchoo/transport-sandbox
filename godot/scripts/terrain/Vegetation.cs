@@ -42,7 +42,7 @@ public static class Vegetation
                 double x = chunkX * 512.0 + localX, z = chunkZ * 512.0 + localZ;
                 double forest = terrain.Noise(x / (650 * terrain.HorizontalScale), z / (650 * terrain.HorizontalScale), 307);
                 double patch = terrain.Noise(x / 105, z / 105, 311);
-                double density = .025 + .73 * TerrainSampler.Smooth(-.28, .42, forest + patch * .3);
+                double density = (.025 + .73 * TerrainSampler.Smooth(-.28, .42, forest + patch * .3)) / 4;
                 double chance = Random(cx, cz, 79);
                 if (chance > density)
                     continue;

@@ -22,7 +22,7 @@ export function generateTrees(generator: TerrainGenerator, chunkX: number, chunk
     const x = chunkX * CHUNK_SIZE + localX, z = chunkZ * CHUNK_SIZE + localZ;
     const forest = generator.noise(x / (650 * horizontalScale), z / (650 * horizontalScale), 307);
     const patch = generator.noise(x / 105, z / 105, 311);
-    const density = .025 + .73 * smooth(-.28, .42, forest + patch * .3);
+    const density = (.025 + .73 * smooth(-.28, .42, forest + patch * .3)) / 4;
     const chance = random(cx, cz, 79);
     if (chance > density) continue;
     const y = generator.baseHeight(x, z);

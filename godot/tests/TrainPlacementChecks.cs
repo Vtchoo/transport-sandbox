@@ -156,6 +156,27 @@ public static class TrainPlacementChecks
             editor.StartPlacement(second);
             editor.RefreshPreview(point);
             check(!editor.Valid, "Overlapping parked train placement is rejected");
+            var separatePoint = camera.UnprojectPosition(new(0, 0, 550));
+            editor.RefreshPreview(separatePoint);
+            check(!editor.Valid && editor.OccupiedBlock && editor.Message.Contains("Hold Shift"),
+                "A distant train on the same unsignalled block prevents placement without physical overlap");
+            warning = "";
+            check(!editor.CommitPreview() && warning.Contains("Block occupied") && !editor.Builder.Get(second).Placed,
+                "Blocked placement warns near the mouse and leaves the train off track");
+            editor.PlacementBlockOverride = () => true;
+            editor.RefreshPreview(point);
+            check(!editor.Valid, "Shift does not bypass physical train overlap");
+            editor.RefreshPreview(separatePoint);
+            check(editor.Valid && editor.OccupiedBlock && editor.Message.Contains("Warning"),
+                "Shift permits a non-overlapping occupied-block preview with a warning");
+            editor.PlacementBlockOverride = () => false;
+            check(!editor.CommitPreview(), "Releasing Shift before clicking revalidates and rejects occupied-block placement");
+            editor.PlacementBlockOverride = () => true;
+            warning = "";
+            check(editor.CommitPreview() && warning.Contains("occupied by another train"),
+                "Shift placement succeeds and emits the pointer warning");
+            editor.RemoveFromTrack(second); editor.StartPlacement(second);
+            editor.PlacementBlockOverride = () => false;
             editor.CancelPlacement();
             ui.OpenTrain(second, true);
             editor.StartPlacement(second);

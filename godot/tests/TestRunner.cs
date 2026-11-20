@@ -43,6 +43,11 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "signals":
+                    SignalChecks.Run(Check);
+                    await SignalIntegrationChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "performance":
                     TerrainPerformance.Run();
                     break;
@@ -72,6 +77,8 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    SignalChecks.Run(Check);
+                    await SignalIntegrationChecks.Run(Check, Frame, this);
                     Core();
                     await WorldVisualChecks.Run(Check, Frame, this);
                     await Menu();
@@ -350,7 +357,7 @@ public partial class TestRunner : Node
                 var colors = arrays[(int)Mesh.ArrayType.Color].AsColorArray();
                 var indices = arrays[(int)Mesh.ArrayType.Index].AsInt32Array();
                 Check(vertices.Length == Integer(reference, "vertexCount") && indices.Length == Integer(reference, "indexCount"), "Chunk buffer counts match browser");
-                if (Integer(reference, "segments") < 64)
+                if (Integer(reference, "segments") < 32)
                     Check(data["trees"].AsFloat32Array().Length == 0, "Distant tiles skip vegetation");
                 else
                 {

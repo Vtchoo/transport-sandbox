@@ -10,6 +10,8 @@ public partial class TrainEditor
     public string WorldSeed = "railway";
     public event Action? MotionChanged;
     private double _motionHud;
+    private RailInterlocking? _interlocking;
+    public RailInterlocking Interlocking => _interlocking ??= new(Network, Placement);
     private uint RouteSeed(int id)
     {
         uint hash = 2166136261;
@@ -55,6 +57,8 @@ public partial class TrainEditor
     }
     private void MoveTrains(double dt)
     {
+        if (Network.Signals.Count > 0 || _interlocking != null)
+            Interlocking.Update(Parked.Select(p => new SignalTrain(p.Id, RouteFor(p), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)));
         double catalogMax = Catalog.Definitions.Max(d => d.Physics.MaxSpeedMps);
         foreach (var parked in Parked)
         {
@@ -80,13 +84,26 @@ public partial class TrainEditor
                 double braking = TrainPhysics.BrakingDeceleration(grade, HoPhysics);
                 double lookahead = Math.Max(100, train.Speed * train.Speed / (2 * braking) + 50);
                 var command = ExecuteOrders(parked, train, route, dt, lookahead);
-                double clearance = Math.Max(0, route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2 - 2);
+                double endClearance = route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2;
+                // A platform at a physical dead end must still be reachable at its exact edge.
+                // Signal and collision stopping distances remain independent safety limits.
+                bool stationAtEnd = !route.BlockedAhead && double.IsFinite(command.StopDistance)
+                    && Math.Abs(endClearance - command.StopDistance) < .1;
+                double clearance = Math.Max(0, endClearance - (stationAtEnd ? 0 : 2));
                 if (route.BlockedAhead)
                 {
                     command = (true, command.StopDistance);
                     if (parked.Journey is { Reachable: true } blocked) { blocked.NeedsReplan = true; blocked.HoldForReplan = true; }
                 }
                 double free = Math.Min(clearance, command.StopDistance);
+                bool reverseAtSignal = false;
+                if (Network.Signals.Count > 0)
+                {
+                    var signal = Interlocking.Limit(new(train.Id, route, parked.Position, length, direction), lookahead);
+                    free = Math.Min(free, signal.Distance);
+                    reverseAtSignal = signal.CanReverse && signal.Distance < .05;
+                    if (signal.Message.Length > 0) train.Orders.Status = signal.Message;
+                }
                 var others = Parked.Where(p => p != parked).ToArray();
                 if (others.Length > 0)
                     for (double d = 0; d < free; d += 4)
@@ -116,7 +133,7 @@ public partial class TrainEditor
                 if (free < .05 && Math.Abs(train.Speed) < .1)
                 {
                     train.Speed = 0;
-                    if (train.Running && !command.Hold && clearance < .05 && command.StopDistance > .05)
+                    if (train.Running && !command.Hold && (clearance < .05 || reverseAtSignal) && command.StopDistance > .05)
                         train.TravelDirection = -direction;
                     continue;
                 }

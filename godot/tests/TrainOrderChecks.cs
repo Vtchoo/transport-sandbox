@@ -51,12 +51,12 @@ public static class TrainOrderChecks
         using var stationPlacement = new TrainPlacement(stationLine);
         var stationRoute = new TrainRoute(stationPlacement, new(spans[0].Id, .5), 12);
         var stationStop = stationRoute.NextStation(new(spans[0].Id, .5), 1, 500);
-        check(stationStop is { Station: 70, EndRouteIndex: 2 } && Math.Abs(stationStop.Distance - 248) < 1e-6,
+        check(stationStop is { Station: 70, EndRouteIndex: 2 } && Math.Abs(stationStop.Distance - 250) < 1e-6,
             "Wandering finds the far end of a multi-segment station rather than stopping at each segment");
         check(stationRoute.NextStation(new(spans[0].Id, .5), 1, 500, 70, 2) == null,
             "A serviced station visit is skipped until the train encounters another visit");
         var backwardsRoute = new TrainRoute(stationPlacement, new(spans[3].Id, .5), 12);
-        check(Math.Abs(backwardsRoute.NextStation(new(spans[3].Id, .5), -1, 500)!.Distance - 248) < 1e-6,
+        check(Math.Abs(backwardsRoute.NextStation(new(spans[3].Id, .5), -1, 500)!.Distance - 250) < 1e-6,
             "Wandering station discovery respects the opposite travel direction");
     }
     public static async Task Run(Action<bool, string> check, Func<Task> frame, Node parent)
@@ -125,6 +125,16 @@ public static class TrainOrderChecks
             var other = editor.Builder.Create(); editor.Builder.Add(other, editor.Catalog.Get("atsf-f7a")); ui.OpenRoutes(other.Id);
             ui.AddOrder(other.Id, TrainOrderKind.Wait, seconds: 3); ui.PasteRoute(other.Id);
             check(other.Orders.Items.Count == 5 && other.Orders.Items[0].Seconds == 3, "Paste appends a copied route after existing orders in another train");
+            check(other.Orders.Items.Select(order => (order.Kind, order.Target, order.Seconds)).SequenceEqual(new[]
+            {
+                (TrainOrderKind.Wait, 0, 3d),
+                (TrainOrderKind.Station, bc.Station, 0d),
+                (TrainOrderKind.Wait, 0, 2d),
+                (TrainOrderKind.Waypoint, a.Id, 0d),
+                (TrainOrderKind.Wait, 0, 1d)
+            }), "Route clipboard preserves every station, waypoint and wait in order, with exact targets and durations");
+            check(other.Orders.Items.Select(order => order.Id).Distinct().Count() == 5,
+                "Pasted orders receive unique identities without replacing the train's existing orders");
             other.Orders.Remove(other.Orders.Items[1].Id);
             check(train.Orders.Items.Count == 4, "Editing pasted orders never changes the source train");
             editor.Select(id); editor.StartPlacement(id);
@@ -172,7 +182,7 @@ public static class TrainOrderChecks
                     "An exhausted distance counter cannot complete an order away from its actual station");
             }
             check(await DriveUntil(() => train.Orders.Index == 1 && train.Orders.WaitRemaining > 0), "Train navigates to its station and starts the following timed wait");
-            check(Math.Abs(train.Speed) < .001 && Math.Abs(parked.Poses[0].Center.Z + train.Length / 2 - 798) < .15, "Station arrival stops the leading coupler two metres before the platform end");
+            check(Math.Abs(train.Speed) < .001 && Math.Abs(parked.Poses[0].Center.Z + train.Length / 2 - 800) < .15, "Station arrival stops the leading coupler at the platform edge");
             double remaining = train.Orders.WaitRemaining;
             editor.ToggleRunning(id); for (int i = 0; i < 10; i++) editor.AdvanceMovement(.1);
             check(Math.Abs(train.Orders.WaitRemaining - remaining) < 1e-8, "Stopped trains pause their wait countdown");
@@ -246,7 +256,7 @@ public static class TrainOrderChecks
             editor.ServiceStation = (_, _, _) => { serviceTicks++; return busy; };
             check(await DriveUntil(() => parked.Wandering?.Servicing == true), "An empty-order train wanders and brakes for the next station");
             check(train.Orders.Items.Count == 0 && train.Running && Math.Abs(train.Speed) < .001
-                && Math.Abs(parked.Poses[0].Center.Z + train.Length / 2 - 798) < .15,
+                && Math.Abs(parked.Poses[0].Center.Z + train.Length / 2 - 800) < .15,
                 "Wandering arrival stops at the platform end without adding synthetic route orders");
             for (int i = 0; i < 20; i++) editor.AdvanceMovement(.1);
             check(parked.Wandering!.Servicing && Math.Abs(train.Speed) < .001 && serviceTicks > 0,
@@ -266,8 +276,8 @@ public static class TrainOrderChecks
             busy = true;
             check(await DriveUntil(() => train.TravelDirection == -1 && parked.Wandering?.Servicing == true),
                 "After a dead-end reversal, wandering stops at the station again on the return visit");
-            check(Math.Abs(parked.Poses[0].Center.Z - train.Length / 2 - 402) < .15,
-                "Return visits stop two metres before the platform end in the actual travel direction");
+            check(Math.Abs(parked.Poses[0].Center.Z - train.Length / 2 - 400) < .15,
+                "Return visits stop at the platform edge in the actual travel direction");
             ui.AddOrder(id, TrainOrderKind.Waypoint, a.Id);
             check(await DriveUntil(() => parked.Poses[0].Center.Z < 350) && parked.Wandering == null,
                 "Adding a route during a wandering dwell cancels the automatic station pause and follows orders");
@@ -275,8 +285,8 @@ public static class TrainOrderChecks
             editor.OrdersChanged(id); network.AddStation(ab, 1);
             check(await DriveUntil(() => parked.Wandering?.Servicing == true) && train.TravelDirection == -1,
                 "A platform ending at a dead end receives its station stop before the train reverses");
-            check(Math.Abs(parked.Poses[0].Center.Z - train.Length / 2 - 2) < .15,
-                "Dead-end station arrivals use the same two-metre stopping clearance");
+            check(Math.Abs(parked.Poses[0].Center.Z - train.Length / 2) < .15,
+                "Dead-end station arrivals use the exact platform edge");
             editor.ServiceStation = null;
             check(await DriveUntil(() => train.TravelDirection == 1, 20), "With no cargo work, the wandering train departs and reverses without an artificial delay");
             var farJunction = network.AddNode(new(0, 0, 5200)); network.ConnectNodes(d, farJunction);
@@ -285,7 +295,7 @@ public static class TrainOrderChecks
             var destinationEnd = network.AddNode(new(1000, 0, 6300));
             var farPlatform = network.ConnectNodes(platformStart, destinationEnd)!; network.AddStation(farPlatform, 1);
             train.Orders.Add(TrainOrderKind.Station, farPlatform.Station); editor.OrdersChanged(id); ResetTrain();
-            double expectedU = 1 - 2 / editor.Placement.Curve(farPlatform).Length;
+            double expectedU = 1;
             check(await DriveUntil(() =>
             {
                 var head = parked.Route!.Sample(parked.Position, train.Length / 2).Position;

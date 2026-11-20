@@ -32,7 +32,7 @@ public partial class TrainEditor
                 if (_routingCursor >= _routingSource.Length) break;
                 var edge = _routingSource[_routingCursor]; var p = Network.WorldControls(edge);
                 _routingInput[_routingCursor++] = new(edge.Id, edge.A, edge.B, edge.Gauge, edge.SideA, edge.SideB, edge.Station,
-                    p[0], p[1], p[2], p[3], Placement.CachedLength(edge.Id));
+                    p[0], p[1], p[2], p[3], Placement.CachedLength(edge.Id), Network.SignalMask(edge.A), Network.SignalMask(edge.B));
             } while (budget.Elapsed.TotalMilliseconds < 2);
             if (_routingCursor == _routingSource.Length)
             {
@@ -69,7 +69,7 @@ public partial class TrainEditor
                     if (Network.Continuations(end, outgoing).Any(edge => edge.Station == order.Target)) continue;
                     var edge = end;
                     int direction = outgoing;
-                    double remaining = 2;
+                    double remaining = 0;
                     var visited = new HashSet<int>();
                     while (visited.Add(edge.Id))
                     {

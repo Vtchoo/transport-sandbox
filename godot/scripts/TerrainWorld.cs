@@ -71,7 +71,7 @@ public partial class TerrainWorld : Node3D
     {
         if (!_naturalTrees.TryGetValue(key, out var natural))
             return;
-        if (holder.GetMeta("segments").AsInt32() < 64)
+        if (holder.GetMeta("segments").AsInt32() < 32)
         {
             Trees.Deactivate(key);
             return;

@@ -28,7 +28,7 @@ self.onmessage = (event: MessageEvent<ChunkRequest>) => {
   // Vegetation work stays off the render thread and is bounded to detailed nearby tiles.
   const key = `${request.x},${request.z}`;
   let natural = vegetation.get(key);
-  if (request.segments >= 64 && !natural) {
+  if (request.segments >= 32 && !natural) {
     natural = generateTrees(generator, request.x, request.z);
     vegetation.set(key, natural); vegetationBytes += natural.byteLength;
     while (vegetation.size > 128 || vegetationBytes > 8 * 1024 * 1024) {
@@ -36,7 +36,7 @@ self.onmessage = (event: MessageEvent<ChunkRequest>) => {
       vegetation.delete(oldKey); vegetationBytes -= old.byteLength;
     }
   }
-  result.trees = request.segments >= 64 ? natural!.slice() : new Float32Array();
+  result.trees = request.segments >= 32 ? natural!.slice() : new Float32Array();
   const n = request.segments, side = n + 1;
   if (result.positions.length === (side * side + side * 4) * 3) {
     // Seat roots on rendered triangles rather than the analytic heightfield.
