@@ -16,14 +16,14 @@ public sealed record VehiclePose(Vector3 Center, Vector3 Front, Vector3 Rear, Ve
 public sealed class TrainPlacement : IDisposable
 {
     public TrackNetwork Network { get; }
-    private readonly Dictionary<int, TrackCurve> _curves = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<int, TrackCurve> _curves = new();
     public TrainPlacement(TrackNetwork network) { Network = network; Network.Changed += Invalidate; Network.Space.Rebased += Rebased; }
     private void Invalidate() => _curves.Clear();
     private void Rebased(TrackVector worldShift) => Invalidate();
     public void Dispose() { Network.Changed -= Invalidate; Network.Space.Rebased -= Rebased; }
     public TrackCurve Curve(TrackEdge edge)
     {
-        if (!_curves.TryGetValue(edge.Id, out var curve)) _curves[edge.Id] = curve = new(Network.PreciseControls(edge));
+        if (!_curves.TryGetValue(edge.Id, out var curve)) curve = _curves.GetOrAdd(edge.Id, new TrackCurve(Network.PreciseControls(edge)));
         return curve;
     }
     public double CachedLength(int edge) => _curves.TryGetValue(edge, out var curve) ? curve.Length : -1;

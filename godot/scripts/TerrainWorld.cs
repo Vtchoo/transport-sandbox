@@ -16,6 +16,7 @@ public partial class TerrainWorld : Node3D
     public readonly Dictionary<Vector2I, Node3D> Chunks = new();
     public readonly Dictionary<Vector2I, TerrainTile> Wanted = new();
     private readonly HashSet<Vector2I> _tasks = new();
+    private readonly HashSet<Vector2I> _invalidatedTasks = new();
     public TerrainMeshCache MeshCache { get; } = new();
     public long SubmittedJobs
     {
@@ -46,24 +47,30 @@ public partial class TerrainWorld : Node3D
     private readonly Dictionary<Vector2I, TreeData[]> _naturalTrees = new(), _visibleTrees = new();
     public int NaturalTreeCount => _naturalTrees.Values.Sum(t => t.Length);
     public int VisibleTreeCount => _visibleTrees.Values.Sum(t => t.Length);
-    public void SetEarthworks(Terrain.EarthworkField field)
+    internal IEnumerable<Vector2I> EarthworkCandidates() => Wanted.Keys.Concat(Chunks.Keys).Concat(MeshCache.Chunks).Concat(_tasks).Distinct();
+    public void SetEarthworks(Terrain.EarthworkField field, Terrain.EarthworkChanges? changes = null)
     {
+        using var probe = FrameProbe.Measure("earthworks.apply");
         var previous = _clearance;
         _clearance = field;
         Generator.Earthworks = field;
         _terrainRevision++;
         var affected = new HashSet<Vector2I>();
-        foreach (var key in Wanted.Keys.Concat(Chunks.Keys).Concat(MeshCache.Chunks).Distinct())
-            if (previous?.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, Generator.Sampler.Height) == true ||
+        using (FrameProbe.Measure("earthworks.find-affected"))
+        foreach (var key in EarthworkCandidates())
+            if (changes != null ? changes.Affects(key) :
+                previous?.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, Generator.Sampler.Height) == true ||
                 field.AffectsBounds(key.X * 512.0, key.Y * 512.0, 512, Generator.Sampler.Height))
                 affected.Add(key);
-        MeshCache.AdvanceRevision(_terrainRevision, affected.Contains);
+        using (FrameProbe.Measure("earthworks.cache-revision")) MeshCache.AdvanceRevision(_terrainRevision, affected.Contains);
+        foreach (var key in _tasks) if (affected.Contains(key)) _invalidatedTasks.Add(key);
         foreach (var key in affected)
             if (Wanted.ContainsKey(key))
                 _dirtyChunks.Add(key);
         foreach (var (key, holder) in Chunks)
             if (!affected.Contains(key))
                 holder.SetMeta("earthwork_revision", _terrainRevision);
+        using (FrameProbe.Measure("earthworks.refresh-trees"))
         foreach (var (key, holder) in Chunks)
             if (affected.Contains(key))
                 RefreshTrees(key, holder);
@@ -134,6 +141,7 @@ public partial class TerrainWorld : Node3D
             using var data = _completed.Dequeue();
             var key = data["key"].AsVector2I();
             _tasks.Remove(key);
+            bool invalidated = _invalidatedTasks.Remove(key);
             var prepared = Generator.Backend.TakePreparedTrees(key);
             if (data.ContainsKey("error"))
             {
@@ -142,11 +150,11 @@ public partial class TerrainWorld : Node3D
                 continue;
             }
             int segments = data["segments"].AsInt32();
-            if (data["revision"].AsInt64() != _terrainRevision)
+            if (invalidated)
                 continue;
             using var arrays = data["arrays"].AsGodotArray();
             var mesh = new ArrayMesh();
-            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+            using (FrameProbe.Measure("terrain.mesh.upload")) mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
             var trees = prepared?.Trees ?? Array.Empty<TreeData>();
             long bytes = 2L * (arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array().LongLength * 40 + arrays[(int)Mesh.ArrayType.Index].AsInt32Array().LongLength * 4) + (prepared?.EstimatedBytes ?? trees.LongLength * 28);
             var cached = new CachedTerrainMesh(mesh, trees, bytes, prepared);
@@ -201,6 +209,7 @@ public partial class TerrainWorld : Node3D
     }
     private void Mount(Vector2I key, int segments, CachedTerrainMesh entry)
     {
+        using var probe = FrameProbe.Measure("terrain.mount");
         Trees.Deactivate(key);
         if (Chunks.TryGetValue(key, out var previous))
             Retire(key, previous);

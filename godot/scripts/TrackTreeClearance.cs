@@ -15,8 +15,10 @@ public partial class TrackTreeClearance : Node
     public TerrainWorld World = null!;
     private readonly CancellationTokenSource _shutdown = new();
     private sealed record Prepared(TrackVector[] Controls, EarthPoint[] Points);
-    private sealed record Result(long Revision, EarthworkField Field, Dictionary<int, Prepared> Cache);
+    private sealed record Result(long Revision, EarthworkField? Field, EarthworkChanges? Changes, Dictionary<int, Prepared> Cache);
     private Dictionary<int, Prepared> _cache = new();
+    private Dictionary<int, Prepared> _applied = new();
+    private EarthworkField? _appliedField;
     private Task<Result>? _job;
     private long _revision;
     private double _remaining;
@@ -60,7 +62,11 @@ public partial class TrackTreeClearance : Node
                 var result = _job.Result;
                 _cache = result.Cache;
                 if (result.Revision == _revision)
-                    World.SetEarthworks(result.Field);
+                {
+                    if (result.Field != null) World.SetEarthworks(result.Field, result.Changes);
+                    _applied = result.Cache;
+                    if (result.Field != null) _appliedField = result.Field;
+                }
             }
             else if (_job.IsFaulted)
                 GD.PushError(_job.Exception!.ToString());
@@ -70,20 +76,38 @@ public partial class TrackTreeClearance : Node
             return;
         _dirty = false;
         long revision = _revision;
+        using var captureProbe = FrameProbe.Measure("earthworks.capture");
         var paths = Network.Edges.Values.Select(e => (e.Id, Controls: Network.WorldControls(e))).ToArray();
         var previous = _cache;
+        var applied = _applied; var appliedField = _appliedField;
+        var candidates = World.EarthworkCandidates().ToArray();
         var sampler = World.Generator.Sampler;
         var token = _shutdown.Token;
         _job = Task.Run(() =>
         {
+            using var jobProbe = EarthworkProbe.Measure("preparation.total");
             var cache = new Dictionary<int, Prepared>();
             foreach (var (id, controls) in paths)
             {
                 token.ThrowIfCancellationRequested();
-                cache[id] = previous.TryGetValue(id, out var old) && old.Controls.SequenceEqual(controls) ? old
-                    : new(controls, EarthworkField.Prepare(SamplePath(controls), sampler.Height, sampler.MountainHeight, token));
+                if (previous.TryGetValue(id, out var old) && old.Controls.SequenceEqual(controls)) cache[id] = old;
+                else
+                {
+                    using var segmentProbe = EarthworkProbe.Measure("preparation.segment", id);
+                    cache[id] = new(controls, EarthworkField.Prepare(SamplePath(controls), sampler.Height, sampler.MountainHeight, token));
+                }
             }
-            return new Result(revision, new EarthworkField(cache.Values.Select(p => p.Points)), cache);
+            // Compare against the last APPLIED snapshot, not a discarded worker result.
+            var changed = cache.Where(p => !applied.TryGetValue(p.Key, out var old) || !old.Controls.SequenceEqual(p.Value.Controls)).Select(p => p.Key).ToHashSet();
+            changed.UnionWith(applied.Keys.Where(id => !cache.ContainsKey(id)));
+            if (changed.Count == 0) return new Result(revision, null, null, cache);
+            EarthworkField field;
+            using (EarthworkProbe.Measure("preparation.field")) field = new EarthworkField(cache.Values.Select(p => p.Points));
+            var changedPaths = changed.SelectMany(id => new[] { applied.GetValueOrDefault(id)?.Points, cache.GetValueOrDefault(id)?.Points })
+                .Where(points => points != null).Select(points => points!);
+            var changes = new EarthworkChanges(changedPaths, Math.Max(appliedField?.InfluenceWidth ?? 0, field.InfluenceWidth));
+            using (EarthworkProbe.Measure("preparation.dirty-chunks")) changes.Resolve(candidates, appliedField, field, sampler.Height);
+            return new Result(revision, field, changes, cache);
         }, token);
     }
     public override void _ExitTree()

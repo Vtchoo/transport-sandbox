@@ -1887,5 +1887,102 @@
         }
       }
     }
+  },
+  "parallel_calculations": {
+    "implementation": "Grade batch, coordinated orders/reservations, curve batch, coordinated collision/movement application. At most four partitions, synchronous barriers, serial fallback below four moving trains or on single-core runtime. Per-train route state has exclusive ownership during worker batches; graph stays frozen until join. Concurrent immutable geometry cache inserts. No asynchronous result expiry, dropped requests or lateness-induced braking.",
+    "method": "Same copied four-train save and 600 fixed 60 Hz steps per process; discard first 60 samples. Debug/headless, CPU and hardware as above. One process per mode; timings vary. No claim of large-fleet or GPU performance. Main-thread allocation probes omit worker allocations, so allocation numbers are not used for parallel mode comparisons.",
+    "result": "Average movement about 21% faster; p99 slightly worse in this pair of runs. Scheduling/GC/cold signal spikes remain. Correctness checks compare serial/parallel grades, curve limits, seeded routes, positions, speeds and reservations.",
+    "cases": {
+      "simulation": {
+        "warm_samples": 540,
+        "summary": {
+          "movement": {
+            "mean": 2.3769725925925926,
+            "p99": 7.1579,
+            "max": 18.5843
+          },
+          "curve.batch": {
+            "mean": 0.5492659259259259,
+            "p99": 0.9837,
+            "max": 15.3901
+          },
+          "grade.batch": {
+            "mean": 0.04825537037037037,
+            "p99": 0.1132,
+            "max": 3.3715
+          },
+          "collision": {
+            "mean": 0.22102314814814814,
+            "p99": 0.2852,
+            "max": 3.8731
+          },
+          "signals.update": {
+            "mean": 0.10034944444444445,
+            "p99": 0.9976,
+            "max": 5.2234
+          },
+          "instances.sync": {
+            "mean": 0.32050944444444446,
+            "p99": 0.7899,
+            "max": 5.6259
+          },
+          "elapsed": {
+            "mean": 2.3948883333333333,
+            "p99": 7.1791,
+            "max": 18.6151
+          },
+          "gc.gen0": {
+            "mean": 0.024074074074074074,
+            "p99": 1,
+            "max": 2
+          }
+        }
+      },
+      "simulation-serial": {
+        "warm_samples": 540,
+        "summary": {
+          "movement": {
+            "mean": 3.0012905555555554,
+            "p99": 6.6386,
+            "max": 18.3589
+          },
+          "curve.batch": {
+            "mean": 1.3388605555555555,
+            "p99": 1.9011,
+            "max": 5.0502
+          },
+          "grade.batch": {
+            "mean": 0.04137814814814815,
+            "p99": 0.061,
+            "max": 0.0805
+          },
+          "collision": {
+            "mean": 0.18299351851851853,
+            "p99": 0.298,
+            "max": 0.6281
+          },
+          "signals.update": {
+            "mean": 0.04201425925925926,
+            "p99": 0.3552,
+            "max": 1.0713
+          },
+          "instances.sync": {
+            "mean": 0.3178827777777778,
+            "p99": 0.9615,
+            "max": 15.4002
+          },
+          "elapsed": {
+            "mean": 3.0145257407407406,
+            "p99": 6.652,
+            "max": 18.4171
+          },
+          "gc.gen0": {
+            "mean": 0.022222222222222223,
+            "p99": 1,
+            "max": 2
+          }
+        }
+      }
+    }
   }
 }

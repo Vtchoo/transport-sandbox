@@ -107,15 +107,21 @@ public partial class TerrainBackend : RefCounted
         var token = _shutdown.Token;
         _jobs.Add(key, Task.Run(() =>
         {
+            using var jobProbe = EarthworkProbe.Measure("chunk.total", key.X, key.Y);
             string signature = earthworks?.ChunkSignature(key.X, key.Y) ?? "";
-            var saved = Regions?.Read(key.X, key.Y, segments, signature);
+            byte[]? saved;
+            using (EarthworkProbe.Measure("region.read", key.X, key.Y)) saved = Regions?.Read(key.X, key.Y, segments, signature);
             ChunkData data;
-            if (saved != null) data = DecodeChunk(saved, revision);
+            if (saved != null)
+            {
+                using var decodeProbe = EarthworkProbe.Measure("region.decode", key.X, key.Y);
+                data = DecodeChunk(saved, revision);
+            }
             else
             {
-                data = Build(sampler, key, segments, token, earthworks, revision, false);
+                using (EarthworkProbe.Measure("chunk.build", key.X, key.Y)) data = Build(sampler, key, segments, token, earthworks, revision, false);
                 Interlocked.Increment(ref _meshGenerations);
-                Regions?.Write(key.X, key.Y, segments, signature, EncodeChunk(data));
+                using (EarthworkProbe.Measure("region.encode-write", key.X, key.Y)) Regions?.Write(key.X, key.Y, segments, signature, EncodeChunk(data));
             }
             if (segments < 32)
                 return data;
@@ -130,6 +136,7 @@ public partial class TerrainBackend : RefCounted
 
     public Godot.Collections.Array<Godot.Collections.Dictionary> Poll()
     {
+        using var probe = FrameProbe.Measure("terrain.poll-convert");
         var results = new Godot.Collections.Array<Godot.Collections.Dictionary>();
         var completed = new List<Vector2I>();
         foreach (var (key, job) in _jobs)

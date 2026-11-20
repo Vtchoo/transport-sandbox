@@ -7,6 +7,7 @@ namespace TransportSandbox;
 public partial class TrainEditor
 {
     public bool HoPhysics = true;
+    public bool ParallelCalculations = true;
     public string WorldSeed = "railway";
     public event Action? MotionChanged;
     private double _motionHud;
@@ -74,27 +75,36 @@ public partial class TrainEditor
         _collisions.Begin();
         foreach (var p in Parked) _collisions.Add(Builder.Get(p.Id), p.Poses);
         double catalogMax = Catalog.Definitions.Max(d => d.Physics.MaxSpeedMps);
+        var workItems = new System.Collections.Generic.List<MovementWork>();
         foreach (var parked in Parked)
         {
             parked.Effort = 0;
             var train = Builder.Get(parked.Id);
-            if (train.Stopped)
-                continue;
-            var definitions = train.Items.Select(i => i.Definition.Physics).ToArray();
-            var offsets = train.Offsets;
-            int direction = train.TravelDirection;
-            double length = train.Length;
+            if (train.Stopped) continue;
+            var route = RouteFor(parked);
+            var work = new MovementWork(parked, train, route, HoPhysics, catalogMax);
+            workItems.Add(work);
             try
             {
-                var route = RouteFor(parked);
                 if (parked.SupportRevision != _revision)
                 {
                     try { Placement.Poses(train, parked.Position, route.Sample); }
                     catch (RouteBlocked) { throw new InvalidOperationException("Track supporting this train was disconnected."); }
                     parked.SupportRevision = _revision;
                 }
-                var performance = TrainPhysics.Performance(definitions, HoPhysics, catalogMax);
-                double grade = train.Items.Select((item, i) => item.Definition.Physics.MassKg * route.Sample(parked.Position, offsets[i]).Tangent.Y * direction).Sum() / performance.Mass;
+            }
+            catch (InvalidOperationException error) { work.Error = error; }
+        }
+        using (FrameProbe.Measure("grade.batch"))
+            TrainCalculationBatch.Run(workItems, work => work.CalculateGrade(), ParallelCalculations);
+        // Orders, live reservations and detour choices stay on the coordinator thread.
+        foreach (var work in workItems)
+        {
+            if (work.Error != null) continue;
+            var parked = work.Parked; var train = work.Train; var route = work.Route;
+            double grade = work.Grade, length = work.Length; int direction = work.Direction;
+            try
+            {
                 double braking = TrainPhysics.BrakingDeceleration(grade, HoPhysics);
                 double lookahead = Math.Max(100, train.Speed * train.Speed / (2 * braking) + 50);
                 var command = ExecuteOrders(parked, train, route, dt, lookahead);
@@ -129,6 +139,23 @@ public partial class TrainEditor
                     reverseAtSignal = signal.CanReverse && signal.Distance < .05;
                     if (signal.Message.Length > 0) train.Orders.Status = signal.Message;
                 }
+                work.Route = route; work.Braking = braking; work.Lookahead = lookahead;
+                work.Command = command; work.Clearance = clearance; work.Free = free; work.ReverseAtSignal = reverseAtSignal;
+            }
+            catch (InvalidOperationException error) { work.Error = error; }
+        }
+        using (FrameProbe.Measure("curve.batch"))
+            TrainCalculationBatch.Run(workItems, work => work.CalculateCurveLimit(), ParallelCalculations);
+        foreach (var work in workItems)
+        {
+            var parked = work.Parked; var train = work.Train;
+            var route = work.Route; var command = work.Command;
+            var definitions = work.Definitions; double grade = work.Grade, length = work.Length;
+            double braking = work.Braking, free = work.Free, clearance = work.Clearance;
+            int direction = work.Direction; bool reverseAtSignal = work.ReverseAtSignal;
+            try
+            {
+                if (work.Error != null) throw work.Error;
                 var others = Parked.Where(p => p != parked).ToArray();
                 using (FrameProbe.Measure("collision"))
                 {
@@ -144,15 +171,7 @@ public partial class TrainEditor
                             }
                         }
                 }
-                double limit = command.Hold ? 0 : Math.Sqrt(2 * braking * free);
-                double scan = Math.Min(lookahead, clearance);
-                using (FrameProbe.Measure("curve.scan"))
-                for (double d = -length / 2; d <= length / 2 + scan; d += 5)
-                {
-                    var location = route.Sample(parked.Position, direction * d).Position;
-                    double curveLimit = TrainPhysics.CurveLimit(route.TurnRadius(location), HoPhysics);
-                    limit = Math.Min(limit, Math.Sqrt(curveLimit * curveLimit + 2 * braking * Math.Max(0, d - length / 2)));
-                }
+                double limit = Math.Min(work.CurveLimit, command.Hold ? 0 : Math.Sqrt(2 * braking * free));
                 var next = TrainPhysics.Step(definitions, Math.Abs(train.Speed), train.Running && !command.Hold, grade, HoPhysics, dt, limit, catalogMax);
                 if (free < .05 && Math.Abs(train.Speed) < .1)
                 {

@@ -29,10 +29,12 @@ public sealed class EarthworkField
     }
     private readonly Branch? _root;
     private readonly Edge[] _edges;
+    public double InfluenceWidth { get; }
     public EarthworkField(IEnumerable<EarthPoint[]> paths)
     {
         var edges = paths.SelectMany(path => Enumerable.Range(1, Math.Max(0, path.Length - 1)).Select(i => new Edge(path[i - 1], path[i]))).ToArray();
         _edges = edges;
+        InfluenceWidth = edges.Length == 0 ? 0 : edges.Max(e => Math.Max(Math.Max(e.A.Left, e.A.Right), Math.Max(e.B.Left, e.B.Right)));
         if (edges.Length > 0)
             _root = Build(edges);
     }
@@ -41,9 +43,18 @@ public sealed class EarthworkField
     {
         using var bytes = new System.IO.MemoryStream(); using var writer = new System.IO.BinaryWriter(bytes);
         double ox = x * 512.0, oz = z * 512.0;
+        double reach = 512 * (Math.Sqrt(.5) - .5) + 3;
         foreach (var e in _edges)
         {
-            double width = new[] { e.A.Left, e.A.Right, e.B.Left, e.B.Right }.Max();
+            double width = Math.Max(Math.Max(e.A.Left, e.A.Right), Math.Max(e.B.Left, e.B.Right));
+            if (e.MaxX + width >= ox - 34 && e.MinX - width <= ox + 546 && e.MaxZ + width >= oz - 34 && e.MinZ - width <= oz + 546)
+                reach = Math.Max(reach, width);
+        }
+        foreach (var e in _edges)
+        {
+            // A narrow nearer path can mask a wide neighbouring embankment. Cache
+            // identity must include those nearest-path competitors, not just shoulders.
+            double width = reach;
             if (e.MaxX + width < ox - 34 || e.MinX - width > ox + 546 || e.MaxZ + width < oz - 34 || e.MinZ - width > oz + 546) continue;
             foreach (var p in new[] { e.A, e.B })
             { writer.Write(p.X); writer.Write(p.Y); writer.Write(p.Z); writer.Write(p.Nx); writer.Write(p.Nz); writer.Write(p.Left); writer.Write(p.Right); }

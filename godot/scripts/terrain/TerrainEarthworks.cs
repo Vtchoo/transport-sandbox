@@ -12,6 +12,18 @@ public partial class TerrainBackend
     private static ChunkData BuildEarthwork(TerrainSampler sampler, Vector2I key, int segments, CancellationToken token, EarthworkField field, long revision, bool vegetation)
     {
         double ox = key.X * 512.0, oz = key.Y * 512.0;
+        // Exact per-job memoization: neighbouring normal samples and quadtree
+        // corners repeatedly ask for the same heights. Caps bound worker memory.
+        const int maxCachedSamples = 65536;
+        var naturalHeights = new Dictionary<(double X, double Z), double>();
+        var resolvedHeights = new Dictionary<(double X, double Z), double>();
+        double Natural(double x, double z)
+        {
+            if (naturalHeights.TryGetValue((x, z), out double value)) return value;
+            value = sampler.Height(x, z);
+            if (naturalHeights.Count < maxCachedSamples) naturalHeights[(x, z)] = value;
+            return value;
+        }
         var leaves = new List<(double X, double Z, double Size)>();
         var horizontal = new Dictionary<double, SortedSet<double>>();
         var vertical = new Dictionary<double, SortedSet<double>>();
@@ -27,7 +39,7 @@ public partial class TerrainBackend
         void Subdivide(double x, double z, double size)
         {
             token.ThrowIfCancellationRequested();
-            if (size > 1 && field.AffectsBounds(ox + x, oz + z, size, sampler.Height))
+            if (size > 1 && field.AffectsBounds(ox + x, oz + z, size, Natural))
             {
                 double half = size / 2;
                 Subdivide(x, z, half);
@@ -45,6 +57,7 @@ public partial class TerrainBackend
             }
         }
         double step = 512.0 / segments;
+        using (EarthworkProbe.Measure("mesh.subdivision", key.X, key.Y))
         for (double z = 0; z < 512; z += step)
         for (double x = 0; x < 512; x += step)
             Subdivide(x, z, step);
@@ -53,7 +66,13 @@ public partial class TerrainBackend
         var colors = new List<Color>();
         var indices = new List<int>();
         var vertices = new Dictionary<(double, double), int>();
-        double Height(double x, double z) => field.Height(x, z, sampler.Height(x, z));
+        double Height(double x, double z)
+        {
+            if (resolvedHeights.TryGetValue((x, z), out double value)) return value;
+            value = field.Height(x, z, Natural(x, z));
+            if (resolvedHeights.Count < maxCachedSamples) resolvedHeights[(x, z)] = value;
+            return value;
+        }
         int Vertex(double x, double z)
         {
             if (vertices.TryGetValue((x, z), out int previous))
@@ -64,7 +83,7 @@ public partial class TerrainBackend
             int index = positions.Count;
             positions.Add(new(x, h, z));
             normals.Add(new((float)(-dx / length), (float)(1 / length), (float)(-dz / length)));
-            var c = Math.Abs(h - sampler.Height(wx, wz)) > .2 ? (.26, .19, .12) : sampler.Color(wx, wz, h, Math.Sqrt(dx * dx + dz * dz));
+            var c = Math.Abs(h - Natural(wx, wz)) > .2 ? (.26, .19, .12) : sampler.Color(wx, wz, h, Math.Sqrt(dx * dx + dz * dz));
             colors.Add(new Color((float)c.Item1, (float)c.Item2, (float)c.Item3).LinearToSrgb());
             vertices[(x, z)] = index;
             return index;
@@ -75,14 +94,17 @@ public partial class TerrainBackend
             indices.Add(c);
             indices.Add(b);
         }
+        using (EarthworkProbe.Measure("mesh.vertices-stitch", key.X, key.Y))
         foreach (var (x, z, size) in leaves)
         {
             token.ThrowIfCancellationRequested();
             var boundary = new List<int>();
-            boundary.AddRange(vertical[x].Where(v => v >= z && v < z + size).Select(v => Vertex(x, v)));
-            boundary.AddRange(horizontal[z + size].Where(v => v >= x && v < x + size).Select(v => Vertex(v, z + size)));
-            boundary.AddRange(vertical[x + size].Reverse().Where(v => v > z && v <= z + size).Select(v => Vertex(x + size, v)));
-            boundary.AddRange(horizontal[z].Reverse().Where(v => v > x && v <= x + size).Select(v => Vertex(v, z)));
+            // Enumerate this leaf's edge interval rather than scanning the entire
+            // chunk row/column for every leaf. Preserve winding and exclusive ends.
+            boundary.AddRange(vertical[x].GetViewBetween(z, z + size).Where(v => v < z + size).Select(v => Vertex(x, v)));
+            boundary.AddRange(horizontal[z + size].GetViewBetween(x, x + size).Where(v => v < x + size).Select(v => Vertex(v, z + size)));
+            boundary.AddRange(vertical[x + size].GetViewBetween(z, z + size).Reverse().Where(v => v > z).Select(v => Vertex(x + size, v)));
+            boundary.AddRange(horizontal[z].GetViewBetween(x, x + size).Reverse().Where(v => v > x).Select(v => Vertex(v, z)));
             int center = Vertex(x + size / 2, z + size / 2);
             for (int i = 0; i < boundary.Count; i++)
                 Triangle(center, boundary[i], boundary[(i + 1) % boundary.Count]);

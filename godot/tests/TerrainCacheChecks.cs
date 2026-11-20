@@ -56,6 +56,14 @@ public static class TerrainCacheChecks
         world.MeshCache.Clear();
         try
         {
+            world.SetWantedTiles(new[] { new TerrainTile(new(20, 20), 16, 0) });
+            world._Process(0);
+            long inFlightJobs = world.SubmittedJobs;
+            world.SetEarthworks(new EarthworkField(Array.Empty<EarthPoint[]>()), new EarthworkChanges(Array.Empty<EarthPoint[]>()));
+            stage = "unaffected in-flight revision";
+            await Drain();
+            check(world.SubmittedJobs == inFlightJobs && world.Chunks.ContainsKey(new(20, 20)),
+                "An unaffected chunk already being generated survives an earthwork revision without another worker job");
             await Want(16);
             var first = world.Chunks[new(1, 1)].GetChild<MeshInstance3D>(0).Mesh;
             await Want(32);
@@ -76,7 +84,8 @@ public static class TerrainCacheChecks
             double height = generator.Sampler.Height(575, 650) + 5;
             var path = EarthworkField.Prepare(new[] { new EarthPoint(550, height, 650), new EarthPoint(600, height, 650) }, generator.Sampler.Height, 1800);
             world.SetEarthworks(new EarthworkField(new[] { path }));
-            check(world.MeshCache.Count == 0, "Earthwork edits invalidate every cached LOD for affected chunks");
+            check(!world.MeshCache.Chunks.Contains(new(1, 1)) && world.MeshCache.Chunks.Contains(new(20, 20)),
+                "Earthwork edits invalidate every affected LOD while preserving unrelated cached chunks");
             // A revision change while this job runs must not cache its older output.
             world._Process(0);
             world.SetEarthworks(new EarthworkField(Array.Empty<EarthPoint[]>()));

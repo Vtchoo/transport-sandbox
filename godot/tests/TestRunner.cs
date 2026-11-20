@@ -37,12 +37,21 @@ public partial class TestRunner : Node
             if (parts.Length == 2)
                 _args[parts[0]] = parts[1];
         }
-        GetTree().CreateTimer(45).Timeout += () => { if (!_finished) { GD.PushError("C# test/capture timed out"); GetTree().Quit(1); } };
+        GetTree().CreateTimer(_args.GetValueOrDefault("suite") == "earthwork-save-performance" ? 150 : 45).Timeout += () => { if (!_finished) { GD.PushError("C# test/capture timed out"); GetTree().Quit(1); } };
         try
         {
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "earthwork-save-performance":
+                    await EarthworkSavePerformance.Run(Check, Frame, this, _args.GetValueOrDefault("save", "res://.godot/earthwork-profile"));
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
+                case "train-parallel":
+                    TrainParallelChecks.Run(Check);
+                    await TrainParallelChecks.Integration(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "save-performance":
                     await SavePerformance.Run(Frame, this, _args.GetValueOrDefault("phase", "simulation"), _args.GetValueOrDefault("save", "res://.godot/stutter-profile"));
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
@@ -98,6 +107,8 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    TrainParallelChecks.Run(Check);
+                    await TrainParallelChecks.Integration(Check, Frame, this);
                     TrainCollisionChecks.Run(Check);
                     StationTrafficChecks.Run(Check);
                     await SaveGameChecks.Run(Check, Frame, this);
@@ -359,6 +370,7 @@ public partial class TestRunner : Node
     }
     private async Task Terrain()
     {
+        EarthworkInvalidationChecks.Run(Check);
         var fixture = JsonData.Read("res://tests/terrain-chunk-fixtures.json");
         var generator = new TerrainGenerator(JsonData.Settings(fixture.GetProperty("settings")));
         var pending = new Dictionary<Vector2I, JsonElement>();

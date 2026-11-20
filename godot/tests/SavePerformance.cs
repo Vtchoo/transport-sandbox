@@ -36,6 +36,7 @@ public static class SavePerformance
         }
         try
         {
+            editor.ParallelCalculations = !phase.Contains("serial");
             if (phase.EndsWith("stopped"))
                 foreach (var t in editor.Builder.Trains) { t.Running = false; t.Speed = 0; }
             FrameProbe.Enabled = true;

@@ -1,0 +1,2033 @@
+{
+  "date": "2026-11-20",
+  "cpu": "AMD Ryzen 7 7700 8-Core Processor",
+  "runtime": "Godot 4.7.2 .NET, Debug, Windows, headless",
+  "save_utc": "2026-11-20T20:01:43.1654359Z",
+  "segments": 193,
+  "resident_chunks": 441,
+  "test_node": 81,
+  "parallel_group": 21,
+  "method": "Read-only copy of latest user world snapshot; region cache seeded from earlier profiling copy. Main game terrain/clearance pipeline runs normally; train simulation, camera motion, track mesh rebuilding and train UI paused to isolate terrain editing. Four cases after initial settling; 0.4 s edit debounce included in elapsed. Moving one parallel-group node modifies eight segment preparations in this layout. CPU timings only, no GPU measurement. Worker totals are summed concurrent work and must not be added to elapsed. One event can disappear from p99; inspect main-thread max per event. Two runs gave similar main stalls and worker delays. No terrain algorithm/behavior optimizations made.",
+  "findings": [
+    "Main-thread affected-chunk search causes about 133-146 ms stalls by checking old and new earthwork fields over all candidate chunks, including expensive natural-height sampling.",
+    "Every earthwork update marks all chunks touched by any track as affected, instead of only chunks changed by the edit: 31 submissions/replacements for an eight-segment group edit, with only three generated meshes. An unchanged notification also replaces 31 chunks while generating none.",
+    "Three chunk builds run concurrently, but adaptive vertex/normal/color generation and stitching takes most worker time; building three meshes delays completion about five to six seconds.",
+    "Earthwork preparation on one worker takes about 170 ms including full-field BVH reconstruction. Parallelizing preparation alone would not fix the main-thread stall or multi-second mesh latency.",
+    "Uploads are a smaller cost: roughly 50 ms total spread over 31 uploads, usually under 5 ms per frame for the upload scope. Region cache avoids regenerating 28 unchanged meshes but still reads, decodes and uploads them. Repeating a raised state after restoring can miss the region cache because the latest per-key signature replaces the previous one."
+  ],
+  "recommended_order": [
+    "Compute dirty bounds from changed/removed prepared paths, skip unchanged updates, and pass affected keys to the main thread instead of sampling heights across all resident chunks.",
+    "Keep unchanged chunk meshes and tree clearance entries mounted; avoid disk reads, decoding and uploading unchanged geometry.",
+    "Profile/cache repeated natural and earthwork height samples in adaptive mesh generation; preserve exact geometry, normals and colors.",
+    "Only then assess parallel changed-segment preparation and more incremental BVH updates."
+  ],
+  "cases": [
+    {
+      "name": "unchanged-notification",
+      "elapsedMs": 1079.4508,
+      "submitted": 31,
+      "generated": 0,
+      "replaced": 31,
+      "frameCount": 123,
+      "main": {
+        "terrain.poll-convert": {
+          "total": 10.4272,
+          "mean": 0.0847739837398374,
+          "p99": 0.908,
+          "max": 1.0136
+        },
+        "terrain.poll-convert.allocated.bytes": {
+          "total": 78536,
+          "mean": 638.5040650406504,
+          "p99": 4576,
+          "max": 4576
+        },
+        "terrain.poll-convert.calls": {
+          "total": 123,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "total": 3.9013,
+          "mean": 0.03171788617886179,
+          "p99": 0.0916,
+          "max": 1.038
+        },
+        "trees.pump.allocated.bytes": {
+          "total": 1885936,
+          "mean": 15332.81300813008,
+          "p99": 16904,
+          "max": 16968
+        },
+        "trees.pump.calls": {
+          "total": 123,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain": {
+          "total": 237.33580000000006,
+          "mean": 1.9295593495934964,
+          "p99": 9.1329,
+          "max": 15.8785
+        },
+        "terrain.allocated.bytes": {
+          "total": 46240928,
+          "mean": 375942.5040650407,
+          "p99": 2629984,
+          "max": 3452488
+        },
+        "terrain.calls": {
+          "total": 123,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "total": 1064.5507999999998,
+          "mean": 8.654884552845527,
+          "p99": 22.1669,
+          "max": 148.1362
+        },
+        "earthworks.capture": {
+          "total": 0.0832,
+          "mean": 0.0006764227642276422,
+          "p99": 0,
+          "max": 0.0832
+        },
+        "earthworks.capture.allocated.bytes": {
+          "total": 30688,
+          "mean": 249.4959349593496,
+          "p99": 0,
+          "max": 30688
+        },
+        "earthworks.capture.calls": {
+          "total": 1,
+          "mean": 0.008130081300813009,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.find-affected": {
+          "total": 144.3624,
+          "mean": 1.1736780487804879,
+          "p99": 0,
+          "max": 144.3624
+        },
+        "earthworks.find-affected.allocated.bytes": {
+          "total": 90808,
+          "mean": 738.2764227642276,
+          "p99": 0,
+          "max": 90808
+        },
+        "earthworks.find-affected.calls": {
+          "total": 1,
+          "mean": 0.008130081300813009,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.cache-revision": {
+          "total": 0.0046,
+          "mean": 3.7398373983739834e-05,
+          "p99": 0,
+          "max": 0.0046
+        },
+        "earthworks.cache-revision.allocated.bytes": {
+          "total": 168,
+          "mean": 1.3658536585365855,
+          "p99": 0,
+          "max": 168
+        },
+        "earthworks.cache-revision.calls": {
+          "total": 1,
+          "mean": 0.008130081300813009,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.refresh-trees": {
+          "total": 0.3036,
+          "mean": 0.002468292682926829,
+          "p99": 0,
+          "max": 0.3036
+        },
+        "earthworks.refresh-trees.allocated.bytes": {
+          "total": 4904,
+          "mean": 39.86991869918699,
+          "p99": 0,
+          "max": 4904
+        },
+        "earthworks.refresh-trees.calls": {
+          "total": 1,
+          "mean": 0.008130081300813009,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.apply": {
+          "total": 145.1554,
+          "mean": 1.1801252032520324,
+          "p99": 0,
+          "max": 145.1554
+        },
+        "earthworks.apply.allocated.bytes": {
+          "total": 138232,
+          "mean": 1123.8373983739837,
+          "p99": 0,
+          "max": 138232
+        },
+        "earthworks.apply.calls": {
+          "total": 1,
+          "mean": 0.008130081300813009,
+          "p99": 0,
+          "max": 1
+        },
+        "terrain.mesh.upload": {
+          "total": 50.7872,
+          "mean": 0.4129040650406504,
+          "p99": 3.9728,
+          "max": 4.1485
+        },
+        "terrain.mesh.upload.allocated.bytes": {
+          "total": 17960,
+          "mean": 146.01626016260164,
+          "p99": 2184,
+          "max": 5360
+        },
+        "terrain.mesh.upload.calls": {
+          "total": 31,
+          "mean": 0.25203252032520324,
+          "p99": 2,
+          "max": 2
+        },
+        "terrain.mount": {
+          "total": 7.0544,
+          "mean": 0.057352845528455286,
+          "p99": 0.3916,
+          "max": 2.9875
+        },
+        "terrain.mount.allocated.bytes": {
+          "total": 36312,
+          "mean": 295.219512195122,
+          "p99": 2816,
+          "max": 2816
+        },
+        "terrain.mount.calls": {
+          "total": 31,
+          "mean": 0.25203252032520324,
+          "p99": 2,
+          "max": 2
+        }
+      },
+      "stages": {
+        "preparation.field": {
+          "count": 1,
+          "total": 94.6973,
+          "max": 94.6973,
+          "threads": 1
+        },
+        "preparation.total": {
+          "count": 1,
+          "total": 96.1085,
+          "max": 96.1085,
+          "threads": 1
+        },
+        "region.read": {
+          "count": 31,
+          "total": 555.3378,
+          "max": 78.8296,
+          "threads": 4
+        },
+        "region.decode": {
+          "count": 31,
+          "total": 104.1292,
+          "max": 14.082,
+          "threads": 4
+        },
+        "chunk.total": {
+          "count": 31,
+          "total": 889.9935999999998,
+          "max": 96.5398,
+          "threads": 4
+        }
+      }
+    },
+    {
+      "name": "raise-node-2m",
+      "elapsedMs": 5837.7359,
+      "submitted": 31,
+      "generated": 3,
+      "replaced": 31,
+      "frameCount": 781,
+      "main": {
+        "terrain.poll-convert": {
+          "total": 13.33890000000001,
+          "mean": 0.017079257362355965,
+          "p99": 0.3446,
+          "max": 0.7784
+        },
+        "terrain.poll-convert.allocated.bytes": {
+          "total": 245112,
+          "mean": 313.8437900128041,
+          "p99": 1728,
+          "max": 1896
+        },
+        "terrain.poll-convert.calls": {
+          "total": 781,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "total": 24.664,
+          "mean": 0.031580025608194624,
+          "p99": 0.0543,
+          "max": 5.5934
+        },
+        "trees.pump.allocated.bytes": {
+          "total": 12674208,
+          "mean": 16228.179257362355,
+          "p99": 16416,
+          "max": 19000
+        },
+        "trees.pump.calls": {
+          "total": 781,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain": {
+          "total": 1068.1032999999993,
+          "mean": 1.3676098591549286,
+          "p99": 6.8109,
+          "max": 21.62
+        },
+        "terrain.allocated.bytes": {
+          "total": 108731312,
+          "mean": 139220.62996158772,
+          "p99": 1484888,
+          "max": 2642536
+        },
+        "terrain.calls": {
+          "total": 781,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "total": 5815.784900000002,
+          "mean": 7.446587580025612,
+          "p99": 17.8689,
+          "max": 138.6611
+        },
+        "earthworks.capture": {
+          "total": 0.0739,
+          "mean": 9.462227912932137e-05,
+          "p99": 0,
+          "max": 0.0739
+        },
+        "earthworks.capture.allocated.bytes": {
+          "total": 30688,
+          "mean": 39.293213828425095,
+          "p99": 0,
+          "max": 30688
+        },
+        "earthworks.capture.calls": {
+          "total": 1,
+          "mean": 0.0012804097311139564,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.find-affected": {
+          "total": 134.5999,
+          "mean": 0.17234302176696542,
+          "p99": 0,
+          "max": 134.5999
+        },
+        "earthworks.find-affected.allocated.bytes": {
+          "total": 90808,
+          "mean": 116.27144686299616,
+          "p99": 0,
+          "max": 90808
+        },
+        "earthworks.find-affected.calls": {
+          "total": 1,
+          "mean": 0.0012804097311139564,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.cache-revision": {
+          "total": 0.0014,
+          "mean": 1.792573623559539e-06,
+          "p99": 0,
+          "max": 0.0014
+        },
+        "earthworks.cache-revision.allocated.bytes": {
+          "total": 168,
+          "mean": 0.21510883482714468,
+          "p99": 0,
+          "max": 168
+        },
+        "earthworks.cache-revision.calls": {
+          "total": 1,
+          "mean": 0.0012804097311139564,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.refresh-trees": {
+          "total": 0.4605,
+          "mean": 0.000589628681177977,
+          "p99": 0,
+          "max": 0.4605
+        },
+        "earthworks.refresh-trees.allocated.bytes": {
+          "total": 4904,
+          "mean": 6.279129321382842,
+          "p99": 0,
+          "max": 4904
+        },
+        "earthworks.refresh-trees.calls": {
+          "total": 1,
+          "mean": 0.0012804097311139564,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.apply": {
+          "total": 135.6004,
+          "mean": 0.17362407170294494,
+          "p99": 0,
+          "max": 135.6004
+        },
+        "earthworks.apply.allocated.bytes": {
+          "total": 135656,
+          "mean": 173.69526248399487,
+          "p99": 0,
+          "max": 135656
+        },
+        "earthworks.apply.calls": {
+          "total": 1,
+          "mean": 0.0012804097311139564,
+          "p99": 0,
+          "max": 1
+        },
+        "terrain.mesh.upload": {
+          "total": 49.17209999999999,
+          "mean": 0.06296043533930858,
+          "p99": 1.9873,
+          "max": 4.1748
+        },
+        "terrain.mesh.upload.allocated.bytes": {
+          "total": 11856,
+          "mean": 15.180537772087067,
+          "p99": 480,
+          "max": 480
+        },
+        "terrain.mesh.upload.calls": {
+          "total": 31,
+          "mean": 0.03969270166453265,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain.mount": {
+          "total": 4.4738,
+          "mean": 0.0057282970550576184,
+          "p99": 0.1968,
+          "max": 0.2755
+        },
+        "terrain.mount.allocated.bytes": {
+          "total": 35968,
+          "mean": 46.053777208706784,
+          "p99": 1408,
+          "max": 1408
+        },
+        "terrain.mount.calls": {
+          "total": 31,
+          "mean": 0.03969270166453265,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "stages": {
+        "preparation.segment": {
+          "count": 8,
+          "total": 118.2924,
+          "max": 15.5086,
+          "threads": 1
+        },
+        "preparation.field": {
+          "count": 1,
+          "total": 60.9265,
+          "max": 60.9265,
+          "threads": 1
+        },
+        "preparation.total": {
+          "count": 1,
+          "total": 179.3861,
+          "max": 179.3861,
+          "threads": 1
+        },
+        "region.read": {
+          "count": 31,
+          "total": 292.8549,
+          "max": 31.3871,
+          "threads": 3
+        },
+        "region.decode": {
+          "count": 28,
+          "total": 48.813199999999995,
+          "max": 5.0875,
+          "threads": 1
+        },
+        "chunk.total": {
+          "count": 31,
+          "total": 12792.0369,
+          "max": 5080.1536,
+          "threads": 3
+        },
+        "mesh.subdivision": {
+          "count": 3,
+          "total": 2649.5983,
+          "max": 1209.9223,
+          "threads": 3
+        },
+        "mesh.vertices-stitch": {
+          "count": 3,
+          "total": 9539.1701,
+          "max": 3787.4016,
+          "threads": 3
+        },
+        "chunk.build": {
+          "count": 3,
+          "total": 12194.1155,
+          "max": 4999.1044,
+          "threads": 3
+        },
+        "region.encode-write": {
+          "count": 3,
+          "total": 137.7566,
+          "max": 60.7469,
+          "threads": 3
+        }
+      }
+    },
+    {
+      "name": "restore-node",
+      "elapsedMs": 5865.0183,
+      "submitted": 31,
+      "generated": 3,
+      "replaced": 31,
+      "frameCount": 774,
+      "main": {
+        "terrain.poll-convert": {
+          "total": 15.246900000000005,
+          "mean": 0.019698837209302333,
+          "p99": 0.4366,
+          "max": 0.9101
+        },
+        "terrain.poll-convert.allocated.bytes": {
+          "total": 243376,
+          "mean": 314.4392764857881,
+          "p99": 1728,
+          "max": 1896
+        },
+        "terrain.poll-convert.calls": {
+          "total": 774,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "total": 39.636900000000026,
+          "mean": 0.0512104651162791,
+          "p99": 0.0637,
+          "max": 14.3014
+        },
+        "trees.pump.allocated.bytes": {
+          "total": 12576152,
+          "mean": 16248.258397932817,
+          "p99": 16416,
+          "max": 19048
+        },
+        "trees.pump.calls": {
+          "total": 774,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain": {
+          "total": 1096.6133000000002,
+          "mean": 1.4168130490956075,
+          "p99": 7.2662,
+          "max": 15.8784
+        },
+        "terrain.allocated.bytes": {
+          "total": 108071720,
+          "mean": 139627.54521963824,
+          "p99": 1485056,
+          "max": 2642592
+        },
+        "terrain.calls": {
+          "total": 774,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "total": 5842.943700000003,
+          "mean": 7.549022868217059,
+          "p99": 18.0181,
+          "max": 137.2129
+        },
+        "earthworks.capture": {
+          "total": 0.0621,
+          "mean": 8.023255813953489e-05,
+          "p99": 0,
+          "max": 0.0621
+        },
+        "earthworks.capture.allocated.bytes": {
+          "total": 30688,
+          "mean": 39.64857881136951,
+          "p99": 0,
+          "max": 30688
+        },
+        "earthworks.capture.calls": {
+          "total": 1,
+          "mean": 0.0012919896640826874,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.find-affected": {
+          "total": 133.544,
+          "mean": 0.1725374677002584,
+          "p99": 0,
+          "max": 133.544
+        },
+        "earthworks.find-affected.allocated.bytes": {
+          "total": 90808,
+          "mean": 117.32299741602067,
+          "p99": 0,
+          "max": 90808
+        },
+        "earthworks.find-affected.calls": {
+          "total": 1,
+          "mean": 0.0012919896640826874,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.cache-revision": {
+          "total": 0.0016,
+          "mean": 2.0671834625323e-06,
+          "p99": 0,
+          "max": 0.0016
+        },
+        "earthworks.cache-revision.allocated.bytes": {
+          "total": 168,
+          "mean": 0.21705426356589147,
+          "p99": 0,
+          "max": 168
+        },
+        "earthworks.cache-revision.calls": {
+          "total": 1,
+          "mean": 0.0012919896640826874,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.refresh-trees": {
+          "total": 0.221,
+          "mean": 0.0002855297157622739,
+          "p99": 0,
+          "max": 0.221
+        },
+        "earthworks.refresh-trees.allocated.bytes": {
+          "total": 4904,
+          "mean": 6.335917312661499,
+          "p99": 0,
+          "max": 4904
+        },
+        "earthworks.refresh-trees.calls": {
+          "total": 1,
+          "mean": 0.0012919896640826874,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.apply": {
+          "total": 134.2964,
+          "mean": 0.17350956072351423,
+          "p99": 0,
+          "max": 134.2964
+        },
+        "earthworks.apply.allocated.bytes": {
+          "total": 135656,
+          "mean": 175.26614987080103,
+          "p99": 0,
+          "max": 135656
+        },
+        "earthworks.apply.calls": {
+          "total": 1,
+          "mean": 0.0012919896640826874,
+          "p99": 0,
+          "max": 1
+        },
+        "terrain.mesh.upload": {
+          "total": 49.5582,
+          "mean": 0.06402868217054264,
+          "p99": 2.2712,
+          "max": 4.3277
+        },
+        "terrain.mesh.upload.allocated.bytes": {
+          "total": 12024,
+          "mean": 15.534883720930232,
+          "p99": 480,
+          "max": 480
+        },
+        "terrain.mesh.upload.calls": {
+          "total": 31,
+          "mean": 0.040051679586563305,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain.mount": {
+          "total": 4.726800000000001,
+          "mean": 0.006106976744186048,
+          "p99": 0.1979,
+          "max": 0.2552
+        },
+        "terrain.mount.allocated.bytes": {
+          "total": 35968,
+          "mean": 46.4702842377261,
+          "p99": 1408,
+          "max": 1408
+        },
+        "terrain.mount.calls": {
+          "total": 31,
+          "mean": 0.040051679586563305,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "stages": {
+        "preparation.segment": {
+          "count": 8,
+          "total": 107.6808,
+          "max": 17.1554,
+          "threads": 1
+        },
+        "preparation.field": {
+          "count": 1,
+          "total": 56.6781,
+          "max": 56.6781,
+          "threads": 1
+        },
+        "preparation.total": {
+          "count": 1,
+          "total": 164.4278,
+          "max": 164.4278,
+          "threads": 1
+        },
+        "region.read": {
+          "count": 31,
+          "total": 237.5625,
+          "max": 22.982,
+          "threads": 4
+        },
+        "region.decode": {
+          "count": 28,
+          "total": 51.59459999999999,
+          "max": 4.9499,
+          "threads": 2
+        },
+        "chunk.total": {
+          "count": 31,
+          "total": 12916.767899999999,
+          "max": 5133.5876,
+          "threads": 4
+        },
+        "mesh.subdivision": {
+          "count": 3,
+          "total": 2647.6261999999997,
+          "max": 1207.7495,
+          "threads": 3
+        },
+        "mesh.vertices-stitch": {
+          "count": 3,
+          "total": 9740.8361,
+          "max": 3895.9935,
+          "threads": 3
+        },
+        "chunk.build": {
+          "count": 3,
+          "total": 12393.854299999999,
+          "max": 5087.3313,
+          "threads": 3
+        },
+        "region.encode-write": {
+          "count": 3,
+          "total": 122.27940000000001,
+          "max": 48.653,
+          "threads": 3
+        }
+      }
+    },
+    {
+      "name": "repeat-raise-after-restore",
+      "elapsedMs": 5874.1474,
+      "submitted": 31,
+      "generated": 3,
+      "replaced": 31,
+      "frameCount": 782,
+      "main": {
+        "terrain.poll-convert": {
+          "total": 13.758100000000004,
+          "mean": 0.01759347826086957,
+          "p99": 0.3917,
+          "max": 0.8335
+        },
+        "terrain.poll-convert.allocated.bytes": {
+          "total": 245360,
+          "mean": 313.7595907928389,
+          "p99": 1728,
+          "max": 1896
+        },
+        "terrain.poll-convert.calls": {
+          "total": 782,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "total": 29.453800000000015,
+          "mean": 0.03766470588235296,
+          "p99": 0.0505,
+          "max": 14.4149
+        },
+        "trees.pump.allocated.bytes": {
+          "total": 12728528,
+          "mean": 16276.890025575447,
+          "p99": 16416,
+          "max": 18944
+        },
+        "trees.pump.calls": {
+          "total": 782,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain": {
+          "total": 1041.3277999999998,
+          "mean": 1.3316212276214832,
+          "p99": 6.8046,
+          "max": 15.3923
+        },
+        "terrain.allocated.bytes": {
+          "total": 108889976,
+          "mean": 139245.4936061381,
+          "p99": 1484888,
+          "max": 2642536
+        },
+        "terrain.calls": {
+          "total": 782,
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "total": 5854.0499,
+          "mean": 7.485997314578005,
+          "p99": 17.7764,
+          "max": 139.8205
+        },
+        "earthworks.capture": {
+          "total": 0.0615,
+          "mean": 7.864450127877237e-05,
+          "p99": 0,
+          "max": 0.0615
+        },
+        "earthworks.capture.allocated.bytes": {
+          "total": 30688,
+          "mean": 39.24296675191816,
+          "p99": 0,
+          "max": 30688
+        },
+        "earthworks.capture.calls": {
+          "total": 1,
+          "mean": 0.0012787723785166241,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.find-affected": {
+          "total": 136.5938,
+          "mean": 0.17467237851662404,
+          "p99": 0,
+          "max": 136.5938
+        },
+        "earthworks.find-affected.allocated.bytes": {
+          "total": 90808,
+          "mean": 116.1227621483376,
+          "p99": 0,
+          "max": 90808
+        },
+        "earthworks.find-affected.calls": {
+          "total": 1,
+          "mean": 0.0012787723785166241,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.cache-revision": {
+          "total": 0.0022,
+          "mean": 2.813299232736573e-06,
+          "p99": 0,
+          "max": 0.0022
+        },
+        "earthworks.cache-revision.allocated.bytes": {
+          "total": 168,
+          "mean": 0.21483375959079284,
+          "p99": 0,
+          "max": 168
+        },
+        "earthworks.cache-revision.calls": {
+          "total": 1,
+          "mean": 0.0012787723785166241,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.refresh-trees": {
+          "total": 0.1399,
+          "mean": 0.0001789002557544757,
+          "p99": 0,
+          "max": 0.1399
+        },
+        "earthworks.refresh-trees.allocated.bytes": {
+          "total": 4904,
+          "mean": 6.271099744245524,
+          "p99": 0,
+          "max": 4904
+        },
+        "earthworks.refresh-trees.calls": {
+          "total": 1,
+          "mean": 0.0012787723785166241,
+          "p99": 0,
+          "max": 1
+        },
+        "earthworks.apply": {
+          "total": 137.1691,
+          "mean": 0.17540805626598463,
+          "p99": 0,
+          "max": 137.1691
+        },
+        "earthworks.apply.allocated.bytes": {
+          "total": 135656,
+          "mean": 173.47314578005114,
+          "p99": 0,
+          "max": 135656
+        },
+        "earthworks.apply.calls": {
+          "total": 1,
+          "mean": 0.0012787723785166241,
+          "p99": 0,
+          "max": 1
+        },
+        "terrain.mesh.upload": {
+          "total": 48.99849999999999,
+          "mean": 0.0626579283887468,
+          "p99": 2.0592,
+          "max": 4.0506
+        },
+        "terrain.mesh.upload.allocated.bytes": {
+          "total": 11856,
+          "mean": 15.161125319693095,
+          "p99": 480,
+          "max": 480
+        },
+        "terrain.mesh.upload.calls": {
+          "total": 31,
+          "mean": 0.03964194373401535,
+          "p99": 1,
+          "max": 1
+        },
+        "terrain.mount": {
+          "total": 7.674799999999999,
+          "mean": 0.009814322250639385,
+          "p99": 0.19,
+          "max": 3.6412
+        },
+        "terrain.mount.allocated.bytes": {
+          "total": 35968,
+          "mean": 45.994884910485936,
+          "p99": 1408,
+          "max": 1408
+        },
+        "terrain.mount.calls": {
+          "total": 31,
+          "mean": 0.03964194373401535,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "stages": {
+        "preparation.segment": {
+          "count": 8,
+          "total": 122.5178,
+          "max": 16.8019,
+          "threads": 1
+        },
+        "preparation.field": {
+          "count": 1,
+          "total": 52.1014,
+          "max": 52.1014,
+          "threads": 1
+        },
+        "preparation.total": {
+          "count": 1,
+          "total": 174.6932,
+          "max": 174.6932,
+          "threads": 1
+        },
+        "region.read": {
+          "count": 31,
+          "total": 258.4958,
+          "max": 27.0635,
+          "threads": 5
+        },
+        "region.decode": {
+          "count": 28,
+          "total": 54.9836,
+          "max": 8.4076,
+          "threads": 3
+        },
+        "chunk.total": {
+          "count": 31,
+          "total": 12740.296299999998,
+          "max": 5128.3345,
+          "threads": 5
+        },
+        "mesh.subdivision": {
+          "count": 3,
+          "total": 2675.5476,
+          "max": 1231.5445,
+          "threads": 3
+        },
+        "mesh.vertices-stitch": {
+          "count": 3,
+          "total": 9501.7125,
+          "max": 3800.9942,
+          "threads": 3
+        },
+        "chunk.build": {
+          "count": 3,
+          "total": 12182.2204,
+          "max": 5034.3878,
+          "threads": 3
+        },
+        "region.encode-write": {
+          "count": 3,
+          "total": 131.027,
+          "max": 53.1586,
+          "threads": 3
+        }
+      }
+    }
+  ],
+  "local_invalidation_optimization": {
+    "changes": [
+      "Compare changed and removed controls against the last applied snapshot, not an obsolete completed job.",
+      "Skip field rebuild and invalidation for unchanged snapshots.",
+      "Resolve changed old/new path coverage and chunk identities on a worker. Main thread uses resolved flags, with conservative coverage for chunks that arrived during computation.",
+      "Keep unchanged mounted meshes, cached LODs, tree batches and unaffected in-flight chunk results.",
+      "Bounded per-chunk exact natural/resolved height memoization: at most 65,536 entries per dictionary.",
+      "Stitch leaf fans using bounded sorted-set intervals instead of scanning whole rows/columns.",
+      "Dirty bounds include the widest old/new shoulder influence; cache signatures include nearby nearest-path competitors and coarse mesh decisions. This fixes masked wide-embankment dependencies; existing saves remain compatible, with affected old cache records regenerated on demand."
+    ],
+    "method": "Same copied save, node, camera, settings and harness as baseline. Additional superseded edit/undo case. 0.4 s debounce included. CPU Debug/headless; no GPU performance claim. Terrain height/slope formulas and triangle winding remain unchanged; cache identities now include nearest-path competitors. Timings include scheduling and GC noise; comparison is a local diagnostic, not a large-world guarantee.",
+    "tests": [
+      "Original terrain fixtures: vertex/triangle counts, triangle index hashes, vertex heights, normals and colors.",
+      "Local coverage checks for wide cuts/fills, deletions, tree clearance, adaptive topology and chunks arriving during a worker job.",
+      "Unchanged and superseded edit/undo produce zero chunk submissions or mesh replacements.",
+      "Unrelated cached LODs and in-flight chunks survive revisions; stale affected jobs remain rejected.",
+      "Deleting a narrow path exposes a distant wide-embankment area: both invalidation and disk cache identity change correctly."
+    ],
+    "cases": [
+      {
+        "name": "unchanged-notification",
+        "elapsedMs": 430.5674,
+        "submitted": 0,
+        "generated": 0,
+        "replaced": 0,
+        "frameCount": 62,
+        "main": {
+          "terrain.poll-convert": {
+            "total": 0.6156999999999999,
+            "mean": 0.009930645161290321,
+            "p99": 0.3228,
+            "max": 0.3228
+          },
+          "terrain.poll-convert.allocated.bytes": {
+            "total": 15680,
+            "mean": 252.90322580645162,
+            "p99": 416,
+            "max": 416
+          },
+          "terrain.poll-convert.calls": {
+            "total": 62,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "total": 1.1810999999999998,
+            "mean": 0.019049999999999997,
+            "p99": 0.0494,
+            "max": 0.0494
+          },
+          "trees.pump.allocated.bytes": {
+            "total": 1018040,
+            "mean": 16420,
+            "p99": 16664,
+            "max": 16664
+          },
+          "trees.pump.calls": {
+            "total": 62,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "total": 67.58890000000001,
+            "mean": 1.090143548387097,
+            "p99": 12.7189,
+            "max": 12.7189
+          },
+          "terrain.allocated.bytes": {
+            "total": 9572912,
+            "mean": 154401.8064516129,
+            "p99": 3372808,
+            "max": 3372808
+          },
+          "terrain.calls": {
+            "total": 62,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "elapsed": {
+            "total": 418.4045,
+            "mean": 6.748459677419355,
+            "p99": 14.5484,
+            "max": 14.5484
+          },
+          "earthworks.capture": {
+            "total": 1.0442,
+            "mean": 0.016841935483870966,
+            "p99": 1.0442,
+            "max": 1.0442
+          },
+          "earthworks.capture.allocated.bytes": {
+            "total": 69168,
+            "mean": 1115.6129032258063,
+            "p99": 69168,
+            "max": 69168
+          },
+          "earthworks.capture.calls": {
+            "total": 1,
+            "mean": 0.016129032258064516,
+            "p99": 1,
+            "max": 1
+          }
+        },
+        "stages": {
+          "preparation.total": {
+            "count": 1,
+            "total": 1.0643,
+            "max": 1.0643,
+            "threads": 1
+          }
+        }
+      },
+      {
+        "name": "raise-node-2m",
+        "elapsedMs": 4329.5206,
+        "submitted": 5,
+        "generated": 5,
+        "replaced": 5,
+        "frameCount": 626,
+        "main": {
+          "terrain.poll-convert": {
+            "total": 5.715899999999998,
+            "mean": 0.009130830670926514,
+            "p99": 0.0165,
+            "max": 0.7799
+          },
+          "terrain.poll-convert.allocated.bytes": {
+            "total": 167184,
+            "mean": 267.0670926517572,
+            "p99": 416,
+            "max": 1728
+          },
+          "terrain.poll-convert.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "total": 16.714599999999987,
+            "mean": 0.026700638977635763,
+            "p99": 0.0457,
+            "max": 3.1208
+          },
+          "trees.pump.allocated.bytes": {
+            "total": 10249728,
+            "mean": 16373.367412140575,
+            "p99": 16416,
+            "max": 16872
+          },
+          "trees.pump.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "total": 662.9055000000001,
+            "mean": 1.0589544728434506,
+            "p99": 5.778,
+            "max": 8.3867
+          },
+          "terrain.allocated.bytes": {
+            "total": 71857296,
+            "mean": 114788.01277955272,
+            "p99": 102536,
+            "max": 2642424
+          },
+          "terrain.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "elapsed": {
+            "total": 4313.669999999999,
+            "mean": 6.890846645367411,
+            "p99": 12.0024,
+            "max": 25.5409
+          },
+          "earthworks.capture": {
+            "total": 0.154,
+            "mean": 0.00024600638977635784,
+            "p99": 0,
+            "max": 0.154
+          },
+          "earthworks.capture.allocated.bytes": {
+            "total": 65232,
+            "mean": 104.20447284345047,
+            "p99": 0,
+            "max": 65232
+          },
+          "earthworks.capture.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.find-affected": {
+            "total": 0.6011,
+            "mean": 0.0009602236421725239,
+            "p99": 0,
+            "max": 0.6011
+          },
+          "earthworks.find-affected.allocated.bytes": {
+            "total": 35224,
+            "mean": 56.26837060702876,
+            "p99": 0,
+            "max": 35224
+          },
+          "earthworks.find-affected.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.cache-revision": {
+            "total": 0.0118,
+            "mean": 1.8849840255591053e-05,
+            "p99": 0,
+            "max": 0.0118
+          },
+          "earthworks.cache-revision.allocated.bytes": {
+            "total": 168,
+            "mean": 0.268370607028754,
+            "p99": 0,
+            "max": 168
+          },
+          "earthworks.cache-revision.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.refresh-trees": {
+            "total": 0.1437,
+            "mean": 0.00022955271565495207,
+            "p99": 0,
+            "max": 0.1437
+          },
+          "earthworks.refresh-trees.allocated.bytes": {
+            "total": 1064,
+            "mean": 1.6996805111821087,
+            "p99": 0,
+            "max": 1064
+          },
+          "earthworks.refresh-trees.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.apply": {
+            "total": 1.1056,
+            "mean": 0.0017661341853035142,
+            "p99": 0,
+            "max": 1.1056
+          },
+          "earthworks.apply.allocated.bytes": {
+            "total": 80120,
+            "mean": 127.98722044728434,
+            "p99": 0,
+            "max": 80120
+          },
+          "earthworks.apply.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mesh.upload": {
+            "total": 13.1857,
+            "mean": 0.02106341853035144,
+            "p99": 0,
+            "max": 4.2018
+          },
+          "terrain.mesh.upload.allocated.bytes": {
+            "total": 2400,
+            "mean": 3.8338658146964857,
+            "p99": 0,
+            "max": 480
+          },
+          "terrain.mesh.upload.calls": {
+            "total": 5,
+            "mean": 0.007987220447284345,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mount": {
+            "total": 4.1878,
+            "mean": 0.0066897763578274766,
+            "p99": 0,
+            "max": 3.4676
+          },
+          "terrain.mount.allocated.bytes": {
+            "total": 7384,
+            "mean": 11.79552715654952,
+            "p99": 0,
+            "max": 1752
+          },
+          "terrain.mount.calls": {
+            "total": 5,
+            "mean": 0.007987220447284345,
+            "p99": 0,
+            "max": 1
+          }
+        },
+        "stages": {
+          "preparation.segment": {
+            "count": 8,
+            "total": 97.1546,
+            "max": 13.3747,
+            "threads": 1
+          },
+          "preparation.field": {
+            "count": 1,
+            "total": 90.8862,
+            "max": 90.8862,
+            "threads": 1
+          },
+          "preparation.dirty-chunks": {
+            "count": 1,
+            "total": 95.4774,
+            "max": 95.4774,
+            "threads": 1
+          },
+          "preparation.total": {
+            "count": 1,
+            "total": 284.4246,
+            "max": 284.4246,
+            "threads": 1
+          },
+          "region.read": {
+            "count": 5,
+            "total": 0.0427,
+            "max": 0.0111,
+            "threads": 3
+          },
+          "mesh.subdivision": {
+            "count": 4,
+            "total": 2829.0764,
+            "max": 964.7471,
+            "threads": 3
+          },
+          "mesh.vertices-stitch": {
+            "count": 4,
+            "total": 7425.6837,
+            "max": 2598.2745,
+            "threads": 3
+          },
+          "chunk.build": {
+            "count": 5,
+            "total": 10514.120200000001,
+            "max": 3569.9539,
+            "threads": 3
+          },
+          "region.encode-write": {
+            "count": 5,
+            "total": 142.2581,
+            "max": 40.5148,
+            "threads": 3
+          },
+          "chunk.total": {
+            "count": 5,
+            "total": 10703.5817,
+            "max": 3617.3344,
+            "threads": 3
+          }
+        }
+      },
+      {
+        "name": "restore-node",
+        "elapsedMs": 4285.1264,
+        "submitted": 5,
+        "generated": 5,
+        "replaced": 5,
+        "frameCount": 620,
+        "main": {
+          "terrain.poll-convert": {
+            "total": 5.746199999999994,
+            "mean": 0.009268064516129023,
+            "p99": 0.0125,
+            "max": 0.8994
+          },
+          "terrain.poll-convert.allocated.bytes": {
+            "total": 166032,
+            "mean": 267.7935483870968,
+            "p99": 416,
+            "max": 1896
+          },
+          "terrain.poll-convert.calls": {
+            "total": 620,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "total": 9.881699999999991,
+            "mean": 0.0159382258064516,
+            "p99": 0.0339,
+            "max": 0.1878
+          },
+          "trees.pump.allocated.bytes": {
+            "total": 10150552,
+            "mean": 16371.85806451613,
+            "p99": 16416,
+            "max": 16872
+          },
+          "trees.pump.calls": {
+            "total": 620,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "total": 639.0659999999997,
+            "mean": 1.0307516129032253,
+            "p99": 3.8097,
+            "max": 19.9379
+          },
+          "terrain.allocated.bytes": {
+            "total": 71244760,
+            "mean": 114910.90322580645,
+            "p99": 101800,
+            "max": 2642312
+          },
+          "terrain.calls": {
+            "total": 620,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "elapsed": {
+            "total": 4270.781799999998,
+            "mean": 6.88835774193548,
+            "p99": 12.002,
+            "max": 22.0429
+          },
+          "earthworks.capture": {
+            "total": 0.1227,
+            "mean": 0.0001979032258064516,
+            "p99": 0,
+            "max": 0.1227
+          },
+          "earthworks.capture.allocated.bytes": {
+            "total": 69168,
+            "mean": 111.56129032258065,
+            "p99": 0,
+            "max": 69168
+          },
+          "earthworks.capture.calls": {
+            "total": 1,
+            "mean": 0.0016129032258064516,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.find-affected": {
+            "total": 0.0965,
+            "mean": 0.0001556451612903226,
+            "p99": 0,
+            "max": 0.0965
+          },
+          "earthworks.find-affected.allocated.bytes": {
+            "total": 35224,
+            "mean": 56.81290322580645,
+            "p99": 0,
+            "max": 35224
+          },
+          "earthworks.find-affected.calls": {
+            "total": 1,
+            "mean": 0.0016129032258064516,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.cache-revision": {
+            "total": 0.0015,
+            "mean": 2.4193548387096776e-06,
+            "p99": 0,
+            "max": 0.0015
+          },
+          "earthworks.cache-revision.allocated.bytes": {
+            "total": 168,
+            "mean": 0.2709677419354839,
+            "p99": 0,
+            "max": 168
+          },
+          "earthworks.cache-revision.calls": {
+            "total": 1,
+            "mean": 0.0016129032258064516,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.refresh-trees": {
+            "total": 0.0528,
+            "mean": 8.516129032258064e-05,
+            "p99": 0,
+            "max": 0.0528
+          },
+          "earthworks.refresh-trees.allocated.bytes": {
+            "total": 1064,
+            "mean": 1.7161290322580645,
+            "p99": 0,
+            "max": 1064
+          },
+          "earthworks.refresh-trees.calls": {
+            "total": 1,
+            "mean": 0.0016129032258064516,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.apply": {
+            "total": 0.4521,
+            "mean": 0.0007291935483870967,
+            "p99": 0,
+            "max": 0.4521
+          },
+          "earthworks.apply.allocated.bytes": {
+            "total": 78728,
+            "mean": 126.98064516129033,
+            "p99": 0,
+            "max": 78728
+          },
+          "earthworks.apply.calls": {
+            "total": 1,
+            "mean": 0.0016129032258064516,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mesh.upload": {
+            "total": 12.749099999999999,
+            "mean": 0.02056306451612903,
+            "p99": 0,
+            "max": 3.902
+          },
+          "terrain.mesh.upload.allocated.bytes": {
+            "total": 2232,
+            "mean": 3.6,
+            "p99": 0,
+            "max": 480
+          },
+          "terrain.mesh.upload.calls": {
+            "total": 5,
+            "mean": 0.008064516129032258,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mount": {
+            "total": 0.8752000000000001,
+            "mean": 0.0014116129032258067,
+            "p99": 0,
+            "max": 0.1962
+          },
+          "terrain.mount.allocated.bytes": {
+            "total": 7040,
+            "mean": 11.35483870967742,
+            "p99": 0,
+            "max": 1408
+          },
+          "terrain.mount.calls": {
+            "total": 5,
+            "mean": 0.008064516129032258,
+            "p99": 0,
+            "max": 1
+          }
+        },
+        "stages": {
+          "preparation.segment": {
+            "count": 8,
+            "total": 100.82749999999999,
+            "max": 15.3105,
+            "threads": 1
+          },
+          "preparation.field": {
+            "count": 1,
+            "total": 50.5948,
+            "max": 50.5948,
+            "threads": 1
+          },
+          "preparation.dirty-chunks": {
+            "count": 1,
+            "total": 73.431,
+            "max": 73.431,
+            "threads": 1
+          },
+          "preparation.total": {
+            "count": 1,
+            "total": 225.5759,
+            "max": 225.5759,
+            "threads": 1
+          },
+          "region.read": {
+            "count": 5,
+            "total": 0.0397,
+            "max": 0.0119,
+            "threads": 3
+          },
+          "mesh.subdivision": {
+            "count": 4,
+            "total": 2888.5487,
+            "max": 999.4915,
+            "threads": 3
+          },
+          "mesh.vertices-stitch": {
+            "count": 4,
+            "total": 7388.004800000001,
+            "max": 2578.2907,
+            "threads": 3
+          },
+          "chunk.build": {
+            "count": 5,
+            "total": 10521.3298,
+            "max": 3579.2794,
+            "threads": 3
+          },
+          "region.encode-write": {
+            "count": 5,
+            "total": 128.0424,
+            "max": 36.0338,
+            "threads": 3
+          },
+          "chunk.total": {
+            "count": 5,
+            "total": 10665.611400000002,
+            "max": 3618.693,
+            "threads": 3
+          }
+        }
+      },
+      {
+        "name": "repeat-raise-after-restore",
+        "elapsedMs": 4325.4647,
+        "submitted": 5,
+        "generated": 5,
+        "replaced": 5,
+        "frameCount": 626,
+        "main": {
+          "terrain.poll-convert": {
+            "total": 6.084199999999996,
+            "mean": 0.009719169329073475,
+            "p99": 0.0166,
+            "max": 0.8676
+          },
+          "terrain.poll-convert.allocated.bytes": {
+            "total": 167184,
+            "mean": 267.0670926517572,
+            "p99": 416,
+            "max": 1896
+          },
+          "terrain.poll-convert.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "total": 12.608599999999987,
+            "mean": 0.020141533546325856,
+            "p99": 0.0429,
+            "max": 2.3996
+          },
+          "trees.pump.allocated.bytes": {
+            "total": 10249048,
+            "mean": 16372.281150159744,
+            "p99": 16416,
+            "max": 16872
+          },
+          "trees.pump.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "total": 674.3568000000004,
+            "mean": 1.0772472843450485,
+            "p99": 5.039,
+            "max": 16.5093
+          },
+          "terrain.allocated.bytes": {
+            "total": 71852008,
+            "mean": 114779.56549520767,
+            "p99": 101800,
+            "max": 2642424
+          },
+          "terrain.calls": {
+            "total": 626,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "elapsed": {
+            "total": 4310.773599999995,
+            "mean": 6.886219808306701,
+            "p99": 11.5965,
+            "max": 18.7105
+          },
+          "earthworks.capture": {
+            "total": 0.1398,
+            "mean": 0.0002233226837060703,
+            "p99": 0,
+            "max": 0.1398
+          },
+          "earthworks.capture.allocated.bytes": {
+            "total": 69168,
+            "mean": 110.49201277955271,
+            "p99": 0,
+            "max": 69168
+          },
+          "earthworks.capture.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.find-affected": {
+            "total": 0.0756,
+            "mean": 0.0001207667731629393,
+            "p99": 0,
+            "max": 0.0756
+          },
+          "earthworks.find-affected.allocated.bytes": {
+            "total": 35224,
+            "mean": 56.26837060702876,
+            "p99": 0,
+            "max": 35224
+          },
+          "earthworks.find-affected.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.cache-revision": {
+            "total": 0.0015,
+            "mean": 2.3961661341853035e-06,
+            "p99": 0,
+            "max": 0.0015
+          },
+          "earthworks.cache-revision.allocated.bytes": {
+            "total": 168,
+            "mean": 0.268370607028754,
+            "p99": 0,
+            "max": 168
+          },
+          "earthworks.cache-revision.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.refresh-trees": {
+            "total": 0.0291,
+            "mean": 4.648562300319489e-05,
+            "p99": 0,
+            "max": 0.0291
+          },
+          "earthworks.refresh-trees.allocated.bytes": {
+            "total": 1064,
+            "mean": 1.6996805111821087,
+            "p99": 0,
+            "max": 1064
+          },
+          "earthworks.refresh-trees.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "earthworks.apply": {
+            "total": 0.3916,
+            "mean": 0.0006255591054313099,
+            "p99": 0,
+            "max": 0.3916
+          },
+          "earthworks.apply.allocated.bytes": {
+            "total": 78728,
+            "mean": 125.76357827476038,
+            "p99": 0,
+            "max": 78728
+          },
+          "earthworks.apply.calls": {
+            "total": 1,
+            "mean": 0.001597444089456869,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mesh.upload": {
+            "total": 12.7686,
+            "mean": 0.020397124600638975,
+            "p99": 0,
+            "max": 3.9715
+          },
+          "terrain.mesh.upload.allocated.bytes": {
+            "total": 2400,
+            "mean": 3.8338658146964857,
+            "p99": 0,
+            "max": 480
+          },
+          "terrain.mesh.upload.calls": {
+            "total": 5,
+            "mean": 0.007987220447284345,
+            "p99": 0,
+            "max": 1
+          },
+          "terrain.mount": {
+            "total": 0.8445,
+            "mean": 0.0013490415335463259,
+            "p99": 0,
+            "max": 0.1983
+          },
+          "terrain.mount.allocated.bytes": {
+            "total": 7040,
+            "mean": 11.246006389776358,
+            "p99": 0,
+            "max": 1408
+          },
+          "terrain.mount.calls": {
+            "total": 5,
+            "mean": 0.007987220447284345,
+            "p99": 0,
+            "max": 1
+          }
+        },
+        "stages": {
+          "preparation.segment": {
+            "count": 8,
+            "total": 97.487,
+            "max": 12.9407,
+            "threads": 1
+          },
+          "preparation.field": {
+            "count": 1,
+            "total": 46.215,
+            "max": 46.215,
+            "threads": 1
+          },
+          "preparation.dirty-chunks": {
+            "count": 1,
+            "total": 84.0186,
+            "max": 84.0186,
+            "threads": 1
+          },
+          "preparation.total": {
+            "count": 1,
+            "total": 227.9892,
+            "max": 227.9892,
+            "threads": 1
+          },
+          "region.read": {
+            "count": 5,
+            "total": 0.0353,
+            "max": 0.0098,
+            "threads": 3
+          },
+          "mesh.subdivision": {
+            "count": 4,
+            "total": 2806.4097,
+            "max": 959.9345,
+            "threads": 3
+          },
+          "mesh.vertices-stitch": {
+            "count": 4,
+            "total": 7521.2355,
+            "max": 2650.3584,
+            "threads": 3
+          },
+          "chunk.build": {
+            "count": 5,
+            "total": 10576.6291,
+            "max": 3611.7632,
+            "threads": 3
+          },
+          "region.encode-write": {
+            "count": 5,
+            "total": 143.7414,
+            "max": 43.0628,
+            "threads": 3
+          },
+          "chunk.total": {
+            "count": 5,
+            "total": 10737.465,
+            "max": 3651.6304,
+            "threads": 3
+          }
+        }
+      },
+      {
+        "name": "superseded-raise-undo",
+        "elapsedMs": 525.6788,
+        "submitted": 0,
+        "generated": 0,
+        "replaced": 0,
+        "frameCount": 76,
+        "main": {
+          "terrain.poll-convert": {
+            "total": 0.33929999999999993,
+            "mean": 0.004464473684210525,
+            "p99": 0.0097,
+            "max": 0.0097
+          },
+          "terrain.poll-convert.allocated.bytes": {
+            "total": 19184,
+            "mean": 252.42105263157896,
+            "p99": 416,
+            "max": 416
+          },
+          "terrain.poll-convert.calls": {
+            "total": 76,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "total": 1.3299999999999998,
+            "mean": 0.017499999999999998,
+            "p99": 0.037,
+            "max": 0.037
+          },
+          "trees.pump.allocated.bytes": {
+            "total": 1247616,
+            "mean": 16416,
+            "p99": 16416,
+            "max": 16416
+          },
+          "trees.pump.calls": {
+            "total": 76,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "total": 67.1637,
+            "mean": 0.8837328947368421,
+            "p99": 4.2461,
+            "max": 4.2461
+          },
+          "terrain.allocated.bytes": {
+            "total": 7724368,
+            "mean": 101636.42105263157,
+            "p99": 101800,
+            "max": 101800
+          },
+          "terrain.calls": {
+            "total": 76,
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "elapsed": {
+            "total": 514.0643,
+            "mean": 6.764003947368421,
+            "p99": 10.2742,
+            "max": 10.2742
+          },
+          "earthworks.capture": {
+            "total": 0.1304,
+            "mean": 0.0017157894736842105,
+            "p99": 0.1304,
+            "max": 0.1304
+          },
+          "earthworks.capture.allocated.bytes": {
+            "total": 65232,
+            "mean": 858.3157894736842,
+            "p99": 65232,
+            "max": 65232
+          },
+          "earthworks.capture.calls": {
+            "total": 1,
+            "mean": 0.013157894736842105,
+            "p99": 1,
+            "max": 1
+          }
+        },
+        "stages": {
+          "preparation.segment": {
+            "count": 16,
+            "total": 205.73669999999998,
+            "max": 15.9933,
+            "threads": 1
+          },
+          "preparation.field": {
+            "count": 1,
+            "total": 47.3078,
+            "max": 47.3078,
+            "threads": 1
+          },
+          "preparation.dirty-chunks": {
+            "count": 1,
+            "total": 74.8189,
+            "max": 74.8189,
+            "threads": 1
+          },
+          "preparation.total": {
+            "count": 2,
+            "total": 328.2069,
+            "max": 231.386,
+            "threads": 1
+          }
+        }
+      }
+    ]
+  }
+}
