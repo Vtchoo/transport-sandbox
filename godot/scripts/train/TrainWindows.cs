@@ -10,6 +10,10 @@ public sealed class TrainView
     public GameWindow Window = null!;
     public bool EditTab = true;
     public bool RoutesTab;
+    public bool DebugTab;
+    public Button DebugButton = null!;
+    public VBoxContainer Debug = null!;
+    public Label DebugInfo = null!;
     public TrainOrderView Orders = null!;
     public Button RoutesButton = null!;
     public bool? RunStyleRunning;
@@ -48,6 +52,7 @@ public partial class TrainWindows : Node
     {
         BuildCatalog();
         InitializeOrders();
+        InitializeDebug();
         FleetWindow = Manager.Create("Trains", new Rect2(50, 110, 330, 390), new(270, 200));
         _fleet = new();
         FleetWindow.Body.AddChild(_fleet);
@@ -159,6 +164,14 @@ public partial class TrainWindows : Node
         var entry = Views.First(p => p.Value.Window == window);
         return entry.Value.EditTab ? Editor.Builder.Trains.FirstOrDefault(t => t.Id == entry.Key) : null;
     }
+    public (int Id, TrainView View)? FocusedTrain()
+    {
+        var window = Manager.Active;
+        if (window == null || !window.Visible || window.IsCollapsed || Manager.HasModal) return null;
+        foreach (var (id, view) in Views)
+            if (view.Window == window) return (id, view);
+        return null;
+    }
     public void CatalogClick(string id)
     {
         var target = Destination();
@@ -185,6 +198,7 @@ public partial class TrainWindows : Node
         var view = EnsureView(train);
         CancelOrderPicking();
         view.RoutesTab = false;
+        view.DebugTab = false;
         view.EditTab = edit ?? (train.Placed ? false : view.EditTab);
         Editor.Select(id);
         SuspendTrack();
@@ -204,9 +218,10 @@ public partial class TrainWindows : Node
         view.ViewTab = Button(tabs, "", () => OpenTrain(train.Id, false), "viewport", "Viewport");
         view.EditButton = Button(tabs, "", () => OpenTrain(train.Id, true), "wrench", "Edit train");
         view.RoutesButton = Button(tabs, "", () => OpenRoutes(train.Id), "routes", "Routes");
+        view.DebugButton = Button(tabs, "", () => OpenDebug(train.Id), "debug", "Debug route");
         var group = new ButtonGroup();
-        view.ViewTab.ToggleMode = view.EditButton.ToggleMode = view.RoutesButton.ToggleMode = true;
-        view.ViewTab.ButtonGroup = view.EditButton.ButtonGroup = view.RoutesButton.ButtonGroup = group;
+        view.ViewTab.ToggleMode = view.EditButton.ToggleMode = view.RoutesButton.ToggleMode = view.DebugButton.ToggleMode = true;
+        view.ViewTab.ButtonGroup = view.EditButton.ButtonGroup = view.RoutesButton.ButtonGroup = view.DebugButton.ButtonGroup = group;
         view.Overview = new();
         view.Window.Body.AddChild(view.Overview);
         view.Preview = new();
@@ -246,6 +261,7 @@ public partial class TrainWindows : Node
         Button(tools, "Add vehicles...", () => CatalogWindow.Open(), "plus");
         view.Reverse = Button(tools, "Reverse preview - R", Editor.ReversePreview, "flip");
         view.Orders = BuildOrders(train.Id, view.Window.Body);
+        BuildDebug(view);
         view.Status = UiSkin.Label(view.Window.Body, "", 11);
         view.Status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         view.Window.StateChanged += StackChanged;
@@ -281,12 +297,14 @@ public partial class TrainWindows : Node
     }
     private void Render(TrainConsist train, TrainView view)
     {
-        view.Edit.Visible = view.EditTab && !view.RoutesTab;
-        view.Overview.Visible = !view.EditTab && !view.RoutesTab;
+        view.Edit.Visible = view.EditTab && !view.RoutesTab && !view.DebugTab;
+        view.Overview.Visible = !view.EditTab && !view.RoutesTab && !view.DebugTab;
         view.Orders.Root.Visible = view.RoutesTab;
+        view.Debug.Visible = view.DebugTab;
         view.EditButton.SetPressedNoSignal(view.EditTab);
-        view.ViewTab.SetPressedNoSignal(!view.EditTab && !view.RoutesTab);
+        view.ViewTab.SetPressedNoSignal(!view.EditTab && !view.RoutesTab && !view.DebugTab);
         view.RoutesButton.SetPressedNoSignal(view.RoutesTab);
+        view.DebugButton.SetPressedNoSignal(view.DebugTab);
         view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.Definition.Physics.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
         view.OverviewSpecs.Text = view.Specs.Text;
         view.Empty.Visible = train.Items.Count == 0;
@@ -466,7 +484,7 @@ public partial class TrainWindows : Node
         {
             _viewTimer = 0;
             foreach (var (id, view) in Views)
-                if (!view.EditTab && !view.RoutesTab && view.Window.Visible && !view.Window.IsCollapsed)
+                if (!view.EditTab && !view.RoutesTab && !view.DebugTab && view.Window.Visible && !view.Window.IsCollapsed)
                 {
                     RefreshRunButton(Editor.Builder.Get(id), view);
                     view.Preview.Train(Editor.Builder.Get(id), Editor.Parked.FirstOrDefault(p => p.Id == id), Editor.Catalog, GetViewport().World3D);
@@ -515,6 +533,7 @@ public partial class TrainWindows : Node
     public override void _ExitTree()
     {
         if (IsInstanceValid(OrderHighlights)) OrderHighlights.QueueFree();
+        if (IsInstanceValid(DebugHighlights)) DebugHighlights.QueueFree();
         CancelOrderPicking();
         Editor.Changed -= Change;
         Editor.Warning -= Warn;

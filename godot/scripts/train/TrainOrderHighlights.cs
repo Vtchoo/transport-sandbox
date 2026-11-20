@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-/// <summary>Map overlay for the frontmost train's route. Absolute geometry survives floating-origin shifts.</summary>
+/// <summary>Map overlay for the focused train's route. Absolute geometry survives floating-origin shifts.</summary>
 public partial class TrainOrderHighlights : Control
 {
     public TrainWindows Trains = null!;
@@ -29,10 +29,9 @@ public partial class TrainOrderHighlights : Control
     public override void _ExitTree() => Trains.Editor.Network.Changed -= Invalidate;
     public override void _Process(double delta)
     {
-        var window = Trains.Manager.Topmost(w => !w.IsCollapsed && Trains.Views.Values.Any(v => v.Window == w));
-        var entry = Trains.Views.FirstOrDefault(pair => pair.Value.Window == window);
-        var train = entry.Value?.RoutesTab == true && !Trains.Manager.HasModal
-            ? Trains.Editor.Builder.Trains.FirstOrDefault(t => t.Id == entry.Key) : null;
+        var focused = Trains.FocusedTrain();
+        var train = focused is { } entry && entry.View.RoutesTab
+            ? Trains.Editor.Builder.Trains.FirstOrDefault(t => t.Id == entry.Id) : null;
         int id = train?.Id ?? -1, revision = train?.Orders.Revision ?? -1, current = train?.Orders.Current?.Id ?? -1;
         if (_dirty || id != _train || revision != _revision || current != _current)
         {

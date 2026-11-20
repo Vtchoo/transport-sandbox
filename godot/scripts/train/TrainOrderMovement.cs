@@ -12,6 +12,8 @@ public partial class TrainEditor
     private RailRoutingEdge[]? _routingInput;
     private int _routingCaptureRevision = -1, _routingCursor;
     public RailRoutingStats RoutingStats => _pathfinder.Stats;
+    internal bool RoutingCostsReady => _pathfinder.Ready;
+    internal int RoutingConflictCount(int edge) => _pathfinder.ConflictCount(edge);
     public bool RoutingPending => !_pathfinder.Ready || RoutingStats.ActiveWorkers > 0 || RoutingStats.Queued > 0;
     private void PrepareRouting()
     {

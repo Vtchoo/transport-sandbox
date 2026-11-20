@@ -40,6 +40,37 @@ public static class TrainOrderChecks
         check(behind != null && behind.States.Length >= 4 && behind.States[1] != (behind.States[0] ^ 1), "A destination behind the train requires reaching a dead end instead of reversing at a junction");
         var route = new TrainRoute(placement, new(ab.Id, .5), 1);
         route.SetPath(new(ab.Id, .5), 1, new[] { RailRouter.StateId(ab.Id, 1), RailRouter.StateId(bd.Id, 1) });
+        string beforeInspection = System.Text.Json.JsonSerializer.Serialize(route.Save());
+        var inspected = route.Inspect(new(ab.Id, .5), 1, new(bd.Id, .8, RouteIndex: 1), out bool truncated);
+        check(inspected.Length == 2 && inspected[0].From == .5 && inspected[^1].To == .8 && !truncated,
+            "Debug route inspection clips the front and destination without extending the chosen plan");
+        double firstLength = placement.Curve(ab).Length * .5, finalLength = placement.Curve(bd).Length * .8;
+        var metrics = route.Measure(inspected, edge => edge == bd.Id ? 2 : 0, RailRoutingPolicy.Empty);
+        check(Math.Abs(metrics.Length - firstLength - finalLength) < 1e-8
+            && Math.Abs(metrics.Cost!.Value - firstLength - finalLength * 3) < 1e-8,
+            "Debug route totals use clipped physical lengths and each segment's own conflict multiplier");
+        bd.Station = 42;
+        var unlistedMetrics = route.Measure(inspected, _ => 0, RailRoutingPolicy.Empty);
+        var orderedMetrics = route.Measure(inspected, _ => 0, RailRoutingPolicy.Create(new[] { 42 }));
+        check(Math.Abs(unlistedMetrics.Cost!.Value - unlistedMetrics.Length - RailRoutingPolicy.UnorderedStationPenalty) < 1e-8
+            && Math.Abs(orderedMetrics.Cost!.Value - orderedMetrics.Length) < 1e-8,
+            "Displayed routing cost includes unrelated-station penalties and exempts ordered stations");
+        check(Math.Abs(route.Measure(inspected, _ => 0, RailRoutingPolicy.Empty, penalizeStations: false).Cost!.Value - metrics.Length) < 1e-8,
+            "Wandering route diagnostics omit station avoidance penalties just like wandering detours");
+        ab.Station = 42;
+        check(Math.Abs(route.Measure(inspected, _ => 0, RailRoutingPolicy.Empty).Cost!.Value - metrics.Length) < 1e-8,
+            "Starting within an unrelated station does not incur a repeated entry penalty");
+        ab.Station = bd.Station = 0;
+        check(route.Measure(inspected, null, RailRoutingPolicy.Empty).Cost == null,
+            "Debug cost stays unavailable while conflict metadata is being rebuilt");
+        route.Inspect(new(ab.Id, .5), 1, null, out truncated, limit: 1);
+        check(truncated && System.Text.Json.JsonSerializer.Serialize(route.Save()) == beforeInspection,
+            "Debug inspection is bounded and never changes the route, traversal cache or random state");
+        var wanderingDebug = new TrainRoute(placement, new(ab.Id, .5), 123);
+        check(wanderingDebug.Inspect(new(ab.Id, .5), 1, null, out _).Length == 1,
+            "Wandering debug inspection does not invent a route beyond the known itinerary");
+        check(route.Inspect(new(ab.Id, .5), -1, null, out _).Single().Direction == -1,
+            "Debug inspection respects reverse travel");
         check(route.Sample(new(ab.Id, .5), 100).Position.Edge == bd.Id, "Planned itinerary controls the physical junction choice");
         var occupied = route.Sample(new(ab.Id, .5), 70).Position;
         route.SetPath(occupied, 1, new[] { RailRouter.StateId(bd.Id, 1) });
@@ -107,6 +138,12 @@ public static class TrainOrderChecks
             ui.OrderHighlights._Process(0);
             check(ui.OrderHighlights.Visible && ui.OrderHighlights.MarkerCount == 2 && ui.OrderHighlights.StationStrokeCount == 1,
                 "Routes highlight station segments and waypoint nodes, without wait markers");
+            ui.CatalogWindow.Open(); ui.OrderHighlights._Process(0);
+            check(!ui.OrderHighlights.Visible && ui.OrderHighlights.MarkerCount == 0,
+                "Focusing a non-train window clears order highlights from the train behind it");
+            windows.Activate(view.Window); ui.OrderHighlights._Process(0);
+            check(ui.OrderHighlights.Visible && ui.OrderHighlights.MarkerCount == 2,
+                "Refocusing the train restores only its own order highlights");
             var beforeRebase = ui.OrderHighlights.MarkerCount;
             network.Space.Rebase(new(1000, 0, 1000));
             ui.OrderHighlights._Process(0);
@@ -153,6 +190,35 @@ public static class TrainOrderChecks
                 return done();
             }
             check(await DriveUntil(() => parked.Journey?.Reachable == true), "Train obtains a station journey with an explicit destination position");
+            ui.OpenDebug(id); ui.DebugHighlights._Process(1); ui.OrderHighlights._Process(0);
+            check(view.DebugInfo.Text.Contains("Remaining route length:") && view.DebugInfo.Text.Contains("Remaining route cost:")
+                && view.DebugInfo.Text.Contains("equivalent m") && !view.DebugInfo.Text.Contains("calculating..."),
+                "Debug tab displays remaining physical route length and weighted cost once routing metadata is ready");
+            check(view.DebugTab && view.Debug.Visible && !view.Edit.Visible && !view.Overview.Visible && !view.Orders.Root.Visible
+                && view.DebugButton.Icon != null && ui.DebugHighlights.Visible && ui.DebugHighlights.LegCount > 0
+                && !ui.OrderHighlights.Visible && ui.Destination() == null,
+                "Debug is an independent icon tab showing the placed train's actual route without catalog editing or order highlights");
+            ui.OpenRoutes(other.Id); ui.DebugHighlights._Process(0); ui.OrderHighlights._Process(0);
+            check(!ui.DebugHighlights.Visible && ui.DebugHighlights.LegCount == 0 && ui.OrderHighlights.Visible,
+                "Only the focused train's selected tab contributes map data, even with another Debug tab open behind it");
+            windows.Activate(view.Window); ui.DebugHighlights._Process(1); ui.OrderHighlights._Process(0);
+            check(ui.DebugHighlights.Visible && !ui.OrderHighlights.Visible,
+                "Switching focus between train windows switches the exclusive world overlay");
+            ui.FleetWindow.Open(); ui.DebugHighlights._Process(0); ui.OrderHighlights._Process(0);
+            check(!ui.DebugHighlights.Visible && ui.DebugHighlights.LegCount == 0 && !ui.OrderHighlights.Visible,
+                "Focusing the fleet hides both train overlay types instead of showing a background train's data");
+            windows.Activate(view.Window); ui.DebugHighlights._Process(1);
+            int strokes = ui.DebugHighlights.LegCount;
+            network.Space.Rebase(new(1000, 0, 1000)); ui.DebugHighlights._Process(1);
+            check(ui.DebugHighlights.LegCount == strokes, "Calculated-route overlay survives floating-origin shifts");
+            network.Space.Rebase(new(0, 0, 0));
+            ui.OpenDebug(other.Id); ui.DebugHighlights._Process(1);
+            check(ui.DebugHighlights.LegCount == 0, "Selecting an unplaced train's Debug tab clears the previous train's route");
+            ui.OpenTrain(other.Id, false);
+            ui.OpenDebug(id); ui.DebugHighlights._Process(1); view.Window.Close(); ui.DebugHighlights._Process(1);
+            check(!ui.DebugHighlights.Visible, "Closing Debug removes the route overlay");
+            ui.OpenDebug(id); ui.DebugHighlights._Process(1); ui.OpenTrain(id, false); ui.DebugHighlights._Process(1);
+            check(!ui.DebugHighlights.Visible && !view.Debug.Visible, "Switching to Viewport hides debug content and route highlights");
             check(await DriveUntil(() => train.Speed > 3, 80), "Invalidation fixture begins with a moving scheduled train");
             var installed = parked.Journey;
             double speedBeforeEdit = train.Speed;

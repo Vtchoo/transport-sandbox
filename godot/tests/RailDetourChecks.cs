@@ -37,6 +37,26 @@ public static class RailDetourChecks
             "Bounded local search takes the clear passing line and rejoins the original itinerary");
         if (detour != null)
         {
+            var leading = route.Copy().Sample(start, mover.Length / 2).Position;
+            var debugLegs = detour.Route.Inspect(leading, 1, null, out _);
+            check(bypass.All(edge => debugLegs.Any(leg => leg.Edge == edge.Id && leg.Detour))
+                && debugLegs.Where(leg => leg.Detour).All(leg => bypass.Any(edge => edge.Id == leg.Edge)),
+                "Debug marks only the accepted bypass, leaving shared approach and rejoin sections as the normal route");
+            check(route.Inspect(leading, 1, null, out _).All(leg => !leg.Detour),
+                "Detour diagnostics never change the original itinerary");
+            var restoredDebug = TrainRoute.Restore(placement, start, detour.Route.Save());
+            check(restoredDebug.Inspect(leading, 1, null, out _).SequenceEqual(debugLegs),
+                "Save/load preserves detour occurrence markers in the active itinerary");
+            var saved = detour.Route.Save();
+            string legacyJson = System.Text.Json.JsonSerializer.Serialize(new
+            { saved.Random, saved.Legs, saved.Plan, saved.PlanStart, saved.PlanStep, saved.Revision });
+            var legacy = System.Text.Json.JsonSerializer.Deserialize<SavedRoute>(legacyJson)!;
+            check(TrainRoute.Restore(placement, start, legacy).Inspect(leading, 1, null, out _).Length == debugLegs.Length,
+                "Older route saves without diagnostic metadata still restore their chosen itinerary");
+            var replannedDebug = restoredDebug.Copy();
+            replannedDebug.SetPath(leading, 1, line.Select(edge => RailRouter.StateId(edge.Id, 1)).ToArray());
+            check(replannedDebug.Inspect(leading, 1, null, out _).All(leg => !leg.Detour),
+                "A fresh destination plan clears stale detour annotations");
             var weighted = Find(conflicts: _ => 4);
             check(weighted != null && Math.Abs(weighted.ExtraDistance - detour.ExtraDistance) < 1e-8,
                 "Conflict costs do not inflate detour distance or incorrectly consume the physical search budget");
@@ -91,6 +111,9 @@ public static class RailDetourChecks
                 candidate => traffic.Limit(backwards with { Route = candidate.Route }, 150, commit: false).Distance > backStop.Distance + 1);
             check(backDetour != null && backDetour.IndexShift == -1 && backDetour.Route.Sample(backPosition, -600).Position.Edge == line[0].Id,
                 "Reverse-running trains splice detours and preserve the suffix using decreasing occurrence indices");
+            if (backDetour != null)
+                check(backDetour.Route.Inspect(backDetour.Route.Copy().Sample(backPosition, -10).Position, -1, null, out _).Any(leg => leg.Detour && leg.Direction == -1),
+                    "Reverse-running detours retain occurrence-specific debug markings");
             graph.RemoveSignal(nodes[4].Id, -1); graph.RemoveSignal(nodes[1].Id, -1);
         }
         check(search.ExpandedStates <= search.Searches * RailDetourSearch.MaxStates, "Every local search obeys its state expansion budget");

@@ -29,7 +29,7 @@ public sealed record SavedLease(int Train, SignalKey Signal, int[] Edges, bool E
 public sealed record SavedSignal(int Node, int Side, RailSignalKind Kind);
 public sealed record SavedItem(int Id, string Vehicle, int Facing);
 public sealed record SavedRouteLeg(int Index, int Edge, int Facing);
-public sealed record SavedRoute(uint Random, SavedRouteLeg[] Legs, int[] Plan, int PlanStart, int PlanStep, int Revision);
+public sealed record SavedRoute(uint Random, SavedRouteLeg[] Legs, int[] Plan, int PlanStart, int PlanStep, int Revision, int[]? DetourLegs = null);
 public sealed class SavedTrain
 {
     public int Id { get; set; }

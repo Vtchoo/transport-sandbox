@@ -23,7 +23,7 @@ public sealed class RouteBlocked(double distance) : InvalidOperationException("T
 }
 
 /// <summary>Ordered itinerary: each visit to a junction or loop has its own route index.</summary>
-public sealed class TrainRoute
+public sealed partial class TrainRoute
 {
     private readonly TrainPlacement _placement;
     private readonly Dictionary<int, (int Edge, int Facing)> _legs = new();
@@ -48,16 +48,18 @@ public sealed class TrainRoute
         foreach (var leg in _legs)
             copy._legs.Add(leg.Key, leg.Value);
         copy._plan = _plan; copy._planStart = _planStart; copy._planStep = _planStep; copy.PlanRevision = PlanRevision;
+        copy._debugDetours.UnionWith(_debugDetours);
         return copy;
     }
     public SavedRoute Save() => new(_random, _legs.Select(p => new SavedRouteLeg(p.Key, p.Value.Edge, p.Value.Facing)).ToArray(),
-        _plan.ToArray(), _planStart, _planStep, PlanRevision);
+        _plan.ToArray(), _planStart, _planStep, PlanRevision, _debugDetours.ToArray());
     public static TrainRoute Restore(TrainPlacement placement, TrainPosition position, SavedRoute saved)
     {
         var route = new TrainRoute(placement, position, saved.Random);
         route._legs.Clear();
         foreach (var leg in saved.Legs) route._legs.Add(leg.Index, (leg.Edge, leg.Facing));
         route._plan = saved.Plan.ToArray(); route._planStart = saved.PlanStart; route._planStep = saved.PlanStep; route.PlanRevision = saved.Revision;
+        route._debugDetours.UnionWith(saved.DetourLegs ?? Array.Empty<int>());
         return route;
     }
     /// <summary>Splice a forward detour into a copy, preserving occupied history and the original suffix.</summary>
@@ -70,6 +72,13 @@ public sealed class TrainRoute
             throw new InvalidOperationException("Detour must rejoin a future occurrence in the same direction.");
         var copy = Copy();
         int shift = (states.Length - 1 - skipped) * step;
+        copy._debugDetours.Clear();
+        foreach (int index in _debugDetours)
+        {
+            int progress = (index - leading.RouteIndex) * step;
+            if (progress <= 0) copy._debugDetours.Add(index);
+            else if (progress >= skipped) copy._debugDetours.Add(index + shift);
+        }
         copy._legs.Clear();
         foreach (var (index, leg) in _legs)
         {
@@ -84,6 +93,10 @@ public sealed class TrainRoute
         for (int i = 0; i < states.Length; i++)
             copy._legs[leading.RouteIndex + i * step] = (states[i] / 2, RailRouter.Direction(states[i]) * step);
         copy.PlanRevision++;
+        var before = new List<int>();
+        for (int i = 0; i <= skipped && TryLeg(leading.RouteIndex + i * step, out var old); i++)
+            before.Add(RailRouter.StateId(old.Edge, old.Facing * step));
+        copy.MarkDetour(leading, direction, before, states);
         return copy;
     }
     private bool TryLeg(int index, out (int Edge, int Facing) leg)
@@ -113,6 +126,7 @@ public sealed class TrainRoute
         if (TryLeg(leading.RouteIndex, out var current)) _legs[leading.RouteIndex] = current;
         foreach (int index in _legs.Keys.Where(index => ((long)index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
         _plan = Array.Empty<int>();
+        _debugDetours.Clear();
         PlanRevision++;
     }
     /// <summary>Replace only future legs beyond the leading coupler; preserve occupied junctions.</summary>
@@ -124,6 +138,7 @@ public sealed class TrainRoute
         foreach (int index in _legs.Keys.Where(index => (index - leading.RouteIndex) * step > 0).ToArray()) _legs.Remove(index);
         _legs[leading.RouteIndex] = current;
         _plan = states.ToArray(); _planStart = leading.RouteIndex; _planStep = step;
+        _debugDetours.Clear();
         PlanRevision++;
     }
     public TrainSample Sample(TrainPosition position, double distance)
@@ -275,5 +290,10 @@ public sealed class TrainRoute
                     _legs.Remove(i);
             }
         }
+        _debugDetours.RemoveWhere(index =>
+        {
+            long offset = ((long)index - _planStart) * _planStep;
+            return !_legs.ContainsKey(index) && (offset < 0 || offset >= _plan.Length);
+        });
     }
 }

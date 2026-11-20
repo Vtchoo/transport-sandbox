@@ -33,6 +33,8 @@ public partial class TrainEditor
                 _pathfinder.ConflictCount);
             if (platform != null)
             {
+                var leading = route.Copy().Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
+                platform.Route.MarkDetour(leading, train.TravelDirection, before, platform.States);
                 parked.Route = platform.Route; journey.Distance = platform.Distance; journey.TargetPosition = platform.Target;
                 journey.Dependencies.Clear(); journey.Dependencies.UnionWith(platform.States.Select(state => state / 2));
                 Interlocking.ReleasePending(train.Id);
