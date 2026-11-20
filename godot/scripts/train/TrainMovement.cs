@@ -60,7 +60,11 @@ public partial class TrainEditor
     private void MoveTrains(double dt)
     {
         if (Network.Signals.Count > 0 || _interlocking != null)
+        {
             Interlocking.Update(Parked.Select(p => new SignalTrain(p.Id, RouteFor(p), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)));
+            foreach (var p in Parked)
+                if (Builder.Get(p.Id).Stopped) Interlocking.ReleasePending(p.Id);
+        }
         double catalogMax = Catalog.Definitions.Max(d => d.Physics.MaxSpeedMps);
         foreach (var parked in Parked)
         {
@@ -101,7 +105,8 @@ public partial class TrainEditor
                 bool reverseAtSignal = false;
                 if (Network.Signals.Count > 0)
                 {
-                    var signal = Interlocking.Limit(new(train.Id, route, parked.Position, length, direction), lookahead);
+                    if (command.Hold) Interlocking.ReleasePending(train.Id);
+                    var signal = Interlocking.Limit(new(train.Id, route, parked.Position, length, direction), lookahead, commit: !command.Hold);
                     if (!command.Hold && TryTrafficDetour(parked, train, signal, lookahead))
                     {
                         route = RouteFor(parked);

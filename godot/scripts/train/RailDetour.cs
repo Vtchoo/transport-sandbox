@@ -7,7 +7,7 @@ namespace TransportSandbox;
 public sealed record RailDetour(TrainRoute Route, int[] Before, int[] After, TrainPosition Rejoin, double ExtraDistance, int IndexShift);
 
 /// <summary>Small live-traffic search; never rebuilds or invalidates shared destination fields.</summary>
-public sealed class RailDetourSearch
+public sealed partial class RailDetourSearch
 {
     public const int MaxStates = 256, MaxOriginalLegs = 128;
     public const double MaxDistance = 2000, MaxExtraDistance = 500;

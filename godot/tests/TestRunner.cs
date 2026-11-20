@@ -43,7 +43,11 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "station-traffic-save":
+                    await StationTrafficChecks.Saved(Check, Frame, this, _args.GetValueOrDefault("save", "res://.godot/station-traffic-repro"));
+                    break;
                 case "signals":
+                    StationTrafficChecks.Run(Check);
                     SignalChecks.Run(Check);
                     await SignalScopeChecks.Run(Check, Frame, this);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
@@ -89,6 +93,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    StationTrafficChecks.Run(Check);
                     await SaveGameChecks.Run(Check, Frame, this);
                     await PauseMenuChecks.Run(Check, Frame, this);
                     SignalChecks.Run(Check);

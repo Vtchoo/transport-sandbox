@@ -272,7 +272,14 @@ public sealed partial class RailInterlocking : IDisposable
         if (a == b) return true;
         if (!_network.Edges.TryGetValue(a, out var first) || !_network.Edges.TryGetValue(b, out var second)) return false;
         int common = first.A == second.A || first.A == second.B ? first.A : first.B == second.A || first.B == second.B ? first.B : 0;
-        if (common != 0) return _incident[common].Count >= 3; // Junction conflict; ordinary signal boundaries remain independent.
+        if (common != 0)
+        {
+            // A signal also separates opposite halves of a junction. A train stopped on
+            // its platform must not occupy the throat merely because the endpoint branches.
+            bool boundary = _network.Signals.ContainsKey(new(common, 1)) || _network.Signals.ContainsKey(new(common, -1));
+            if (boundary && TrackNetwork.SideAt(first, common) != TrackNetwork.SideAt(second, common)) return false;
+            return _incident[common].Count >= 3;
+        }
         var key = a < b ? (a, b) : (b, a);
         double width = Math.Max(3.5, (first.Gauge + second.Gauge) / 2000.0 + 2);
         var ba = Bounds(first); var bb = Bounds(second);
