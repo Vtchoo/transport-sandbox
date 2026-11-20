@@ -16,6 +16,7 @@ public sealed class TrainOrders
     public int Revision { get; private set; }
     public string Status = "No orders - wandering";
     private int _nextId = 1;
+    public int NextId => _nextId;
     private int _policyRevision = -1;
     private RailRoutingPolicy _policy = RailRoutingPolicy.Empty;
     public RailRoutingPolicy RoutingPolicy
@@ -73,6 +74,13 @@ public sealed class TrainOrders
     {
         Index = Items.Count == 0 ? 0 : (Index + 1) % Items.Count;
         WaitRemaining = -1;
+    }
+    public void Restore(TrainOrder[] items, int index, double waitRemaining, int nextId = 1)
+    {
+        Items.Clear(); Items.AddRange(items);
+        _nextId = Math.Max(nextId, Items.Select(i => i.Id + 1).DefaultIfEmpty(1).Max());
+        Index = Items.Count == 0 ? 0 : Math.Clamp(index, 0, Items.Count - 1); WaitRemaining = waitRemaining;
+        Changed();
     }
     private void Changed() { Revision++; Status = Items.Count == 0 ? "No orders - wandering" : "Route updated"; }
 }

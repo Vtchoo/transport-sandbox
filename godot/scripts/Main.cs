@@ -19,6 +19,7 @@ public partial class Main : Node3D
     public GameHUD HUD = null!;
     public TrainEditor Trains = null!;
     public TrainWindows TrainUI = null!;
+    public PauseMenu PauseUI = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
     public JsonElement Catalog;
     public VehicleCatalog Vehicles = null!;
@@ -43,7 +44,9 @@ public partial class Main : Node3D
             SettingsFile = MenuSettingsFile
         };
         Interface.AddChild(MenuUI);
-        MenuUI.StartRequested += StartWithSettings;
+        MenuUI.StartRequested += settings => CreateGame(MenuUI.WorldName.Text, settings);
+        MenuUI.LoadRequested += OpenLoadGames;
+        InitializeSaving();
     }
     public void ShowSetup() => MenuUI.OpenSetup();
     private void BuildWorldEnvironment() => WorldLighting.AddTo(this, gameplay: true);
@@ -55,6 +58,7 @@ public partial class Main : Node3D
     public void StartWithSettings(WorldSettings settings)
     {
         Generator = new(settings) { Space = Camera.Space };
+        if (WorldDirectory != null) Generator.Backend.Regions = new(WorldDirectory, settings);
         Camera.ResetWorld(Generator);
         Camera.Enabled = true;
         RemoveChild(MenuScene);
@@ -135,6 +139,11 @@ public partial class Main : Node3D
         Camera.BuildMode = () => TrackEditor.Enabled || Trains.Placing;
         Camera.NavigationBlocked = () => TrackEditor.IsDragging;
         Camera.FloatingOriginEnabled = true;
-        HUD.MainMenuRequested += () => GetTree().ReloadCurrentScene();
+        HUD.SaveRequested += () => _ = SaveGame();
+        PauseUI = new() { SaveGame = SaveGame };
+        Interface.AddChild(PauseUI);
+        PauseUI.QuitToMenuRequested += ReturnToMenu;
+        PauseUI.QuitGameRequested += QuitWithSave;
+        HUD.PauseRequested += () => { Camera.ReleaseMouse(); PauseUI.Open(); };
     }
 }

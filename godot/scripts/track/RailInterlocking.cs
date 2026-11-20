@@ -33,6 +33,18 @@ public sealed class RailInterlocking : IDisposable
     private bool _dirty = true;
     private int _aspectTick;
     public int ReservationCount => _leases.Count;
+    public SavedLease[] SaveReservations() => _leases.Select(l => new SavedLease(l.Train, l.Signal, l.Edges.ToArray(), l.Entered)).ToArray();
+    public void RestoreReservations(SavedLease[] saved, SignalTrain[] trains)
+    {
+        Update(trains);
+        _leases.Clear();
+        foreach (var item in saved)
+        {
+            var train = trains.FirstOrDefault(t => t.Id == item.Train);
+            if (train == null || !_network.Signals.ContainsKey(item.Signal) || item.Edges.Any(e => !_network.Edges.ContainsKey(e))) continue;
+            _leases.Add(new(train, item.Signal, item.Edges.ToHashSet()) { Entered = item.Entered });
+        }
+    }
     public RailInterlocking(TrackNetwork network, TrainPlacement placement)
     { _network = network; _placement = placement; network.Changed += Changed; }
     private void Changed() => _dirty = true;

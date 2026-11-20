@@ -8,7 +8,8 @@ namespace TransportSandbox;
 /// <summary>Gameplay HUD and its view/settings windows. Game systems own the actual state.</summary>
 public partial class GameHUD : Control
 {
-    public event Action? MainMenuRequested;
+    public event Action? PauseRequested;
+    public event Action? SaveRequested;
     public WorldCamera Camera = null!;
     public TerrainWorld World = null!;
     public TrackEditor Editor = null!;
@@ -74,7 +75,9 @@ public partial class GameHUD : Control
             LayoutHUD();
             GetTree().CreateTimer(2).Timeout += () => { if (IsInstanceValid(this)) { _topLabels[share] = "Copy world seed"; LayoutHUD(); } };
         };
-        MenuButton = Top("Main menu", "home", () => MainMenuRequested?.Invoke());
+        MenuButton = Top("Menu", "pause", () => PauseRequested?.Invoke());
+        MenuButton.TooltipText = "Pause menu (Esc)";
+        Top("Save · F5", "download", () => SaveRequested?.Invoke());
         ActionBar = new();
         var barStyle = UiSkin.Box("1c302bef", "b2c6b455", 9, 7, 7);
         barStyle.ShadowColor = new("07151055");

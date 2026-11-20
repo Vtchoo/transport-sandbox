@@ -50,6 +50,16 @@ public sealed class TrainRoute
         copy._plan = _plan; copy._planStart = _planStart; copy._planStep = _planStep; copy.PlanRevision = PlanRevision;
         return copy;
     }
+    public SavedRoute Save() => new(_random, _legs.Select(p => new SavedRouteLeg(p.Key, p.Value.Edge, p.Value.Facing)).ToArray(),
+        _plan.ToArray(), _planStart, _planStep, PlanRevision);
+    public static TrainRoute Restore(TrainPlacement placement, TrainPosition position, SavedRoute saved)
+    {
+        var route = new TrainRoute(placement, position, saved.Random);
+        route._legs.Clear();
+        foreach (var leg in saved.Legs) route._legs.Add(leg.Index, (leg.Edge, leg.Facing));
+        route._plan = saved.Plan.ToArray(); route._planStart = saved.PlanStart; route._planStep = saved.PlanStep; route.PlanRevision = saved.Revision;
+        return route;
+    }
     /// <summary>Splice a forward detour into a copy, preserving occupied history and the original suffix.</summary>
     public TrainRoute WithDetour(TrainPosition leading, int direction, int[] states, TrainPosition rejoin)
     {

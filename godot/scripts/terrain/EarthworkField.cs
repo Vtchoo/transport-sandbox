@@ -28,11 +28,27 @@ public sealed class EarthworkField
             + Math.Pow(Math.Max(Math.Max(MinZ - z, 0), z - MaxZ), 2);
     }
     private readonly Branch? _root;
+    private readonly Edge[] _edges;
     public EarthworkField(IEnumerable<EarthPoint[]> paths)
     {
         var edges = paths.SelectMany(path => Enumerable.Range(1, Math.Max(0, path.Length - 1)).Select(i => new Edge(path[i - 1], path[i]))).ToArray();
+        _edges = edges;
         if (edges.Length > 0)
             _root = Build(edges);
+    }
+    /// <summary>Stable local cache identity, independent of transient revision numbers and floating origins.</summary>
+    public string ChunkSignature(int x, int z)
+    {
+        using var bytes = new System.IO.MemoryStream(); using var writer = new System.IO.BinaryWriter(bytes);
+        double ox = x * 512.0, oz = z * 512.0;
+        foreach (var e in _edges)
+        {
+            double width = new[] { e.A.Left, e.A.Right, e.B.Left, e.B.Right }.Max();
+            if (e.MaxX + width < ox - 34 || e.MinX - width > ox + 546 || e.MaxZ + width < oz - 34 || e.MinZ - width > oz + 546) continue;
+            foreach (var p in new[] { e.A, e.B })
+            { writer.Write(p.X); writer.Write(p.Y); writer.Write(p.Z); writer.Write(p.Nx); writer.Write(p.Nz); writer.Write(p.Left); writer.Write(p.Right); }
+        }
+        return bytes.Length == 0 ? "" : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes.ToArray()));
     }
     private static Branch Build(Edge[] edges)
     {

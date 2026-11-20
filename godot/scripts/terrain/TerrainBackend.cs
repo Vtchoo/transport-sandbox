@@ -19,6 +19,11 @@ public partial class TerrainBackend : RefCounted
     private long _vegetationBytes;
     private readonly Dictionary<Vector2I, PreparedTrees> _completedTrees = new();
     public bool ProvidePreparedTrees;
+    public TerrainRegionStore? Regions;
+    private long _meshGenerations;
+    public long MeshGenerations => Interlocked.Read(ref _meshGenerations);
+    private long _naturalTreeGenerations;
+    public long NaturalTreeGenerations => Interlocked.Read(ref _naturalTreeGenerations);
     public long VegetationGenerations
     {
         get; private set;
@@ -33,7 +38,17 @@ public partial class TerrainBackend : RefCounted
             {
                 value = new(() =>
                 {
-                    var raw = Vegetation.Generate(_sampler, key.X, key.Y, token);
+                    var saved = Regions?.Read(key.X, key.Y, 0, "natural-trees");
+                    float[] raw;
+                    if (saved != null)
+                    { raw = new float[saved.Length / 4]; Buffer.BlockCopy(saved, 0, raw, 0, saved.Length); }
+                    else
+                    {
+                        raw = Vegetation.Generate(_sampler, key.X, key.Y, token);
+                        Interlocked.Increment(ref _naturalTreeGenerations);
+                        var bytes = new byte[raw.Length * 4]; Buffer.BlockCopy(raw, 0, bytes, 0, bytes.Length);
+                        Regions?.Write(key.X, key.Y, 0, "natural-trees", bytes);
+                    }
                     var trees = new TreeData[raw.Length / 7];
                     for (int i = 0; i < trees.Length; i++)
                     {
@@ -92,7 +107,16 @@ public partial class TerrainBackend : RefCounted
         var token = _shutdown.Token;
         _jobs.Add(key, Task.Run(() =>
         {
-            var data = Build(sampler, key, segments, token, earthworks, revision, false);
+            string signature = earthworks?.ChunkSignature(key.X, key.Y) ?? "";
+            var saved = Regions?.Read(key.X, key.Y, segments, signature);
+            ChunkData data;
+            if (saved != null) data = DecodeChunk(saved, revision);
+            else
+            {
+                data = Build(sampler, key, segments, token, earthworks, revision, false);
+                Interlocked.Increment(ref _meshGenerations);
+                Regions?.Write(key.X, key.Y, segments, signature, EncodeChunk(data));
+            }
             if (segments < 32)
                 return data;
             var vegetation = VegetationFor(key, token);

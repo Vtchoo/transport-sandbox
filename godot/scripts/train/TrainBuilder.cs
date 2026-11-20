@@ -31,6 +31,10 @@ public sealed class TrainBuilder
     public readonly List<TrainConsist> Trains = new();
     public TrainConsist? Selected;
     private int _nextTrain = 1, _nextItem = 1;
+    public int NextTrainId => _nextTrain;
+    public int NextItemId => _nextItem;
+    public void RestoreCounters(int nextTrain, int nextItem)
+    { _nextTrain = Math.Max(_nextTrain, nextTrain); _nextItem = Math.Max(_nextItem, nextItem); }
     public static int[] Gauges(IEnumerable<VehicleDefinition> definitions)
     {
         var items = definitions.ToArray();

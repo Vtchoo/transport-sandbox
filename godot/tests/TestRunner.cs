@@ -54,6 +54,11 @@ public partial class TestRunner : Node
                     await ChainStationChecks.Run(Check, Frame, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
                     break;
+                case "saves":
+                    await SaveGameChecks.Run(Check, Frame, this);
+                    await PauseMenuChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "performance":
                     TerrainPerformance.Run();
                     break;
@@ -83,6 +88,8 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    await SaveGameChecks.Run(Check, Frame, this);
+                    await PauseMenuChecks.Run(Check, Frame, this);
                     SignalChecks.Run(Check);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
                     await ChainStationChecks.Run(Check, Frame, this);

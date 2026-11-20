@@ -8,10 +8,13 @@ namespace TransportSandbox;
 public partial class MenuUI : Control
 {
     public event Action<WorldSettings>? StartRequested;
+    public event Action? LoadRequested;
     public string SettingsFile = "user://menu-settings.cfg";
     public Control Title = null!;
     public readonly List<Label> TitleLines = new();
     public Button StartButton = null!, Launch = null!;
+    public Button LoadButton = null!;
+    public LineEdit WorldName = null!;
     public WindowManager Windows = null!;
     public GameWindow Dialog = null!;
     public VBoxContainer Content = null!, Advanced = null!;
@@ -70,6 +73,8 @@ public partial class MenuUI : Control
         StartButton.AddThemeFontSizeOverride("font_size", 14);
         StartButton.Pressed += OpenSetup;
         AddChild(StartButton);
+        LoadButton = Primary("Load game"); AddChild(LoadButton);
+        LoadButton.Pressed += () => LoadRequested?.Invoke();
         BuildDialog();
         LoadPreferences();
         GetViewport().SizeChanged += LayoutMenu;
@@ -118,6 +123,9 @@ public partial class MenuUI : Control
             SavePreferences(false);
         };
         Content = Dialog.Body;
+        Label("WORLD NAME", Content, 9);
+        WorldName = new LineEdit { Text = "New World", MaxLength = 80, CustomMinimumSize = new(0, 36) };
+        Content.AddChild(WorldName);
         var scroller = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, SizeFlagsVertical = SizeFlags.ExpandFill };
         Label("Game setup", Content);
         Gap(Content, 4);
@@ -263,6 +271,7 @@ public partial class MenuUI : Control
         Title.Position = new(left, compact ? viewport.Y * 0.12f : (viewport.Y - groupHeight) / 2);
         StartButton.Position = Title.Position + new Vector2(0, Title.Size.Y + (compact ? 20 : 28));
         StartButton.Size = new(220, 50);
+        LoadButton.Position = StartButton.Position + new Vector2(0, 60); LoadButton.Size = new(220, 50);
         Constrain();
     }
     public void Constrain()

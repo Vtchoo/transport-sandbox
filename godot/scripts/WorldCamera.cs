@@ -95,6 +95,13 @@ public partial class WorldCamera : Camera3D
         Rotation = new((float)Rig.Pitch, (float)Rig.Yaw, 0);
         _publishedRotation = Rotation;
     }
+    public SavedCamera Capture() => new() { Position = WorldPosition, Target = Rig.Target, Yaw = Rig.Yaw, Pitch = Rig.Pitch, Distance = Rig.Distance, Free = Rig.Free };
+    public void Restore(SavedCamera saved)
+    {
+        Following = _lastFollowing = null; Rig.Following = false;
+        Rig.Position = saved.Position; Rig.Target = saved.Target; Rig.Yaw = saved.Yaw; Rig.Pitch = saved.Pitch; Rig.Distance = saved.Distance; Rig.Free = saved.Free;
+        Publish(); ModeChanged?.Invoke();
+    }
     public void ReleaseMouse()
     {
         _drag = MouseButton.None;

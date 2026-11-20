@@ -12,6 +12,7 @@ public partial class TerrainWorld : Node3D
     public const int Chunk = 512;
     public TerrainGenerator Generator = null!;
     public Camera3D Camera = null!;
+    public Func<bool>? InitialReady;
     public readonly Dictionary<Vector2I, Node3D> Chunks = new();
     public readonly Dictionary<Vector2I, TerrainTile> Wanted = new();
     private readonly HashSet<Vector2I> _tasks = new();
@@ -120,6 +121,7 @@ public partial class TerrainWorld : Node3D
     }
     public override void _Process(double delta)
     {
+        if (InitialReady != null) { if (!InitialReady()) return; InitialReady = null; }
         if (_stopping || !IsInstanceValid(Camera))
             return;
         foreach (var data in Generator.Backend.Poll())
