@@ -1,0 +1,1891 @@
+{
+  "date": "2026-11-20",
+  "cpu": "AMD Ryzen 7 7700 8-Core Processor",
+  "runtime": "Godot 4.7.2 .NET, development Debug build, Windows, headless",
+  "save_utc": "2026-11-20T18:32:27.7483995Z",
+  "scene": {
+    "trains": 4,
+    "vehicles": 39,
+    "segments": 193,
+    "signals": 156
+  },
+  "method": "600 samples each; first 60 excluded below. Timings in ms unless bytes/calls/count. Nested scopes overlap and must not be added. Simulation uses fixed 1/60 or 1/30 delta; world uses live headless frame delta. World runs use cached region data and 441 loaded chunks. GPU and visual stutter not measured. Other Godot editor remained open. Large uninstrumented wall-time outliers also occurred with trains stopped; their origin is unresolved.",
+  "cases": {
+    "simulation": {
+      "warm_samples": 540,
+      "summary": {
+        "allocated.bytes": {
+          "mean": 997081.0666666667,
+          "p99": 1113024,
+          "max": 1130912
+        },
+        "collision": {
+          "mean": 3.5958214814814813,
+          "p99": 5.612499999999999,
+          "max": 7.254199999999999
+        },
+        "collision.allocated.bytes": {
+          "mean": 531991.5111111111,
+          "p99": 567368,
+          "max": 567400
+        },
+        "collision.calls": {
+          "mean": 4,
+          "p99": 4,
+          "max": 4
+        },
+        "curve.scan": {
+          "mean": 1.2673222222222222,
+          "p99": 1.7168999999999999,
+          "max": 2.6794999999999995
+        },
+        "curve.scan.allocated.bytes": {
+          "mean": 119695.11111111111,
+          "p99": 122208,
+          "max": 122272
+        },
+        "curve.scan.calls": {
+          "mean": 4,
+          "p99": 4,
+          "max": 4
+        },
+        "detours": {
+          "mean": 0.0016201851851851852,
+          "p99": 0.0015,
+          "max": 0.409
+        },
+        "detours.allocated.bytes": {
+          "mean": 397.25925925925924,
+          "p99": 288,
+          "max": 20688
+        },
+        "detours.calls": {
+          "mean": 4,
+          "p99": 4,
+          "max": 4
+        },
+        "elapsed": {
+          "mean": 6.342815925925926,
+          "p99": 10.3562,
+          "max": 11.607
+        },
+        "gc.gen0": {
+          "mean": 0.05925925925925926,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.2701794444444444,
+          "p99": 0.7351,
+          "max": 2.5761
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 114224.08888888889,
+          "p99": 123664,
+          "max": 123664
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 6.32956925925926,
+          "p99": 10.3149,
+          "max": 11.5644
+        },
+        "movement.allocated.bytes": {
+          "mean": 991249.0666666667,
+          "p99": 1107192,
+          "max": 1125080
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses": {
+          "mean": 0.2518151851851852,
+          "p99": 0.39870000000000005,
+          "max": 1.8619
+        },
+        "poses.allocated.bytes": {
+          "mean": 38915.066666666666,
+          "p99": 41224,
+          "max": 41256
+        },
+        "poses.calls": {
+          "mean": 3.7944444444444443,
+          "p99": 4,
+          "max": 4
+        },
+        "signals.limit": {
+          "mean": 0.016773518518518517,
+          "p99": 0.049600000000000005,
+          "max": 1.4593000000000003
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 3821.051851851852,
+          "p99": 4328,
+          "max": 4592
+        },
+        "signals.limit.calls": {
+          "mean": 4,
+          "p99": 4,
+          "max": 4
+        },
+        "signals.update": {
+          "mean": 0.0364737037037037,
+          "p99": 0.3123,
+          "max": 0.4788
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 13217.111111111111,
+          "p99": 99752,
+          "max": 99920
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "substeps": {
+          "mean": 6.057705555555556,
+          "p99": 9.7121,
+          "max": 11.093
+        },
+        "substeps.allocated.bytes": {
+          "mean": 876528.9777777778,
+          "p99": 993208,
+          "max": 1006016
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "largest_wall_samples": [
+        {
+          "index": 11,
+          "signals.update": 47.6745,
+          "signals.update.allocated.bytes": 239672,
+          "signals.update.calls": 1,
+          "signals.limit": 0.030899999999999997,
+          "signals.limit.allocated.bytes": 4320,
+          "signals.limit.calls": 4,
+          "detours": 0.0006000000000000001,
+          "detours.allocated.bytes": 288,
+          "detours.calls": 4,
+          "collision": 5.2587,
+          "collision.allocated.bytes": 576768,
+          "collision.calls": 4,
+          "curve.scan": 1.6164,
+          "curve.scan.allocated.bytes": 119680,
+          "curve.scan.calls": 4,
+          "poses": 0.4033,
+          "poses.allocated.bytes": 40904,
+          "poses.calls": 4,
+          "substeps": 56.6595,
+          "substeps.allocated.bytes": 1158776,
+          "substeps.calls": 1,
+          "instances.sync": 0.5713,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 57.2344,
+          "movement.allocated.bytes": 1273352,
+          "movement.calls": 1,
+          "elapsed": 57.264,
+          "allocated.bytes": 1279184,
+          "gc.gen0": 0
+        },
+        {
+          "index": 0,
+          "signals.update": 0.7139,
+          "signals.update.allocated.bytes": 5760,
+          "signals.update.calls": 1,
+          "signals.limit": 2.1455,
+          "signals.limit.allocated.bytes": 15344,
+          "signals.limit.calls": 4,
+          "collision": 5.686,
+          "collision.allocated.bytes": 590704,
+          "collision.calls": 4,
+          "curve.scan": 1.6787,
+          "curve.scan.allocated.bytes": 120832,
+          "curve.scan.calls": 4,
+          "poses": 0.343,
+          "poses.allocated.bytes": 40904,
+          "poses.calls": 4,
+          "substeps": 31.374,
+          "substeps.allocated.bytes": 1126464,
+          "substeps.calls": 1,
+          "instances.sync": 0.696,
+          "instances.sync.allocated.bytes": 113880,
+          "instances.sync.calls": 1,
+          "movement": 36.7148,
+          "movement.allocated.bytes": 1301080,
+          "movement.calls": 1,
+          "elapsed": 46.0608,
+          "allocated.bytes": 1311320,
+          "gc.gen0": 0
+        },
+        {
+          "index": 1,
+          "signals.update": 0.0453,
+          "signals.update.allocated.bytes": 5464,
+          "signals.update.calls": 1,
+          "signals.limit": 0.0739,
+          "signals.limit.allocated.bytes": 9448,
+          "signals.limit.calls": 4,
+          "collision": 4.643400000000001,
+          "collision.allocated.bytes": 583584,
+          "collision.calls": 4,
+          "curve.scan": 1.4311,
+          "curve.scan.allocated.bytes": 120000,
+          "curve.scan.calls": 4,
+          "poses": 0.3351,
+          "poses.allocated.bytes": 40904,
+          "poses.calls": 4,
+          "substeps": 10.8434,
+          "substeps.allocated.bytes": 938840,
+          "substeps.calls": 1,
+          "instances.sync": 0.4067,
+          "instances.sync.allocated.bytes": 113448,
+          "instances.sync.calls": 1,
+          "movement": 14.0477,
+          "movement.allocated.bytes": 1053264,
+          "movement.calls": 1,
+          "elapsed": 21.3638,
+          "allocated.bytes": 1059504,
+          "gc.gen0": 0
+        },
+        {
+          "index": 20,
+          "signals.update": 0.02,
+          "signals.update.allocated.bytes": 5624,
+          "signals.update.calls": 1,
+          "signals.limit": 0.027500000000000004,
+          "signals.limit.allocated.bytes": 4320,
+          "signals.limit.calls": 4,
+          "detours": 0.0008,
+          "detours.allocated.bytes": 288,
+          "detours.calls": 4,
+          "collision": 16.3992,
+          "collision.allocated.bytes": 577040,
+          "collision.calls": 4,
+          "curve.scan": 1.4835999999999998,
+          "curve.scan.allocated.bytes": 119680,
+          "curve.scan.calls": 4,
+          "poses": 0.3557,
+          "poses.allocated.bytes": 41024,
+          "poses.calls": 4,
+          "substeps": 19.541,
+          "substeps.allocated.bytes": 925800,
+          "substeps.calls": 1,
+          "instances.sync": 0.5769,
+          "instances.sync.allocated.bytes": 117848,
+          "instances.sync.calls": 1,
+          "movement": 20.1211,
+          "movement.allocated.bytes": 1044144,
+          "movement.calls": 1,
+          "elapsed": 20.1536,
+          "allocated.bytes": 1049976,
+          "gc.gen0": 1
+        },
+        {
+          "index": 3,
+          "signals.update": 0.032,
+          "signals.update.allocated.bytes": 5464,
+          "signals.update.calls": 1,
+          "signals.limit": 0.30579999999999996,
+          "signals.limit.allocated.bytes": 10288,
+          "signals.limit.calls": 4,
+          "detours": 5.325399999999999,
+          "detours.allocated.bytes": 45208,
+          "detours.calls": 4,
+          "collision": 4.6798,
+          "collision.allocated.bytes": 569376,
+          "collision.calls": 4,
+          "curve.scan": 1.4613,
+          "curve.scan.allocated.bytes": 118272,
+          "curve.scan.calls": 4,
+          "poses": 0.3438,
+          "poses.allocated.bytes": 40904,
+          "poses.calls": 4,
+          "substeps": 17.9365,
+          "substeps.allocated.bytes": 974640,
+          "substeps.calls": 1,
+          "instances.sync": 0.4532,
+          "instances.sync.allocated.bytes": 113448,
+          "instances.sync.calls": 1,
+          "movement": 19.0851,
+          "movement.allocated.bytes": 1088856,
+          "movement.calls": 1,
+          "elapsed": 19.1142,
+          "allocated.bytes": 1094688,
+          "gc.gen0": 0
+        }
+      ]
+    },
+    "simulation-30": {
+      "warm_samples": 540,
+      "summary": {
+        "allocated.bytes": {
+          "mean": 1856951.851851852,
+          "p99": 2149312,
+          "max": 2251344
+        },
+        "collision": {
+          "mean": 7.168096481481482,
+          "p99": 9.133899999999999,
+          "max": 9.8954
+        },
+        "collision.allocated.bytes": {
+          "mean": 1073535.7037037036,
+          "p99": 1305008,
+          "max": 1325536
+        },
+        "collision.calls": {
+          "mean": 8,
+          "p99": 8,
+          "max": 8
+        },
+        "curve.scan": {
+          "mean": 2.5123409259259257,
+          "p99": 3.4413,
+          "max": 3.7596
+        },
+        "curve.scan.allocated.bytes": {
+          "mean": 238731.02222222224,
+          "p99": 251776,
+          "max": 253760
+        },
+        "curve.scan.calls": {
+          "mean": 8,
+          "p99": 8,
+          "max": 8
+        },
+        "detours": {
+          "mean": 0.011638888888888888,
+          "p99": 0.10200000000000002,
+          "max": 4.332599999999999
+        },
+        "detours.allocated.bytes": {
+          "mean": 915.762962962963,
+          "p99": 13880,
+          "max": 55928
+        },
+        "detours.calls": {
+          "mean": 8,
+          "p99": 8,
+          "max": 8
+        },
+        "elapsed": {
+          "mean": 11.956727777777777,
+          "p99": 15.0225,
+          "max": 32.2455
+        },
+        "gc.gen0": {
+          "mean": 0.1111111111111111,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.23622277777777778,
+          "p99": 0.4039,
+          "max": 1.4659
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 115427.15555555555,
+          "p99": 119104,
+          "max": 119312
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 11.942517962962963,
+          "p99": 15.0014,
+          "max": 32.2323
+        },
+        "movement.allocated.bytes": {
+          "mean": 1851119.851851852,
+          "p99": 2143480,
+          "max": 2245512
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses": {
+          "mean": 0.44655962962962964,
+          "p99": 0.5748,
+          "max": 1.8224999999999998
+        },
+        "poses.allocated.bytes": {
+          "mean": 72525.70370370371,
+          "p99": 82416,
+          "max": 82448
+        },
+        "poses.calls": {
+          "mean": 7.064814814814815,
+          "p99": 8,
+          "max": 8
+        },
+        "signals.limit": {
+          "mean": 0.02501759259259259,
+          "p99": 0.0555,
+          "max": 0.06960000000000001
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 7828.444444444444,
+          "p99": 10048,
+          "max": 12520
+        },
+        "signals.limit.calls": {
+          "mean": 8.003703703703703,
+          "p99": 8,
+          "max": 10
+        },
+        "signals.update": {
+          "mean": 0.1299172222222222,
+          "p99": 0.3168,
+          "max": 20.9669
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 26344.59259259259,
+          "p99": 105456,
+          "max": 117056
+        },
+        "signals.update.calls": {
+          "mean": 2,
+          "p99": 2,
+          "max": 2
+        },
+        "substeps": {
+          "mean": 11.704426296296296,
+          "p99": 14.6953,
+          "max": 31.9921
+        },
+        "substeps.allocated.bytes": {
+          "mean": 1735140.6962962963,
+          "p99": 2023824,
+          "max": 2125856
+        },
+        "substeps.calls": {
+          "mean": 2,
+          "p99": 2,
+          "max": 2
+        }
+      },
+      "largest_wall_samples": [
+        {
+          "index": 5,
+          "signals.update": 47.8068,
+          "signals.update.allocated.bytes": 245296,
+          "signals.update.calls": 2,
+          "signals.limit": 0.045399999999999996,
+          "signals.limit.allocated.bytes": 8640,
+          "signals.limit.calls": 8,
+          "detours": 0.0011,
+          "detours.allocated.bytes": 576,
+          "detours.calls": 8,
+          "collision": 7.8884,
+          "collision.allocated.bytes": 1110816,
+          "collision.calls": 8,
+          "curve.scan": 2.5614999999999997,
+          "curve.scan.allocated.bytes": 234368,
+          "curve.scan.calls": 8,
+          "poses": 0.5665,
+          "poses.allocated.bytes": 81808,
+          "poses.calls": 8,
+          "substeps": 61.089,
+          "substeps.allocated.bytes": 2035792,
+          "substeps.calls": 2,
+          "instances.sync": 0.3705,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 61.4634,
+          "movement.allocated.bytes": 2150424,
+          "movement.calls": 1,
+          "elapsed": 61.493,
+          "allocated.bytes": 2156256,
+          "gc.gen0": 0
+        },
+        {
+          "index": 0,
+          "signals.update": 0.7587,
+          "signals.update.allocated.bytes": 11224,
+          "signals.update.calls": 2,
+          "signals.limit": 2.2116,
+          "signals.limit.allocated.bytes": 24792,
+          "signals.limit.calls": 8,
+          "collision": 9.7702,
+          "collision.allocated.bytes": 1174288,
+          "collision.calls": 8,
+          "curve.scan": 2.8073999999999995,
+          "curve.scan.allocated.bytes": 240832,
+          "curve.scan.calls": 8,
+          "poses": 0.5720000000000001,
+          "poses.allocated.bytes": 81808,
+          "poses.calls": 8,
+          "substeps": 36.789500000000004,
+          "substeps.allocated.bytes": 2063712,
+          "substeps.calls": 2,
+          "instances.sync": 0.5742,
+          "instances.sync.allocated.bytes": 113880,
+          "instances.sync.calls": 1,
+          "movement": 41.7167,
+          "movement.allocated.bytes": 2238384,
+          "movement.calls": 1,
+          "elapsed": 49.9486,
+          "allocated.bytes": 2248440,
+          "gc.gen0": 0
+        },
+        {
+          "index": 305,
+          "signals.update": 20.9669,
+          "signals.update.allocated.bytes": 117056,
+          "signals.update.calls": 2,
+          "signals.limit": 0.0235,
+          "signals.limit.allocated.bytes": 7728,
+          "signals.limit.calls": 8,
+          "detours": 0.0008000000000000001,
+          "detours.allocated.bytes": 576,
+          "detours.calls": 8,
+          "collision": 6.8811,
+          "collision.allocated.bytes": 1026384,
+          "collision.calls": 8,
+          "curve.scan": 2.4697999999999998,
+          "curve.scan.allocated.bytes": 236544,
+          "curve.scan.calls": 8,
+          "poses": 0.3745,
+          "poses.allocated.bytes": 62304,
+          "poses.calls": 6,
+          "substeps": 31.9921,
+          "substeps.allocated.bytes": 1722016,
+          "substeps.calls": 2,
+          "instances.sync": 0.2386,
+          "instances.sync.allocated.bytes": 114712,
+          "instances.sync.calls": 1,
+          "movement": 32.2323,
+          "movement.allocated.bytes": 1837280,
+          "movement.calls": 1,
+          "elapsed": 32.2455,
+          "allocated.bytes": 1843112,
+          "gc.gen0": 0
+        },
+        {
+          "index": 11,
+          "signals.update": 0.9313,
+          "signals.update.allocated.bytes": 226464,
+          "signals.update.calls": 2,
+          "signals.limit": 0.06080000000000001,
+          "signals.limit.allocated.bytes": 8776,
+          "signals.limit.calls": 8,
+          "detours": 0.0011,
+          "detours.allocated.bytes": 576,
+          "detours.calls": 8,
+          "collision": 8.2589,
+          "collision.allocated.bytes": 1122072,
+          "collision.calls": 8,
+          "curve.scan": 13.317700000000002,
+          "curve.scan.allocated.bytes": 236416,
+          "curve.scan.calls": 8,
+          "poses": 0.6543,
+          "poses.allocated.bytes": 82024,
+          "poses.calls": 8,
+          "substeps": 25.540100000000002,
+          "substeps.allocated.bytes": 2031152,
+          "substeps.calls": 2,
+          "instances.sync": 0.3743,
+          "instances.sync.allocated.bytes": 114512,
+          "instances.sync.calls": 1,
+          "movement": 25.9174,
+          "movement.allocated.bytes": 2146216,
+          "movement.calls": 1,
+          "elapsed": 25.9418,
+          "allocated.bytes": 2152048,
+          "gc.gen0": 1
+        },
+        {
+          "index": 3,
+          "signals.update": 0.042800000000000005,
+          "signals.update.allocated.bytes": 11088,
+          "signals.update.calls": 2,
+          "signals.limit": 0.2997,
+          "signals.limit.allocated.bytes": 15008,
+          "signals.limit.calls": 8,
+          "detours": 5.1686999999999985,
+          "detours.allocated.bytes": 45496,
+          "detours.calls": 8,
+          "collision": 8.236799999999999,
+          "collision.allocated.bytes": 1106920,
+          "collision.calls": 8,
+          "curve.scan": 2.5265000000000004,
+          "curve.scan.allocated.bytes": 232960,
+          "curve.scan.calls": 8,
+          "poses": 0.5565,
+          "poses.allocated.bytes": 81960,
+          "poses.calls": 8,
+          "substeps": 23.5618,
+          "substeps.allocated.bytes": 1855704,
+          "substeps.calls": 2,
+          "instances.sync": 0.4262,
+          "instances.sync.allocated.bytes": 114288,
+          "instances.sync.calls": 1,
+          "movement": 24.8888,
+          "movement.allocated.bytes": 1970816,
+          "movement.calls": 1,
+          "elapsed": 24.919,
+          "allocated.bytes": 1976648,
+          "gc.gen0": 0
+        }
+      ]
+    },
+    "world": {
+      "warm_samples": 540,
+      "summary": {
+        "allocated.bytes": {
+          "mean": 1146197.0814814814,
+          "p99": 1999944,
+          "max": 2836176
+        },
+        "collision": {
+          "mean": 3.9366807407407407,
+          "p99": 10.3827,
+          "max": 15.4054
+        },
+        "collision.allocated.bytes": {
+          "mean": 551090.8740740741,
+          "p99": 990400,
+          "max": 1480736
+        },
+        "collision.calls": {
+          "mean": 4.474074074074074,
+          "p99": 8,
+          "max": 12
+        },
+        "curve.scan": {
+          "mean": 1.377918888888889,
+          "p99": 3.8852000000000007,
+          "max": 6.688899999999999
+        },
+        "curve.scan.allocated.bytes": {
+          "mean": 131331.97037037037,
+          "p99": 236608,
+          "max": 353792
+        },
+        "curve.scan.calls": {
+          "mean": 4.474074074074074,
+          "p99": 8,
+          "max": 12
+        },
+        "detours": {
+          "mean": 0.012304444444444444,
+          "p99": 0.0021000000000000003,
+          "max": 6.217
+        },
+        "detours.allocated.bytes": {
+          "mean": 409.22962962962964,
+          "p99": 864,
+          "max": 20952
+        },
+        "detours.calls": {
+          "mean": 4.474074074074074,
+          "p99": 8,
+          "max": 12
+        },
+        "elapsed": {
+          "mean": 10.850387777777778,
+          "p99": 29.8899,
+          "max": 42.2165
+        },
+        "gc.gen0": {
+          "mean": 0.07037037037037037,
+          "p99": 1,
+          "max": 2
+        },
+        "instances.sync": {
+          "mean": 0.2838975925925926,
+          "p99": 0.6654,
+          "max": 5.3395
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 114714.97777777778,
+          "p99": 116608,
+          "max": 116848
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 7.226599814814815,
+          "p99": 22.265,
+          "max": 27.1512
+        },
+        "movement.allocated.bytes": {
+          "mean": 1030247.6296296297,
+          "p99": 1883752,
+          "max": 2719240
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses": {
+          "mean": 0.2598714814814815,
+          "p99": 0.7204999999999999,
+          "max": 4.9677
+        },
+        "poses.allocated.bytes": {
+          "mean": 39922.82962962963,
+          "p99": 82128,
+          "max": 123192
+        },
+        "poses.calls": {
+          "mean": 3.8666666666666667,
+          "p99": 8,
+          "max": 12
+        },
+        "signals.limit": {
+          "mean": 0.01601185185185185,
+          "p99": 0.0606,
+          "max": 0.0903
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 4165.392592592592,
+          "p99": 7856,
+          "max": 11392
+        },
+        "signals.limit.calls": {
+          "mean": 4.474074074074074,
+          "p99": 8,
+          "max": 12
+        },
+        "signals.update": {
+          "mean": 0.08267314814814815,
+          "p99": 0.3441,
+          "max": 20.7462
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 14988.118518518519,
+          "p99": 105328,
+          "max": 111160
+        },
+        "signals.update.calls": {
+          "mean": 1.1185185185185185,
+          "p99": 2,
+          "max": 3
+        },
+        "substeps": {
+          "mean": 6.9352205555555555,
+          "p99": 21.6779,
+          "max": 26.8785
+        },
+        "substeps.allocated.bytes": {
+          "mean": 914883.5111111111,
+          "p99": 1769120,
+          "max": 2604552
+        },
+        "substeps.calls": {
+          "mean": 1.1185185185185185,
+          "p99": 2,
+          "max": 3
+        },
+        "terrain": {
+          "mean": 0.8101398148148148,
+          "p99": 1.9205,
+          "max": 8.8923
+        },
+        "terrain.allocated.bytes": {
+          "mean": 101467.82222222222,
+          "p99": 101624,
+          "max": 101624
+        },
+        "terrain.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "track.render.update": {
+          "mean": 0.7659127777777778,
+          "p99": 2.0407,
+          "max": 3.9799
+        },
+        "track.render.update.allocated.bytes": {
+          "mean": 110.66666666666667,
+          "p99": 96,
+          "max": 8016
+        },
+        "track.render.update.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.ui": {
+          "mean": 0.0027201851851851853,
+          "p99": 0.0129,
+          "max": 0.0209
+        },
+        "train.ui.allocated.bytes": {
+          "mean": 102.57777777777778,
+          "p99": 192,
+          "max": 192
+        },
+        "train.ui.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "mean": 0.018438518518518517,
+          "p99": 0.0537,
+          "max": 0.0892
+        },
+        "trees.pump.allocated.bytes": {
+          "mean": 16416,
+          "p99": 16416,
+          "max": 16416
+        },
+        "trees.pump.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "largest_wall_samples": [
+        {
+          "index": 143,
+          "trees.pump": 0.0892,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 2.4992,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 3.9799,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.14,
+          "signals.update.allocated.bytes": 16824,
+          "signals.update.calls": 3,
+          "signals.limit": 0.0903,
+          "signals.limit.allocated.bytes": 10992,
+          "signals.limit.calls": 12,
+          "detours": 0.0021000000000000003,
+          "detours.allocated.bytes": 864,
+          "detours.calls": 12,
+          "collision": 11.3155,
+          "collision.allocated.bytes": 1473520,
+          "collision.calls": 12,
+          "curve.scan": 3.8852000000000007,
+          "curve.scan.allocated.bytes": 353696,
+          "curve.scan.calls": 12,
+          "poses": 0.8771999999999999,
+          "poses.allocated.bytes": 123192,
+          "poses.calls": 12,
+          "substeps": 24.9645,
+          "substeps.allocated.bytes": 2510296,
+          "substeps.calls": 3,
+          "instances.sync": 0.6303,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 25.6088,
+          "movement.allocated.bytes": 2624984,
+          "movement.calls": 1,
+          "train.ui": 0.0165,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 42.2165,
+          "allocated.bytes": 2741752,
+          "gc.gen0": 0
+        },
+        {
+          "index": 144,
+          "trees.pump": 0.0455,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.8149,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 1.6885,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.1023,
+          "signals.update.allocated.bytes": 16824,
+          "signals.update.calls": 3,
+          "signals.limit": 0.07449999999999998,
+          "signals.limit.allocated.bytes": 10992,
+          "signals.limit.calls": 12,
+          "detours": 0.0021999999999999997,
+          "detours.allocated.bytes": 864,
+          "detours.calls": 12,
+          "collision": 11.2072,
+          "collision.allocated.bytes": 1473552,
+          "collision.calls": 12,
+          "curve.scan": 3.9758,
+          "curve.scan.allocated.bytes": 353728,
+          "curve.scan.calls": 12,
+          "poses": 0.9267,
+          "poses.allocated.bytes": 123160,
+          "poses.calls": 12,
+          "substeps": 24.1214,
+          "substeps.allocated.bytes": 2510360,
+          "substeps.calls": 3,
+          "instances.sync": 0.8398,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 24.9749,
+          "movement.allocated.bytes": 2625048,
+          "movement.calls": 1,
+          "train.ui": 0.0209,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 36.6266,
+          "allocated.bytes": 2741568,
+          "gc.gen0": 0
+        },
+        {
+          "index": 141,
+          "trees.pump": 0.057,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.9205,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 2.1571,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.0844,
+          "signals.update.allocated.bytes": 11216,
+          "signals.update.calls": 2,
+          "signals.limit": 0.06479999999999998,
+          "signals.limit.allocated.bytes": 7328,
+          "signals.limit.calls": 8,
+          "detours": 0.0011,
+          "detours.allocated.bytes": 576,
+          "detours.calls": 8,
+          "collision": 15.4054,
+          "collision.allocated.bytes": 982304,
+          "collision.calls": 8,
+          "curve.scan": 2.9232,
+          "curve.scan.allocated.bytes": 235680,
+          "curve.scan.calls": 8,
+          "poses": 0.6642,
+          "poses.allocated.bytes": 82096,
+          "poses.calls": 8,
+          "substeps": 25.0098,
+          "substeps.allocated.bytes": 1673296,
+          "substeps.calls": 2,
+          "instances.sync": 0.5977,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 25.7726,
+          "movement.allocated.bytes": 1790656,
+          "movement.calls": 1,
+          "train.ui": 0.0146,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 36.4028,
+          "allocated.bytes": 1907840,
+          "gc.gen0": 1
+        },
+        {
+          "index": 142,
+          "trees.pump": 0.0648,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.8457,
+          "terrain.allocated.bytes": 101624,
+          "terrain.calls": 1,
+          "track.render.update": 2.1229,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.5586,
+          "signals.update.allocated.bytes": 110872,
+          "signals.update.calls": 3,
+          "signals.limit": 0.06569999999999998,
+          "signals.limit.allocated.bytes": 11392,
+          "signals.limit.calls": 12,
+          "detours": 0.0010000000000000002,
+          "detours.allocated.bytes": 864,
+          "detours.calls": 12,
+          "collision": 10.3827,
+          "collision.allocated.bytes": 1473456,
+          "collision.calls": 12,
+          "curve.scan": 3.818,
+          "curve.scan.allocated.bytes": 353728,
+          "curve.scan.calls": 12,
+          "poses": 0.8211999999999998,
+          "poses.allocated.bytes": 123096,
+          "poses.calls": 12,
+          "substeps": 23.397000000000002,
+          "substeps.allocated.bytes": 2604552,
+          "substeps.calls": 3,
+          "instances.sync": 0.5397,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 23.95,
+          "movement.allocated.bytes": 2719240,
+          "movement.calls": 1,
+          "train.ui": 0.0051,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 34.1086,
+          "allocated.bytes": 2836176,
+          "gc.gen0": 0
+        },
+        {
+          "index": 145,
+          "trees.pump": 0.0338,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.6492,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 1.4155,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.0622,
+          "signals.update.allocated.bytes": 16824,
+          "signals.update.calls": 3,
+          "signals.limit": 0.059199999999999996,
+          "signals.limit.allocated.bytes": 10992,
+          "signals.limit.calls": 12,
+          "detours": 0.0014000000000000004,
+          "detours.allocated.bytes": 864,
+          "detours.calls": 12,
+          "collision": 10.416599999999999,
+          "collision.allocated.bytes": 1480736,
+          "collision.calls": 12,
+          "curve.scan": 3.6987999999999994,
+          "curve.scan.allocated.bytes": 353792,
+          "curve.scan.calls": 12,
+          "poses": 0.8167000000000001,
+          "poses.allocated.bytes": 123192,
+          "poses.calls": 12,
+          "substeps": 21.6779,
+          "substeps.allocated.bytes": 2517640,
+          "substeps.calls": 3,
+          "instances.sync": 0.577,
+          "instances.sync.allocated.bytes": 114080,
+          "instances.sync.calls": 1,
+          "movement": 22.265,
+          "movement.allocated.bytes": 2632328,
+          "movement.calls": 1,
+          "train.ui": 0.0148,
+          "train.ui.allocated.bytes": 192,
+          "train.ui.calls": 1,
+          "elapsed": 30.6735,
+          "allocated.bytes": 2749384,
+          "gc.gen0": 0
+        }
+      ]
+    },
+    "world-stopped": {
+      "warm_samples": 540,
+      "summary": {
+        "allocated.bytes": {
+          "mean": 129806.96296296296,
+          "p99": 218296,
+          "max": 229216
+        },
+        "elapsed": {
+          "mean": 7.764421111111111,
+          "p99": 26.7185,
+          "max": 194.7453
+        },
+        "gc.gen0": {
+          "mean": 0.007407407407407408,
+          "p99": 0,
+          "max": 1
+        },
+        "movement": {
+          "mean": 0.12069481481481481,
+          "p99": 0.3863,
+          "max": 36.2928
+        },
+        "movement.allocated.bytes": {
+          "mean": 16176.562962962964,
+          "p99": 101704,
+          "max": 115736
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.10942388888888889,
+          "p99": 0.3786,
+          "max": 36.267
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 13600.325925925927,
+          "p99": 99288,
+          "max": 109768
+        },
+        "signals.update.calls": {
+          "mean": 1.0333333333333334,
+          "p99": 2,
+          "max": 6
+        },
+        "substeps": {
+          "mean": 0.11343296296296296,
+          "p99": 0.382,
+          "max": 36.287
+        },
+        "substeps.allocated.bytes": {
+          "mean": 15377.659259259259,
+          "p99": 101008,
+          "max": 114928
+        },
+        "substeps.calls": {
+          "mean": 1.0333333333333334,
+          "p99": 2,
+          "max": 6
+        },
+        "terrain": {
+          "mean": 1.032841111111111,
+          "p99": 2.5788,
+          "max": 23.4722
+        },
+        "terrain.allocated.bytes": {
+          "mean": 101457.24444444444,
+          "p99": 101456,
+          "max": 101624
+        },
+        "terrain.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "track.render.update": {
+          "mean": 0.8230972222222223,
+          "p99": 2.513,
+          "max": 6.4308
+        },
+        "track.render.update.allocated.bytes": {
+          "mean": 96,
+          "p99": 96,
+          "max": 96
+        },
+        "track.render.update.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.ui": {
+          "mean": 0.002145,
+          "p99": 0.0108,
+          "max": 0.0224
+        },
+        "train.ui.allocated.bytes": {
+          "mean": 100.62222222222222,
+          "p99": 192,
+          "max": 192
+        },
+        "train.ui.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "trees.pump": {
+          "mean": 0.019975555555555555,
+          "p99": 0.0682,
+          "max": 0.2231
+        },
+        "trees.pump.allocated.bytes": {
+          "mean": 16416,
+          "p99": 16416,
+          "max": 16416
+        },
+        "trees.pump.calls": {
+          "mean": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "largest_wall_samples": [
+        {
+          "index": 298,
+          "trees.pump": 0.0152,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 0.8262,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 0.5767,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.05,
+          "signals.update.allocated.bytes": 5240,
+          "signals.update.calls": 1,
+          "substeps": 0.068,
+          "substeps.allocated.bytes": 6960,
+          "substeps.calls": 1,
+          "movement": 0.082,
+          "movement.allocated.bytes": 7656,
+          "movement.calls": 1,
+          "train.ui": 0.0057,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 194.7453,
+          "allocated.bytes": 122016,
+          "gc.gen0": 0
+        },
+        {
+          "index": 292,
+          "trees.pump": 0.0165,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 0.924,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 0.7976,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.0329,
+          "signals.update.allocated.bytes": 5240,
+          "signals.update.calls": 1,
+          "substeps": 0.044,
+          "substeps.allocated.bytes": 6960,
+          "substeps.calls": 1,
+          "movement": 0.0532,
+          "movement.allocated.bytes": 7656,
+          "movement.calls": 1,
+          "train.ui": 0.0035,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 141.4893,
+          "allocated.bytes": 122016,
+          "gc.gen0": 0
+        },
+        {
+          "index": 221,
+          "trees.pump": 0.0246,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.1857,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 1.1047,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 36.267,
+          "signals.update.allocated.bytes": 99288,
+          "signals.update.calls": 1,
+          "substeps": 36.287,
+          "substeps.allocated.bytes": 101008,
+          "substeps.calls": 1,
+          "movement": 36.2928,
+          "movement.allocated.bytes": 101704,
+          "movement.calls": 1,
+          "train.ui": 0.0058,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 40.7581,
+          "allocated.bytes": 216232,
+          "gc.gen0": 1
+        },
+        {
+          "index": 258,
+          "trees.pump": 0.0329,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 1.4341,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 1.5509,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.035,
+          "signals.update.allocated.bytes": 5240,
+          "signals.update.calls": 1,
+          "substeps": 0.0485,
+          "substeps.allocated.bytes": 6960,
+          "substeps.calls": 1,
+          "movement": 0.061,
+          "movement.allocated.bytes": 7656,
+          "movement.calls": 1,
+          "train.ui": 0.0034,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 39.4661,
+          "allocated.bytes": 122016,
+          "gc.gen0": 0
+        },
+        {
+          "index": 261,
+          "trees.pump": 0.0145,
+          "trees.pump.allocated.bytes": 16416,
+          "trees.pump.calls": 1,
+          "terrain": 0.7959,
+          "terrain.allocated.bytes": 101456,
+          "terrain.calls": 1,
+          "track.render.update": 0.5661,
+          "track.render.update.allocated.bytes": 96,
+          "track.render.update.calls": 1,
+          "signals.update": 0.0133,
+          "signals.update.allocated.bytes": 5240,
+          "signals.update.calls": 1,
+          "substeps": 0.0171,
+          "substeps.allocated.bytes": 6960,
+          "substeps.calls": 1,
+          "movement": 0.019,
+          "movement.allocated.bytes": 7656,
+          "movement.calls": 1,
+          "train.ui": 0.0009,
+          "train.ui.allocated.bytes": 96,
+          "train.ui.calls": 1,
+          "elapsed": 31.5103,
+          "allocated.bytes": 122512,
+          "gc.gen0": 0
+        }
+      ]
+    }
+  },
+  "collision_optimization": {
+    "changes": [
+      "64 m spatial buckets with conservative bounds",
+      "Cached car inverse bases and braking envelopes",
+      "Reusable body and bucket buffers",
+      "Index refresh after each train moves within a substep",
+      "Allocation-free overlap axes and articulated section loops"
+    ],
+    "notes": "Same saved snapshot and harness; first 60 of 600 samples discarded. Physics, sample spacing, curve checks, collision envelope and reservation rules unchanged. Index build/update cost included in movement, outside collision sub-scope. Full world uses variable frame deltas and can follow a different simulation timeline; fixed-delta simulation comparisons are more controlled. No multithreading added. Cold signal/JIT spikes and uninstrumented wall-time stalls are not addressed.",
+    "cases": {
+      "simulation": {
+        "warm_samples": 540,
+        "summary": {
+          "allocated.bytes": {
+            "mean": 333551.2444444444,
+            "p99": 543832,
+            "max": 547808
+          },
+          "collision": {
+            "mean": 0.1764124074074074,
+            "p99": 0.2618,
+            "max": 0.2981
+          },
+          "collision.allocated.bytes": {
+            "mean": 18878.34074074074,
+            "p99": 20608,
+            "max": 20608
+          },
+          "collision.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "curve.scan": {
+            "mean": 1.288002962962963,
+            "p99": 1.7095,
+            "max": 15.761
+          },
+          "curve.scan.allocated.bytes": {
+            "mean": 119695.11111111111,
+            "p99": 122208,
+            "max": 122272
+          },
+          "curve.scan.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "detours": {
+            "mean": 0.0017872222222222222,
+            "p99": 0.0008,
+            "max": 0.5025999999999999
+          },
+          "detours.allocated.bytes": {
+            "mean": 397.85185185185185,
+            "p99": 288,
+            "max": 20688
+          },
+          "detours.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "elapsed": {
+            "mean": 2.900583888888889,
+            "p99": 6.7554,
+            "max": 17.9659
+          },
+          "gc.gen0": {
+            "mean": 0.020370370370370372,
+            "p99": 1,
+            "max": 1
+          },
+          "instances.sync": {
+            "mean": 0.2834548148148148,
+            "p99": 0.681,
+            "max": 5.4248
+          },
+          "instances.sync.allocated.bytes": {
+            "mean": 115801.73333333334,
+            "p99": 123664,
+            "max": 124096
+          },
+          "instances.sync.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "movement": {
+            "mean": 2.889198888888889,
+            "p99": 6.718,
+            "max": 17.9433
+          },
+          "movement.allocated.bytes": {
+            "mean": 327719.2444444444,
+            "p99": 538000,
+            "max": 541976
+          },
+          "movement.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "poses": {
+            "mean": 0.26549666666666666,
+            "p99": 0.388,
+            "max": 4.088
+          },
+          "poses.allocated.bytes": {
+            "mean": 38940.45925925926,
+            "p99": 41224,
+            "max": 41256
+          },
+          "poses.calls": {
+            "mean": 3.7944444444444443,
+            "p99": 4,
+            "max": 4
+          },
+          "signals.limit": {
+            "mean": 0.013271481481481481,
+            "p99": 0.0412,
+            "max": 0.06129999999999999
+          },
+          "signals.limit.allocated.bytes": {
+            "mean": 3835.125925925926,
+            "p99": 4328,
+            "max": 4592
+          },
+          "signals.limit.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "signals.update": {
+            "mean": 0.04403833333333333,
+            "p99": 0.7253,
+            "max": 0.8217
+          },
+          "signals.update.allocated.bytes": {
+            "mean": 15435.555555555555,
+            "p99": 204704,
+            "max": 220840
+          },
+          "signals.update.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "substeps": {
+            "mean": 2.6042324074074075,
+            "p99": 6.2499,
+            "max": 17.5543
+          },
+          "substeps.allocated.bytes": {
+            "mean": 211421.51111111112,
+            "p99": 414248,
+            "max": 418224
+          },
+          "substeps.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          }
+        }
+      },
+      "simulation-30": {
+        "warm_samples": 540,
+        "summary": {
+          "allocated.bytes": {
+            "mean": 535907.7037037037,
+            "p99": 730552,
+            "max": 731280
+          },
+          "collision": {
+            "mean": 0.35104444444444444,
+            "p99": 0.4264,
+            "max": 2.7087000000000003
+          },
+          "collision.allocated.bytes": {
+            "mean": 37548.207407407404,
+            "p99": 49952,
+            "max": 50944
+          },
+          "collision.calls": {
+            "mean": 8,
+            "p99": 8,
+            "max": 8
+          },
+          "curve.scan": {
+            "mean": 2.5204855555555556,
+            "p99": 4.509099999999999,
+            "max": 4.8883
+          },
+          "curve.scan.allocated.bytes": {
+            "mean": 238731.02222222224,
+            "p99": 251776,
+            "max": 253760
+          },
+          "curve.scan.calls": {
+            "mean": 8,
+            "p99": 8,
+            "max": 8
+          },
+          "detours": {
+            "mean": 0.011768148148148147,
+            "p99": 0.10840000000000002,
+            "max": 4.203799999999999
+          },
+          "detours.allocated.bytes": {
+            "mean": 915.9111111111112,
+            "p99": 13640,
+            "max": 55928
+          },
+          "detours.calls": {
+            "mean": 8,
+            "p99": 8,
+            "max": 8
+          },
+          "elapsed": {
+            "mean": 5.0890275925925925,
+            "p99": 8.9468,
+            "max": 25.6781
+          },
+          "gc.gen0": {
+            "mean": 0.03333333333333333,
+            "p99": 1,
+            "max": 1
+          },
+          "instances.sync": {
+            "mean": 0.2547161111111111,
+            "p99": 2.5763,
+            "max": 3.0896
+          },
+          "instances.sync.allocated.bytes": {
+            "mean": 116126.88888888889,
+            "p99": 123256,
+            "max": 123664
+          },
+          "instances.sync.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "movement": {
+            "mean": 5.078899444444445,
+            "p99": 8.9064,
+            "max": 25.6694
+          },
+          "movement.allocated.bytes": {
+            "mean": 530075.7037037037,
+            "p99": 724720,
+            "max": 725448
+          },
+          "movement.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "poses": {
+            "mean": 0.45831055555555555,
+            "p99": 0.6357,
+            "max": 2.8194999999999997
+          },
+          "poses.allocated.bytes": {
+            "mean": 72541.92592592593,
+            "p99": 82416,
+            "max": 82448
+          },
+          "poses.calls": {
+            "mean": 7.064814814814815,
+            "p99": 8,
+            "max": 8
+          },
+          "signals.limit": {
+            "mean": 0.022835185185185184,
+            "p99": 0.0542,
+            "max": 0.0782
+          },
+          "signals.limit.allocated.bytes": {
+            "mean": 7819.555555555556,
+            "p99": 10048,
+            "max": 12520
+          },
+          "signals.limit.calls": {
+            "mean": 8.003703703703703,
+            "p99": 8,
+            "max": 10
+          },
+          "signals.update": {
+            "mean": 0.13822444444444446,
+            "p99": 0.7485,
+            "max": 21.116400000000002
+          },
+          "signals.update.allocated.bytes": {
+            "mean": 27808.14814814815,
+            "p99": 209936,
+            "max": 210256
+          },
+          "signals.update.calls": {
+            "mean": 2,
+            "p99": 2,
+            "max": 2
+          },
+          "substeps": {
+            "mean": 4.822606666666666,
+            "p99": 8.2986,
+            "max": 25.4664
+          },
+          "substeps.allocated.bytes": {
+            "mean": 413396.81481481483,
+            "p99": 601136,
+            "max": 601616
+          },
+          "substeps.calls": {
+            "mean": 2,
+            "p99": 2,
+            "max": 2
+          }
+        }
+      },
+      "world": {
+        "warm_samples": 540,
+        "summary": {
+          "allocated.bytes": {
+            "mean": 441413.48148148146,
+            "p99": 529328,
+            "max": 548288
+          },
+          "collision": {
+            "mean": 0.19053462962962964,
+            "p99": 0.2228,
+            "max": 9.4421
+          },
+          "collision.allocated.bytes": {
+            "mean": 18627.97037037037,
+            "p99": 19328,
+            "max": 19360
+          },
+          "collision.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "curve.scan": {
+            "mean": 1.2666561111111112,
+            "p99": 1.6658,
+            "max": 10.5895
+          },
+          "curve.scan.allocated.bytes": {
+            "mean": 118189.15555555555,
+            "p99": 119776,
+            "max": 119840
+          },
+          "curve.scan.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "detours": {
+            "mean": 0.0013988888888888888,
+            "p99": 0.001,
+            "max": 0.46869999999999995
+          },
+          "detours.allocated.bytes": {
+            "mean": 349.68888888888887,
+            "p99": 288,
+            "max": 20952
+          },
+          "detours.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "elapsed": {
+            "mean": 7.302288518518519,
+            "p99": 18.1143,
+            "max": 21.4143
+          },
+          "gc.gen0": {
+            "mean": 0.025925925925925925,
+            "p99": 1,
+            "max": 1
+          },
+          "instances.sync": {
+            "mean": 0.2730164814814815,
+            "p99": 0.4867,
+            "max": 9.5775
+          },
+          "instances.sync.allocated.bytes": {
+            "mean": 114013.55555555556,
+            "p99": 114712,
+            "max": 114920
+          },
+          "instances.sync.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "movement": {
+            "mean": 3.2137285185185185,
+            "p99": 12.2055,
+            "max": 13.5524
+          },
+          "movement.allocated.bytes": {
+            "mean": 324150.1185185185,
+            "p99": 413152,
+            "max": 431808
+          },
+          "movement.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "poses": {
+            "mean": 0.268375,
+            "p99": 0.34950000000000003,
+            "max": 9.5817
+          },
+          "poses.allocated.bytes": {
+            "mean": 41007.34814814815,
+            "p99": 41224,
+            "max": 41224
+          },
+          "poses.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "signals.limit": {
+            "mean": 0.01312037037037037,
+            "p99": 0.0346,
+            "max": 0.0649
+          },
+          "signals.limit.allocated.bytes": {
+            "mean": 3753.866666666667,
+            "p99": 4064,
+            "max": 4328
+          },
+          "signals.limit.calls": {
+            "mean": 4,
+            "p99": 4,
+            "max": 4
+          },
+          "signals.update": {
+            "mean": 0.03910814814814815,
+            "p99": 0.3059,
+            "max": 0.4817
+          },
+          "signals.update.allocated.bytes": {
+            "mean": 13293.392592592592,
+            "p99": 99688,
+            "max": 99688
+          },
+          "signals.update.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "substeps": {
+            "mean": 2.9351511111111113,
+            "p99": 5.5479,
+            "max": 13.2239
+          },
+          "substeps.allocated.bytes": {
+            "mean": 209539.52592592593,
+            "p99": 297944,
+            "max": 317232
+          },
+          "substeps.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "terrain": {
+            "mean": 0.8595296296296296,
+            "p99": 9.9315,
+            "max": 12.9641
+          },
+          "terrain.allocated.bytes": {
+            "mean": 101460.35555555555,
+            "p99": 101624,
+            "max": 101624
+          },
+          "terrain.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "track.render.update": {
+            "mean": 0.6782396296296296,
+            "p99": 1.2949,
+            "max": 2.4104
+          },
+          "track.render.update.allocated.bytes": {
+            "mean": 96,
+            "p99": 96,
+            "max": 96
+          },
+          "track.render.update.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "train.ui": {
+            "mean": 0.0021033333333333334,
+            "p99": 0.0074,
+            "max": 0.0337
+          },
+          "train.ui.allocated.bytes": {
+            "mean": 100.44444444444444,
+            "p99": 192,
+            "max": 192
+          },
+          "train.ui.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          },
+          "trees.pump": {
+            "mean": 0.03252240740740741,
+            "p99": 0.0321,
+            "max": 9.455
+          },
+          "trees.pump.allocated.bytes": {
+            "mean": 16416,
+            "p99": 16416,
+            "max": 16416
+          },
+          "trees.pump.calls": {
+            "mean": 1,
+            "p99": 1,
+            "max": 1
+          }
+        }
+      }
+    }
+  }
+}

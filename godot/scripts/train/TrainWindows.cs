@@ -451,6 +451,7 @@ public partial class TrainWindows : Node
     }
     public override void _Process(double delta)
     {
+        using var probe = FrameProbe.Measure("train.ui");
         _catalogTimer += delta;
         _viewTimer += delta;
         if (_catalogTimer >= .04)

@@ -79,6 +79,7 @@ public sealed partial class RailInterlocking : IDisposable
     }
     public void Update(IEnumerable<SignalTrain> trains)
     {
+        using var probe = FrameProbe.Measure("signals.update");
         if (_network.Signals.Count == 0) { _leases.Clear(); _occupied.Clear(); _footprints.Clear(); return; }
         bool rebuilt = _dirty;
         if (_dirty) Rebuild();
@@ -200,6 +201,7 @@ public sealed partial class RailInterlocking : IDisposable
     }
     public SignalLimit Limit(SignalTrain train, double lookahead, bool commit = true)
     {
+        using var probe = FrameProbe.Measure("signals.limit");
         if (_network.Signals.Count == 0) return new(double.PositiveInfinity, "");
         var leading = train.Route.Sample(train.Position, train.Direction * train.Length / 2).Position;
         var spans = train.Route.Trace(leading, train.Direction, double.PositiveInfinity).GetEnumerator();

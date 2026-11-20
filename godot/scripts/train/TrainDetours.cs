@@ -11,6 +11,7 @@ public partial class TrainEditor
     private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.Dictionary<int, double>> _stationTargets = new();
     private bool TryTrafficDetour(ParkedTrain parked, TrainConsist train, SignalLimit blocked, double lookahead)
     {
+        using var probe = FrameProbe.Measure("detours");
         if (_detourBudget <= 0 || parked.DetourCooldown > 0 || blocked.CanReverse || !double.IsFinite(blocked.Distance)) return false;
         if (parked.Journey is { ViaDeadEnd: true } or { NeedsReplan: true } or { Reachable: false }) return false;
         _detourBudget--; parked.DetourCooldown = 2 + train.Id % 7 * .13;

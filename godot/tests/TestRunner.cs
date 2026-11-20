@@ -43,10 +43,15 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "save-performance":
+                    await SavePerformance.Run(Frame, this, _args.GetValueOrDefault("phase", "simulation"), _args.GetValueOrDefault("save", "res://.godot/stutter-profile"));
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "station-traffic-save":
                     await StationTrafficChecks.Saved(Check, Frame, this, _args.GetValueOrDefault("save", "res://.godot/station-traffic-repro"));
                     break;
                 case "signals":
+                    TrainCollisionChecks.Run(Check);
                     StationTrafficChecks.Run(Check);
                     SignalChecks.Run(Check);
                     await SignalScopeChecks.Run(Check, Frame, this);
@@ -93,6 +98,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    TrainCollisionChecks.Run(Check);
                     StationTrafficChecks.Run(Check);
                     await SaveGameChecks.Run(Check, Frame, this);
                     await PauseMenuChecks.Run(Check, Frame, this);

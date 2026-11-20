@@ -121,6 +121,7 @@ public partial class TerrainWorld : Node3D
     }
     public override void _Process(double delta)
     {
+        using var probe = FrameProbe.Measure("terrain");
         if (InitialReady != null) { if (!InitialReady()) return; InitialReady = null; }
         if (_stopping || !IsInstanceValid(Camera))
             return;

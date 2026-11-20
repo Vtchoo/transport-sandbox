@@ -54,6 +54,7 @@ public partial class TrackRenderer : Node3D
     }
     public override void _Process(double delta)
     {
+        using var probe = FrameProbe.Measure("track.render.update");
         if (Dirty)
         {
             Dirty = false;

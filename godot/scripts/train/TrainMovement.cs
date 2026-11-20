@@ -10,6 +10,7 @@ public partial class TrainEditor
     public string WorldSeed = "railway";
     public event Action? MotionChanged;
     private double _motionHud;
+    private readonly TrainCollisionIndex _collisions = new();
     private RailInterlocking? _interlocking;
     public RailInterlocking Interlocking => _interlocking ??= new(Network, Placement);
     private uint RouteSeed(int id)
@@ -38,6 +39,7 @@ public partial class TrainEditor
     /// <summary>Same bounded 1/60 s substeps as the browser; all distances and forces remain SI.</summary>
     public void AdvanceMovement(double delta)
     {
+        using var probe = FrameProbe.Measure("movement");
         _detourBudget = 2;
         foreach (var parked in Parked) parked.DetourCooldown = Math.Max(0, parked.DetourCooldown - Math.Clamp(delta, 0, .1));
         PrepareRouting();
@@ -49,7 +51,10 @@ public partial class TrainEditor
             remaining -= step;
         }
         if (moving)
+        {
+            using var instancesProbe = FrameProbe.Measure("instances.sync");
             SyncInstances();
+        }
         _motionHud += delta;
         if (_motionHud >= .2)
         {
@@ -59,12 +64,15 @@ public partial class TrainEditor
     }
     private void MoveTrains(double dt)
     {
+        using var probe = FrameProbe.Measure("substeps");
         if (Network.Signals.Count > 0 || _interlocking != null)
         {
             Interlocking.Update(Parked.Select(p => new SignalTrain(p.Id, RouteFor(p), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)));
             foreach (var p in Parked)
                 if (Builder.Get(p.Id).Stopped) Interlocking.ReleasePending(p.Id);
         }
+        _collisions.Begin();
+        foreach (var p in Parked) _collisions.Add(Builder.Get(p.Id), p.Poses);
         double catalogMax = Catalog.Definitions.Max(d => d.Physics.MaxSpeedMps);
         foreach (var parked in Parked)
         {
@@ -122,24 +130,23 @@ public partial class TrainEditor
                     if (signal.Message.Length > 0) train.Orders.Status = signal.Message;
                 }
                 var others = Parked.Where(p => p != parked).ToArray();
-                if (others.Length > 0)
-                    for (double d = 0; d < free; d += 4)
-                    {
-                        var point = route.Sample(parked.Position, direction * (length / 2 + d)).Point;
-                        bool blocked = others.Any(other => other.Poses.Select((pose, i) =>
+                using (FrameProbe.Measure("collision"))
+                {
+                    if (others.Length > 0)
+                        for (double d = 0; d < free; d += 4)
                         {
-                            var definition = Builder.Get(other.Id).Items[i].Definition;
-                            var delta = pose.Basis.Inverse() * (point - pose.BodyCenter);
-                            return Math.Abs(delta.X) < (definition.Width + train.Items[0].Definition.Width) / 2 && Math.Abs(delta.Y) < definition.Height && Math.Abs(delta.Z) < definition.Length / 2 + 5;
-                        }).Any(v => v));
-                        if (blocked)
-                        {
-                            free = Math.Min(free, Math.Max(0, d - 5));
-                            break;
+                            var point = route.Sample(parked.Position, direction * (length / 2 + d)).Point;
+                            bool blocked = _collisions.Blocked(point, train.Items[0].Definition.Width, train.Id);
+                            if (blocked)
+                            {
+                                free = Math.Min(free, Math.Max(0, d - 5));
+                                break;
+                            }
                         }
-                    }
+                }
                 double limit = command.Hold ? 0 : Math.Sqrt(2 * braking * free);
                 double scan = Math.Min(lookahead, clearance);
+                using (FrameProbe.Measure("curve.scan"))
                 for (double d = -length / 2; d <= length / 2 + scan; d += 5)
                 {
                     var location = route.Sample(parked.Position, direction * d).Position;
@@ -156,7 +163,8 @@ public partial class TrainEditor
                 }
                 double distance = Math.Min(next.Distance, free);
                 var position = route.Sample(parked.Position, direction * distance).Position;
-                var poses = Placement.Poses(train, position, route.Sample);
+                VehiclePose[] poses;
+                using (FrameProbe.Measure("poses")) poses = Placement.Poses(train, position, route.Sample);
                 if (Occupied(train, poses, others))
                 {
                     train.Speed = 0;
@@ -171,6 +179,7 @@ public partial class TrainEditor
                 if (parked.Journey is { } journey) journey.Distance -= distance;
                 if (parked.Wandering is { Station: not 0, Servicing: false } wandering) wandering.Distance -= distance;
                 parked.Poses = poses;
+                _collisions.Update(train, poses);
                 parked.Effort = next.Effort;
                 parked.Supported = true;
                 train.Speed = next.Distance > free && free < .1 ? 0 : next.Speed * direction;

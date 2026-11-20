@@ -110,18 +110,26 @@ public sealed class TrainPlacement : IDisposable
     }
     public static bool Overlap(VehicleDefinition a, VehiclePose pa, VehicleDefinition b, VehiclePose pb, double margin = .08)
     {
-        if (pa.Sections.Length != 0) return a.Sections.Select((s, i) => Overlap(s.Definition, pa.Sections[i], b, pb, margin)).Any(v => v);
-        if (pb.Sections.Length != 0) return b.Sections.Select((s, i) => Overlap(a, pa, s.Definition, pb.Sections[i], margin)).Any(v => v);
+        if (pa.Sections.Length != 0)
+        {
+            for (int i = 0; i < pa.Sections.Length; i++) if (Overlap(a.Sections[i].Definition, pa.Sections[i], b, pb, margin)) return true;
+            return false;
+        }
+        if (pb.Sections.Length != 0)
+        {
+            for (int i = 0; i < pb.Sections.Length; i++) if (Overlap(a, pa, b.Sections[i].Definition, pb.Sections[i], margin)) return true;
+            return false;
+        }
         var delta = pb.BodyCenter - pa.BodyCenter;
         if (Math.Abs(delta.Y) > Math.Max(a.Height, b.Height)) return false;
         Vector3 Forward(VehiclePose p) { var v = p.Front - p.Rear; v.Y = 0; return v.Normalized(); }
         var af = Forward(pa); var bf = Forward(pb); var ar = new Vector3(af.Z, 0, -af.X); var br = new Vector3(bf.Z, 0, -bf.X);
-        foreach (var axis in new[] { ar, af, br, bf })
+        bool Separated(Vector3 axis)
         {
             double ra = Math.Abs(ar.Dot(axis)) * a.Width / 2 + Math.Abs(af.Dot(axis)) * (a.Length / 2 + margin);
             double rb = Math.Abs(br.Dot(axis)) * b.Width / 2 + Math.Abs(bf.Dot(axis)) * (b.Length / 2 + margin);
-            if (Math.Abs(delta.Dot(axis)) >= ra + rb) return false;
+            return Math.Abs(delta.Dot(axis)) >= ra + rb;
         }
-        return true;
+        return !Separated(ar) && !Separated(af) && !Separated(br) && !Separated(bf);
     }
 }

@@ -137,6 +137,7 @@ public sealed class TreeStreamer : IDisposable
     }
     public void Pump(bool hidden)
     {
+        using var probe = FrameProbe.Measure("trees.pump");
         var timer = Stopwatch.StartNew();
         LastOperations = 0;
         foreach (var work in _jobs.Where(j => j.Task.IsCompleted).ToArray())
