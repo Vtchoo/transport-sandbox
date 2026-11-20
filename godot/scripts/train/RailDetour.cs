@@ -16,7 +16,8 @@ public sealed partial class RailDetourSearch
     public long Successes { get; private set; }
 
     public RailDetour? Find(TrackNetwork network, TrainPlacement placement, SignalTrain train, double blockedDistance,
-        double orderDistance, RailRoutingPolicy? policy, Func<int, bool> available, Func<RailDetour, bool> accept)
+        double orderDistance, RailRoutingPolicy? policy, Func<int, bool> available, Func<RailDetour, bool> accept,
+        Func<int, int>? conflicts = null)
     {
         Searches++;
         var leading = train.Route.Sample(train.Position, train.Direction * train.Length / 2).Position;
@@ -32,6 +33,7 @@ public sealed partial class RailDetourSearch
         if (goals.Count == 0) return null;
         int initial = RailRouter.StateId(leading.Edge, leading.Facing * train.Direction);
         var costs = new Dictionary<int, double> { [initial] = 0 };
+        var distances = new Dictionary<int, double> { [initial] = 0 };
         var previous = new Dictionary<int, int>();
         var clear = new Dictionary<int, bool>();
         var queue = new PriorityQueue<int, (double Cost, int State)>(); queue.Enqueue(initial, (0, initial));
@@ -40,7 +42,7 @@ public sealed partial class RailDetourSearch
         {
             if (priority.Cost != costs[state]) continue;
             expanded++; ExpandedStates++;
-            if (state != initial && goals.TryGetValue(state, out var goal) && priority.Cost <= goal.Span.Distance + MaxExtraDistance)
+            if (state != initial && goals.TryGetValue(state, out var goal) && distances[state] <= goal.Span.Distance + MaxExtraDistance)
             {
                 var path = new List<int> { state };
                 for (int at = state; previous.TryGetValue(at, out int parent); at = parent) path.Add(parent);
@@ -50,7 +52,7 @@ public sealed partial class RailDetourSearch
                 {
                     int[] after = path.ToArray();
                     var candidate = new RailDetour(train.Route.WithDetour(leading, train.Direction, after, goal.Span.Position),
-                        before, after, goal.Span.Position, priority.Cost - goal.Span.Distance,
+                        before, after, goal.Span.Position, distances[state] - goal.Span.Distance,
                         (after.Length - before.Length) * train.Route.TravelStep(leading, train.Direction));
                     if (accept(candidate)) { Successes++; return candidate; }
                     if (++candidates >= 4) return null;
@@ -68,10 +70,13 @@ public sealed partial class RailDetourSearch
                 int successor = RailRouter.StateId(next.Id, next.A == node ? 1 : -1);
                 double penalty = policy != null && next.Station != 0 && next.Station != edge.Station && !policy.Allows(next.Station)
                     ? RailRoutingPolicy.UnorderedStationPenalty : 0;
-                double cost = priority.Cost + length + penalty;
-                if (cost > MaxDistance || costs.TryGetValue(successor, out double old) && cost >= old) continue;
+                // Preserve the existing short-detour budget for unrelated station entries.
+                if (penalty > MaxDistance) continue;
+                double distance = distances[state] + length;
+                double cost = priority.Cost + length * (1 + (conflicts?.Invoke(edge.Id) ?? 0)) + penalty;
+                if (distance > MaxDistance || costs.TryGetValue(successor, out double old) && cost >= old) continue;
                 if (costs.Count >= MaxStates * 2) return null;
-                costs[successor] = cost; previous[successor] = state; queue.Enqueue(successor, (cost, successor));
+                costs[successor] = cost; distances[successor] = distance; previous[successor] = state; queue.Enqueue(successor, (cost, successor));
             }
         }
         return null;

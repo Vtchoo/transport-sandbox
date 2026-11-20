@@ -35,6 +35,13 @@ public static class StationTrafficChecks
         check(double.IsFinite(blocked.Distance), "Occupied destination platform blocks the original station approach");
         var targets = new[] { platformA, platformB }.ToDictionary(e => RailRouter.StateId(e.Id, 1), e => 1.0);
         var search = new RailDetourSearch();
+        var weighted = search.FindStation(network, placement, train, targets, 500,
+            RailRoutingPolicy.Create(new[] { platformA.Station }), _ => true, _ => true,
+            edge => edge == platformA.Id ? 3 : 0);
+        double expectedDistance = placement.Curve(approach).Length * .5 - train.Length / 2
+            + placement.Curve(throatB).Length + placement.Curve(platformB).Length;
+        check(weighted != null && weighted.Target.Edge == platformB.Id && Math.Abs(weighted.Distance - expectedDistance) < 1e-8,
+            "Live station search compares weighted final legs while retaining exact physical arrival distance");
         RailStationAlternative? Find() => search.FindStation(network, placement, train, targets, 500,
             RailRoutingPolicy.Create(new[] { platformA.Station }), edge => traffic.DetourEdgeClear(edge, train.Id),
             alt => traffic.CanDetour(train.Id, new[] { approach, throatA, platformA }.Select(e => RailRouter.StateId(e.Id, 1)).ToArray(), alt.States)

@@ -18,12 +18,18 @@ public sealed class RailRoutingSnapshot
     public int ComponentCount => _components.Count;
     public int ReusedComponents { get; }
     public bool Contains(RailRoutingGraph graph) => graph == Empty || _graphs.Contains(graph);
+    public int ConflictCount(int edge) => _edges.TryGetValue(edge, out var value) ? value.Conflicts : 0;
     public RailRoutingGraph ForEdge(int edge) => edge == 0 ? _components.Values.FirstOrDefault() ?? Empty : _byEdge.GetValueOrDefault(edge, Empty);
     private RailRoutingSnapshot(Dictionary<int, RailRoutingEdge> edges, Dictionary<int, RailRoutingGraph> byEdge,
         Dictionary<int, RailRoutingGraph> components, int[] changed, int integrated, int reused)
     { _edges = edges; _byEdge = byEdge; _components = components; _graphs = components.Values.ToHashSet(); ChangedEdges = changed; IntegratedEdges = integrated; ReusedComponents = reused; }
     public static RailRoutingSnapshot Build(RailRoutingEdge[] source, RailRoutingSnapshot? previous, CancellationToken token)
     {
+        // Compute across components: a geometric crossing need not have a connecting node.
+        bool same = previous != null && source.Length == previous._edges.Count
+            && source.All(e => previous._edges.TryGetValue(e.Id, out var old) && RailConflictCosts.SameGeometry(e, old));
+        source = same ? source.Select(e => e with { Conflicts = previous!.ConflictCount(e.Id) }).ToArray()
+            : RailConflictCosts.Build(source, token);
         var parent = Enumerable.Range(0, source.Length).ToArray();
         var rank = new byte[source.Length];
         int Root(int i) { while (parent[i] != i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; }

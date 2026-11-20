@@ -7,7 +7,7 @@ namespace TransportSandbox;
 
 public readonly record struct RailDestination(TrainOrderKind Kind, int Target);
 public readonly record struct RailRoutingEdge(int Id, int A, int B, int Gauge, int SideA, int SideB, int Station,
-    TrackVector P0, TrackVector P1, TrackVector P2, TrackVector P3, double KnownLength = -1, int SignalA = 3, int SignalB = 3);
+    TrackVector P0, TrackVector P1, TrackVector P2, TrackVector P3, double KnownLength = -1, int SignalA = 3, int SignalB = 3, int Conflicts = -1);
 
 /// <summary>Immutable directed graph. Build and search use managed data only, never the scene tree.</summary>
 public sealed class RailRoutingGraph
@@ -45,7 +45,7 @@ public sealed class RailRoutingGraph
 
     public static RailRoutingGraph Build(RailRoutingEdge[] source, CancellationToken token = default, RailRoutingGraph? reuse = null)
     {
-        var edges = source.OrderBy(e => e.Id).ToArray();
+        var edges = (source.Any(e => e.Conflicts < 0) ? RailConflictCosts.Build(source, token) : source).OrderBy(e => e.Id).ToArray();
         var indices = new Dictionary<int, int>(edges.Length);
         var incident = new Dictionary<int, List<int>>();
         var stations = new Dictionary<int, List<int>>();
@@ -164,7 +164,7 @@ public sealed class RailRoutingGraph
         var heap = new PriorityQueue<int, (int Reversals, double Cost, int State)>();
         foreach (var (state, u) in targets)
         {
-            double cost = _length[state] * ((state & 1) != 0 ? u : 1 - u);
+            double cost = _length[state] * (1 + _edges[state / 2].Conflicts) * ((state & 1) != 0 ? u : 1 - u);
             costs[state] = cost; reversals[state] = 0; heap.Enqueue(state, (0, cost, state));
         }
         int visits = 0, heapPops = 0, relaxed = 0;
@@ -180,7 +180,7 @@ public sealed class RailRoutingGraph
                 while (true)
                 {
                     if ((visits++ & 255) == 0) token.ThrowIfCancellationRequested();
-                    double cost = suffixCost + _length[previous] + EntryPenalty(previous, successor, destination, policy);
+                    double cost = suffixCost + _length[previous] * (1 + _edges[previous / 2].Conflicts) + EntryPenalty(previous, successor, destination, policy);
                     int turns = suffixTurns + (successor == (previous ^ 1) ? 1 : 0);
                     if (turns > reversals[previous] || turns == reversals[previous] && cost >= costs[previous]) break;
                     costs[previous] = cost; reversals[previous] = turns; next[previous] = successor; relaxed++;
@@ -224,7 +224,7 @@ public sealed class RailRoutingGraph
             if (_targets.TryGetValue(initial, out double u))
             {
                 double direct = (u - start.U) * ((initial & 1) != 0 ? 1 : -1) * _graph._length[initial];
-                if (direct >= -.02) { best = Math.Max(0, direct); bestReversals = 0; }
+                if (direct >= -.02) { best = Math.Max(0, direct) * (1 + _graph._edges[index].Conflicts); bestReversals = 0; }
             }
             double remaining = _graph._length[initial] * ((initial & 1) != 0 ? 1 - start.U : start.U);
             int successor = -1;
@@ -232,14 +232,14 @@ public sealed class RailRoutingGraph
             {
                 if (_reversals[state] == int.MaxValue) continue;
                 int turns = _reversals[state] + (state == (initial ^ 1) ? 1 : 0);
-                double cost = remaining + _costs[state] + _graph.EntryPenalty(initial, state, _destination, _policy);
+                double cost = remaining * (1 + _graph._edges[index].Conflicts) + _costs[state] + _graph.EntryPenalty(initial, state, _destination, _policy);
                 if (turns < bestReversals || turns == bestReversals && cost < best)
                 { best = cost; bestReversals = turns; successor = state; }
             }
             if (!double.IsFinite(best)) return null;
             int External(int state) => _graph._edges[state / 2].Id * 2 + (state & 1);
             var path = new List<int> { External(initial) };
-            double distance = successor < 0 ? best : remaining;
+            double distance = successor < 0 ? best / (1 + _graph._edges[index].Conflicts) : remaining;
             for (int state = successor, steps = 0; state >= 0; state = _next[state])
             {
                 if (++steps > _next.Length) throw new InvalidOperationException("Routing field contains a cycle.");

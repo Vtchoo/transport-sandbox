@@ -302,7 +302,7 @@ public sealed partial class RailInterlocking : IDisposable
         box = (new(p.Min(v => v.X), p.Min(v => v.Y), p.Min(v => v.Z)), new(p.Max(v => v.X), p.Max(v => v.Y), p.Max(v => v.Z)));
         _bounds.Add(edge.Id, box); return box;
     }
-    private static bool GeometricConflict(TrackCurve a, TrackCurve b, double width)
+    internal static bool GeometricConflict(TrackCurve a, TrackCurve b, double width)
     {
         bool Overlap(Func<TrackVector, double> coordinate, double margin) =>
             a.Controls.Min(coordinate) <= b.Controls.Max(coordinate) + margin && b.Controls.Min(coordinate) <= a.Controls.Max(coordinate) + margin;

@@ -15,7 +15,7 @@ public partial class TrainEditor
     public bool RoutingPending => !_pathfinder.Ready || RoutingStats.ActiveWorkers > 0 || RoutingStats.Queued > 0;
     private void PrepareRouting()
     {
-        if (!Parked.Any(p => Builder.Get(p.Id).Orders.Items.Count > 0)) return;
+        if (Parked.Count == 0) return;
         if (_routingCaptureRevision != _revision)
         {
             _routingCaptureRevision = _revision; _routingCursor = 0;

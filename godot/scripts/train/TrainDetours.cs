@@ -29,7 +29,8 @@ public partial class TrainEditor
             var platform = Detours.FindStation(Network, Placement, input, targets, stop, train.Orders.RoutingPolicy,
                 edge => Interlocking.DetourEdgeClear(edge, train.Id),
                 alternative => Interlocking.CanDetour(train.Id, before, alternative.States)
-                    && Interlocking.Limit(input with { Route = alternative.Route }, lookahead, commit: false).Distance > blocked.Distance + 1);
+                    && Interlocking.Limit(input with { Route = alternative.Route }, lookahead, commit: false).Distance > blocked.Distance + 1,
+                _pathfinder.ConflictCount);
             if (platform != null)
             {
                 parked.Route = platform.Route; journey.Distance = platform.Distance; journey.TargetPosition = platform.Target;
@@ -45,7 +46,8 @@ public partial class TrainEditor
             train.Orders.Items.Count == 0 ? null : train.Orders.RoutingPolicy,
             edge => Interlocking.DetourEdgeClear(edge, train.Id),
             detour => Interlocking.CanDetour(train.Id, detour.Before, detour.After)
-                && Interlocking.Limit(input with { Route = detour.Route }, lookahead, commit: false).Distance > blocked.Distance + 1);
+                && Interlocking.Limit(input with { Route = detour.Route }, lookahead, commit: false).Distance > blocked.Distance + 1,
+            _pathfinder.ConflictCount);
         if (candidate == null) return false;
         // The old occupied occurrence and all history remain fixed. Only future indices shift.
         parked.Route = candidate.Route;

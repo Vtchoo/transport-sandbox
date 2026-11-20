@@ -28,15 +28,18 @@ public static class RailDetourChecks
         var stop = traffic.Limit(mover, 150);
         check(double.IsFinite(stop.Distance), "Original itinerary waits for the train on the direct line");
         var search = new RailDetourSearch();
-        RailDetour? Find(double distance = double.PositiveInfinity) => search.Find(graph, placement, mover, stop.Distance, distance, RailRoutingPolicy.Empty,
+        RailDetour? Find(double distance = double.PositiveInfinity, Func<int, int>? conflicts = null) => search.Find(graph, placement, mover, stop.Distance, distance, RailRoutingPolicy.Empty,
             edge => traffic.DetourEdgeClear(edge, mover.Id),
             detour => traffic.CanDetour(mover.Id, detour.Before, detour.After)
-                && traffic.Limit(mover with { Route = detour.Route }, 150, commit: false).Distance > stop.Distance + 1);
+                && traffic.Limit(mover with { Route = detour.Route }, 150, commit: false).Distance > stop.Distance + 1, conflicts);
         var detour = Find();
         check(detour != null && bypass.All(edge => detour.After.Any(state => state / 2 == edge.Id)),
             "Bounded local search takes the clear passing line and rejoins the original itinerary");
         if (detour != null)
         {
+            var weighted = Find(conflicts: _ => 4);
+            check(weighted != null && Math.Abs(weighted.ExtraDistance - detour.ExtraDistance) < 1e-8,
+                "Conflict costs do not inflate detour distance or incorrectly consume the physical search budget");
             check(traffic.ReservationCount == 0, "Testing a detour does not mutate reservations");
             check(detour.Route.Sample(start, -5).Point.DistanceTo(route.Sample(start, -5).Point) < .001,
                 "Detours preserve occupied history behind the leading coupler");

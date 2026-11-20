@@ -15,6 +15,7 @@ public static class RailPathfindingChecks
     }).ToArray();
     public static async Task Run(Action<bool, string> check)
     {
+        RailConflictChecks.Run(check);
         CorridorRoutingChecks.Run(check);
         await RoutingInvalidationChecks.Run(check);
         RailRoutingEdge Edge(int id, int a, int b, int sideA, int sideB, double length) =>
@@ -71,7 +72,8 @@ public static class RailPathfindingChecks
         network.ConnectNodes(narrowA, narrowB);
         using var placement = new TrainPlacement(network);
         var reference = new RailRouter(); reference.Rebuild(network, placement);
-        var graph = RailRoutingGraph.Build(Capture(network));
+        // This fixture compares the legacy shortest-distance router. Weighted routing has its own checks.
+        var graph = RailRoutingGraph.Build(Capture(network).Select(e => e with { Conflicts = 0 }).ToArray());
         var edited = Capture(network); edited[0] = edited[0] with { Station = 200 };
         var stationEdit = RailRoutingGraph.Build(edited, reuse: graph);
         check(stationEdit.IntegratedEdges == 0, "Station/topology edits reuse exact lengths of unchanged splines");

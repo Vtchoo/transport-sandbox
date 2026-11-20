@@ -60,6 +60,7 @@ public sealed class RailPathfinder : IDisposable
         Pump();
     }
     public long ComponentVersion(int edge) => _snapshot?.ForEdge(edge).Version ?? -1;
+    public int ConflictCount(int edge) => _snapshot?.ConflictCount(edge) ?? 0;
     public bool AffectsSince(int revision, HashSet<int> dependencies)
     {
         if (revision == _publishedRevision) return false;
