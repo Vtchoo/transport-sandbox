@@ -8,7 +8,7 @@ public sealed record SignalTrain(int Id, TrainRoute Route, TrainPosition Positio
 public readonly record struct SignalLimit(double Distance, string Message, bool CanReverse = false);
 
 /// <summary>Live occupancy/reservations are separate from immutable destination routing fields.</summary>
-public sealed class RailInterlocking : IDisposable
+public sealed partial class RailInterlocking : IDisposable
 {
     private sealed class Lease(SignalTrain train, SignalKey signal, HashSet<int> edges)
     {
@@ -216,59 +216,51 @@ public sealed class RailInterlocking : IDisposable
                 if (_leases.Any(lease => lease.Train == train.Id && lease.Signal == key
                     && (lease.Entered || lease.Route == train.Route && lease.PlanRevision == train.Route.PlanRevision && lease.Direction == train.Direction)))
                 { if (commit) signal.Aspect = RailSignalAspect.Green; continue; }
-                if (!Reserve(train, signal, span, commit))
-                { if (commit) signal.Aspect = RailSignalAspect.Red; return new(Math.Max(0, distance - 2), "Waiting at " + signal.Kind.ToString().ToLowerInvariant() + " signal"); }
+                if (!Reserve(train, signal, span, commit, out string reason))
+                { if (commit) signal.Aspect = RailSignalAspect.Red; return new(Math.Max(0, distance - 2), "Waiting at " + signal.Kind.ToString().ToLowerInvariant() + " signal: " + reason); }
                 if (commit) signal.Aspect = RailSignalAspect.Green;
             }
         }
         return new(double.PositiveInfinity, "");
     }
-    private bool Reserve(SignalTrain train, TrackSignal entry, RouteSpan approach, bool commit)
+    private bool Reserve(SignalTrain train, TrackSignal entry, RouteSpan approach, bool commit, out string reason)
     {
+        reason = "No normal exit on the chosen route";
         TrainPosition start;
         try { start = train.Route.Sample(approach.Position, train.Direction * (approach.Length + .00001)).Position; }
-        catch (InvalidOperationException) { return false; }
+        catch (InvalidOperationException) { reason = "No usable track beyond the signal"; return false; }
         using var spans = train.Route.Trace(start, train.Direction, double.PositiveInfinity).GetEnumerator();
         var units = new List<(SignalKey Key, HashSet<int> Edges)>();
         var seen = new HashSet<SignalKey> { entry.Key };
         var key = entry.Key; var kind = entry.Kind; var edges = new HashSet<int>();
-        bool exitBlock = kind == RailSignalKind.Normal;
-        double exitLength = 0;
         while (spans.MoveNext())
         {
             var span = spans.Current;
             if (kind == RailSignalKind.Path) edges.Add(span.Edge.Id);
             else edges = _blocks[_block[span.Edge.Id]]; // Immutable until the next map rebuild; avoid copying a whole block per segment.
-            if (exitBlock)
+            if (kind == RailSignalKind.Normal)
             {
-                exitLength += span.Length;
-                if (entry.Kind == RailSignalKind.Normal || exitLength >= train.Length + 4)
-                {
-                    units.Add((key, edges)); return Acquire(train, units, commit);
-                }
+                // Admission depends on clear blocks, not whether this train fits between signals.
+                // The full receiving block is checked; players decide where trains may safely wait.
+                units.Add((key, edges)); return Acquire(train, units, commit, out reason);
             }
             bool boundary = _network.Signals.ContainsKey(new(span.Node, -1)) || _network.Signals.ContainsKey(new(span.Node, 1));
             if (!boundary) continue;
-            if (!exitBlock && !_network.Signals.ContainsKey(new(span.Node, span.Side))) return false;
+            if (!_network.Signals.ContainsKey(new(span.Node, span.Side))) { reason = "An exit signal faces the wrong way"; return false; }
             units.Add((key, edges));
-            if (exitBlock)
-            {
-                if (entry.Kind != RailSignalKind.Normal && exitLength < train.Length + 4) return false;
-                return Acquire(train, units, commit);
-            }
             key = new(span.Node, span.Side);
             if (!seen.Add(key)) return false;
             kind = _network.Signals[key].Kind;
-            exitBlock = kind == RailSignalKind.Normal; edges = new();
+            edges = new();
         }
-        if (!exitBlock || edges.Count == 0) return false; // Chain/path entries require a normal exit.
-        if (entry.Kind != RailSignalKind.Normal && exitLength < train.Length + 4) return false;
-        units.Add((key, edges));
-        return Acquire(train, units, commit);
+        if (kind == RailSignalKind.Normal) reason = "No usable receiving block beyond the normal exit";
+        return false; // Chain/path entries still require a normal exit and a receiving block.
     }
-    private bool Acquire(SignalTrain train, List<(SignalKey Key, HashSet<int> Edges)> units, bool commit)
+    private bool Acquire(SignalTrain train, List<(SignalKey Key, HashSet<int> Edges)> units, bool commit, out string reason)
     {
+        reason = "Protected track or receiving block is occupied or reserved by another train";
         if (units.Any(unit => !Clear(unit.Edges, train.Id))) return false;
+        reason = "";
         if (!commit) return true;
         foreach (var unit in units)
             if (!_leases.Any(lease => lease.Train == train.Id && lease.Signal == unit.Key))

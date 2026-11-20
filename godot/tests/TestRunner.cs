@@ -45,6 +45,7 @@ public partial class TestRunner : Node
             {
                 case "signals":
                     SignalChecks.Run(Check);
+                    await SignalScopeChecks.Run(Check, Frame, this);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
                     await ChainStationChecks.Run(Check, Frame, this);
                     await RailDetourChecks.Run(Check, Frame, this);
@@ -91,6 +92,7 @@ public partial class TestRunner : Node
                     await SaveGameChecks.Run(Check, Frame, this);
                     await PauseMenuChecks.Run(Check, Frame, this);
                     SignalChecks.Run(Check);
+                    await SignalScopeChecks.Run(Check, Frame, this);
                     await SignalIntegrationChecks.Run(Check, Frame, this);
                     await ChainStationChecks.Run(Check, Frame, this);
                     await RailDetourChecks.Run(Check, Frame, this);

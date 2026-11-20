@@ -92,9 +92,39 @@ public static class SignalChecks
         check(control.Limit(reverse, 200).CanReverse, "A wrong-way signal requests reversal after braking to a stop");
         ParallelPaths(check);
         ChainJunction(check);
+        ShortExitBlock(check);
         Crossing(check);
         network.DeleteNode(line.Nodes[1].Id);
         check(!network.Signals.Keys.Any(key => key.Node == line.Nodes[1].Id), "Deleting a node removes both of its signals");
+    }
+    private static void ShortExitBlock(Action<bool, string> check)
+    {
+        var network = new TrackNetwork();
+        var nodes = new[] { 0.0, 300, 400, 486.4691, 563.2004, 595.3377, 900 }
+            .Select(z => network.AddNode(new(0, 0, (float)z))).ToArray();
+        var edges = Enumerable.Range(0, nodes.Length - 1).Select(i => network.ConnectNodes(nodes[i], nodes[i + 1])!).ToArray();
+        network.SetSignal(nodes[1].Id, 1, RailSignalKind.Chain);
+        network.SetSignal(nodes[2].Id, 1, RailSignalKind.Normal);
+        network.SetSignal(nodes[4].Id, 1, RailSignalKind.Chain);
+        network.SetSignal(nodes[5].Id, 1, RailSignalKind.Normal);
+        using var placement = new TrainPlacement(network); using var control = new RailInterlocking(network, placement);
+        var train = Train(placement, 1, edges, length: 201.28);
+        control.Update(new[] { train });
+        var limit = control.Limit(train, 200, commit: false);
+        check(double.IsPositiveInfinity(limit.Distance)
+            && control.ReservationCount == 0,
+            "A 201.28 m train may enter a clear 163.2 m exit block without a length restriction");
+        var shortTrain = train with { Length = 20 };
+        check(double.IsPositiveInfinity(control.Limit(shortTrain, 200, commit: false).Distance),
+            "Admission through the same empty signal layout is independent of train length");
+        network.RemoveSignal(nodes[4].Id, 1); network.RemoveSignal(nodes[5].Id, 1);
+        control.Update(new[] { train });
+        check(double.IsPositiveInfinity(control.Limit(train, 200).Distance),
+            "Extending the receiving block beyond intermediate nodes admits the long train without changing track segments");
+        var blocker = Train(placement, 2, edges, 3);
+        control.Update(new[] { blocker });
+        check(control.Limit(train, 200).Message.Contains("occupied or reserved"),
+            "An actual obstruction has a different denial message from an insufficiently long exit block");
     }
     private static void ChainJunction(Action<bool, string> check)
     {
@@ -158,15 +188,16 @@ public static class SignalChecks
         check(double.IsFinite(control.Limit(second, 80).Distance), "Normal signals exclude other paths throughout that same block");
         network.SetSignal(a.Nodes[1].Id, 1, RailSignalKind.Path);
         network.SetSignal(b.Nodes[1].Id, 1, RailSignalKind.Path);
-        var longTrain = first with { Position = new(a.Edges[0].Id, .5), Length = 100 };
-        // The 100 m receiving block needs four additional metres of clearance.
+        a.Nodes[0].Position = new(0, 0, -200); network.NotifyChanged();
+        var longTrain = first with { Position = new(a.Edges[0].Id, .5), Length = 201.28 };
+        // A longer approach fits the train before the path signal; the receiving block stays 100 m.
         control.Update(Array.Empty<SignalTrain>());
+        check(double.IsPositiveInfinity(control.Limit(longTrain, 80).Distance) && control.ReservationCount == 2,
+            "Path signals admit a 201.28 m train into a clear 100 m receiving block");
+        var obstruction = Train(placement, 3, a.Edges, 3);
+        control.Update(new[] { obstruction });
         check(double.IsFinite(control.Limit(longTrain, 80).Distance) && control.ReservationCount == 0,
-            "Path signals require an exit block long enough to clear the whole train");
-        bool denied;
-        try { denied = double.IsFinite(control.Limit(longTrain, 80).Distance); }
-        catch (InvalidOperationException) { denied = true; }
-        check(denied, "A path signal requires a receiving block long enough for the whole train");
+            "Removing path exit-length checks does not permit entering an occupied receiving block");
     }
     private static void Crossing(Action<bool, string> check)
     {

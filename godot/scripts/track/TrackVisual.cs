@@ -40,7 +40,8 @@ public partial class TrackVisual : Node3D
             var instances = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = sleeperMesh, InstanceCount = batch.Transforms.Length };
             for (int i = 0; i < batch.Transforms.Length; i++)
                 instances.SetInstanceTransform(i, batch.Transforms[i]);
-            var visual = new MultiMeshInstance3D { Name = "Sleepers", Multimesh = instances };
+            var visual = new MultiMeshInstance3D { Name = "Sleepers", Multimesh = instances,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
             AddChild(visual);
             _sleepers.Add((batch, visual));
         }

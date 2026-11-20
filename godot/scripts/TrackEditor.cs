@@ -44,6 +44,7 @@ public partial class TrackEditor : Node
     public int PlatformSide { get; private set; } = 1;
     private (int Edge, int Side, bool Remove)? _platformPreviewKey;
     public StationWindows Stations = null!;
+    public Func<Vector2, bool>? OpenSignal;
     private VBoxContainer _trackOptions = null!, _stationOptions = null!;
     private Button _trackTab = null!, _stationTab = null!;
     public string Mode = "track";
@@ -620,7 +621,8 @@ public partial class TrackEditor : Node
             return;
         if (!Enabled)
         {
-            if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click && Stations.OpenAt(Camera, click.Position))
+            if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click
+                && (OpenSignal?.Invoke(click.Position) == true || Stations.OpenAt(Camera, click.Position)))
                 GetViewport().SetInputAsHandled();
             return;
         }
@@ -651,6 +653,7 @@ public partial class TrackEditor : Node
         {
             CommitSignal(mouse.Position); GetViewport().SetInputAsHandled(); return;
         }
+        if (Source == 0 && OpenSignal?.Invoke(mouse.Position) == true) { GetViewport().SetInputAsHandled(); return; }
         if ((Mode != "station" || StationAction.Selected != 1) && Source == 0 && Stations.OpenAt(Camera, mouse.Position))
         {
             ClearPlatformPreview();

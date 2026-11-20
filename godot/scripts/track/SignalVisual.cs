@@ -71,6 +71,26 @@ public partial class SignalRenderer : Node3D
     public TrackNetwork Network = null!;
     public Func<bool>? DirectionVisibility;
     private readonly Dictionary<SignalKey, (RailSignalKind Kind, SignalVisual Visual)> _visuals = new();
+    public SignalKey? Pick(Camera3D camera, Vector2 mouse)
+    {
+        var origin = camera.ProjectRayOrigin(mouse); var direction = camera.ProjectRayNormal(mouse);
+        SignalKey? found = null; float distance = float.PositiveInfinity;
+        foreach (var (key, entry) in _visuals)
+            foreach (var mesh in entry.Visual.GetChildren().OfType<MeshInstance3D>())
+            {
+                var inverse = mesh.GlobalTransform.AffineInverse(); var local = inverse * origin; var ray = inverse.Basis * direction;
+                if (!mesh.GetAabb().IntersectsSegment(local, local + ray * camera.Far)) continue;
+                var faces = mesh.Mesh.GetFaces();
+                for (int i = 0; i < faces.Length; i += 3)
+                {
+                    var hit = Geometry3D.RayIntersectsTriangle(local, ray, faces[i], faces[i + 1], faces[i + 2]);
+                    if (hit.VariantType != Variant.Type.Vector3) continue;
+                    float candidate = origin.DistanceSquaredTo(mesh.GlobalTransform * hit.AsVector3());
+                    if (candidate < distance) { distance = candidate; found = key; }
+                }
+            }
+        return found;
+    }
     public override void _Process(double delta)
     {
         foreach (var key in _visuals.Keys.Where(key => !Network.Signals.ContainsKey(key) || !Network.Nodes.ContainsKey(key.Node)).ToArray())

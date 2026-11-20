@@ -19,6 +19,7 @@ public partial class Main : Node3D
     public GameHUD HUD = null!;
     public TrainEditor Trains = null!;
     public TrainWindows TrainUI = null!;
+    public SignalWindows SignalUI = null!;
     public PauseMenu PauseUI = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
     public JsonElement Catalog;
@@ -125,6 +126,10 @@ public partial class Main : Node3D
             Interface = Interface
         };
         AddChild(TrainUI);
+        SignalUI = new() { Network = TrackNetwork, Interlocking = Trains.Interlocking, Windows = GameWindows,
+            Renderer = TrackRenderer.Signals, Camera = Camera, Interface = Interface };
+        AddChild(SignalUI);
+        TrackEditor.OpenSignal = SignalUI.OpenAt;
         HUD.VehiclesButton.Disabled = HUD.TrainsButton.Disabled = false;
         HUD.VehiclesButton.TooltipText = "Vehicle catalog";
         HUD.VehiclesButton.ToggleMode = true;
@@ -142,6 +147,7 @@ public partial class Main : Node3D
         HUD.SaveRequested += () => _ = SaveGame();
         PauseUI = new() { SaveGame = SaveGame };
         Interface.AddChild(PauseUI);
+        PauseUI.Window.Opened += SignalUI.Overlay.Hide;
         PauseUI.QuitToMenuRequested += ReturnToMenu;
         PauseUI.QuitGameRequested += QuitWithSave;
         HUD.PauseRequested += () => { Camera.ReleaseMouse(); PauseUI.Open(); };
