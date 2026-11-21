@@ -13,6 +13,8 @@ Open Vite's printed local URL. On Windows PowerShell with restricted script exec
 
 The Godot desktop version supports named saved worlds, **Load game**, **F5** saves, five-minute autosaves, and save on exit. Terrain streams from region files while the complete rail network and train simulation stay loaded. See [saved worlds in the Godot guide](godot/PORTING.md#saved-worlds).
 
+Godot display shortcuts follow Minecraft: **F1** hides/shows the interface; **F11** toggles fullscreen. Both work while paused. **Escape** reveals a hidden interface before normal menu handling.
+
 ## Exploring
 
 The main menu shows a randomly selected predefined TGV, Rio Grande steam, or F7 passenger consist at a station with trees behind it. The title and **Start game** button sit on the left, leaving the train visible. **Start game** opens setup in a window. **Recommended setup** uses the default reproducible seed, 1,800 m mountain relief, natural landform scale and HO physics. **Advanced setup** exposes the world seed, relief, landform scale and Realistic/HO physics choice. Shared world URLs also include physics mode and open with advanced setup selected.

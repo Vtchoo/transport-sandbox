@@ -48,6 +48,7 @@ public partial class Main : Node3D
         MenuUI.StartRequested += settings => CreateGame(MenuUI.WorldName.Text, settings);
         MenuUI.LoadRequested += OpenLoadGames;
         InitializeSaving();
+        AddChild(new DisplayShortcuts { Interface = Interface });
     }
     public void ShowSetup() => MenuUI.OpenSetup();
     private void BuildWorldEnvironment() => WorldLighting.AddTo(this, gameplay: true);

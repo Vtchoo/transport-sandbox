@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "display-shortcuts":
+                    await DisplayShortcutChecks.Run(Check, Frame, this);
+                    break;
                 case "detour-replan":
                     await DetourReplanChecks.Run(Check, Frame, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
@@ -111,6 +114,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    await DisplayShortcutChecks.Run(Check, Frame, this);
                     TrainParallelChecks.Run(Check);
                     await TrainParallelChecks.Integration(Check, Frame, this);
                     TrainCollisionChecks.Run(Check);
