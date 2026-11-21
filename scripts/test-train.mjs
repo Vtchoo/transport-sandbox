@@ -57,8 +57,8 @@ test('SketchUp COLLADA import honors units, named component pivots and mirrored 
   const imported = convertColladaVehicle(source);
   assert.deepEqual(imported, generated, 'Run npm run import:dash9 after exporting the source');
   assert.equal(imported.sourceUnitMeters, .0254);
-  assert.equal(imported.bogieCenters, 16.1544);
-  for (const [actual, expected] of imported.bounds.size.map((value, i) => [value, [3.1242, 4.699, 22.3012][i]]))
+  assert.equal(imported.bogieCenters, 14.097);
+  for (const [actual, expected] of imported.bounds.size.map((value, i) => [value, [3.660552263, 4.699, 21.673018456][i]]))
     assert.ok(Math.abs(actual - expected) < .00001);
   for (const meshes of Object.values(imported.parts)) for (const mesh of meshes)
     for (let i = 0; i < mesh.positions.length; i += 9) {
@@ -66,7 +66,7 @@ test('SketchUp COLLADA import honors units, named component pivots and mirrored 
       const normal = p(...mesh.normals.slice(i, i + 3));
       assert.ok(b.sub(a).cross(c.sub(a)).dot(normal) > 0, 'Baked mirror has inward winding');
     }
-  const badPivot = source.replace('0 1 0 -318', '0 1 0 -398').replace('1 0 0 0 0 1 0 -398', '1 0 0 -28.24803 0 1 0 -398');
+  const badPivot = source.replace('1 0 0 0 0 1 0 -277.5', '1 0 0 10 0 1 0 -277.5');
   assert.throws(() => convertColladaVehicle(badPivot), /Bogie origins/);
   assert.throws(() => convertColladaVehicle(source.replace('name="body"', 'name="missing-body"')), /exactly one body/);
 });
@@ -76,8 +76,8 @@ test('imported Dash 9 keeps separate rail-level bogies, correctly gauged tempora
   const placed = makeVehicle(definition, 1435), preview = makeVehicle(definition, 1435);
   try {
     assert.equal(placed.separateBogies, true);
-    assert.equal(placed.bogies[0].position.z, 8.0772);
-    assert.equal(placed.bogies[1].position.z, -8.0772);
+    assert.equal(placed.bogies[0].position.z, 7.0485);
+    assert.equal(placed.bogies[1].position.z, -7.0485);
     assert.equal(placed.bogies[0].position.y, 0);
     assert.ok(placed.bogies[0].getObjectByName('imported-front'));
     assert.ok(placed.bogies[1].getObjectByName('imported-rear'));

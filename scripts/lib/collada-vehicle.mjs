@@ -89,9 +89,15 @@ export function convertColladaVehicle(text) {
           const order = transform.determinant() < 0 ? [0, 2, 1] : [0, 1, 2];
           const vertices = order.map(offset => new THREE.Vector3().fromBufferAttribute(geometry.attributes.position, start + offset));
           const normal = new THREE.Vector3().fromBufferAttribute(geometry.attributes.normal, start + order[0]);
+          // Detailed SketchUp exports can contain collapsed/sliver faces whose
+          // float positions are collinear or whose normals are perpendicular to
+          // the remaining area. They have no valid surface to render.
+          const area = vertices[1].clone().sub(vertices[0]).cross(vertices[2].clone().sub(vertices[0]));
+          const alignment = area.dot(normal);
+          if (area.lengthSq() < 1e-20 || Math.abs(alignment) <= area.length() * 1e-8) continue;
           // SketchUp may export a mirrored definition with reversed triangles but
           // unchanged normals as well. Keep the baked front face aligned with normals.
-          if (vertices[1].clone().sub(vertices[0]).cross(vertices[2].clone().sub(vertices[0])).dot(normal) < 0)
+          if (alignment < 0)
             [order[1], order[2]] = [order[2], order[1]];
           for (const offset of order) {
             const index = start + offset;
@@ -101,7 +107,7 @@ export function convertColladaVehicle(text) {
             bounds.expandByPoint(point.add(origin));
           }
         }
-        meshes.push({ name: object.name || component.name, material: materialIndex(material), positions, normals });
+        if (positions.length) meshes.push({ name: object.name || component.name, material: materialIndex(material), positions, normals });
       }
       geometry.dispose();
     });

@@ -318,11 +318,11 @@
 	"id": "ge-dash9",
 	"name": "GE Dash 9 · SketchUp prototype",
 	"kind": "locomotive",
-	"length": 22.301200867,
-	"bodyLength": 22.301200867,
-	"width": 3.124200106,
+	"length": 21.673018456,
+	"bodyLength": 21.673018456,
+	"width": 3.660552263,
 	"height": 4.698999882,
-	"bogieCenters": 16.1544,
+	"bogieCenters": 14.097,
 	"exhaust": {
 	  "position": [
 		0,

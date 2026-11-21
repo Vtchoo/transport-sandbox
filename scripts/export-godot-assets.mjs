@@ -1,6 +1,6 @@
 /** Rebuild the native Godot catalog from the browser game's source of truth. */
 import { buildSync } from 'esbuild';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { vehicleExportBrowser } from './lib/vehicle-export-browser.mjs';
 
@@ -11,10 +11,15 @@ const load = async entry => {
 const { VEHICLES } = await load('src/train/catalog.ts');
 const directory = new URL('../godot/assets/vehicles/', import.meta.url);
 await mkdir(directory, { recursive: true });
-const catalog = [], appearance = [];
+const selectedId = process.argv.find(arg => arg.startsWith('--vehicle='))?.slice('--vehicle='.length);
+if (selectedId && !VEHICLES.some(vehicle => vehicle.id === selectedId)) throw Error(`Unknown vehicle: ${selectedId}`);
+const catalog = selectedId ? JSON.parse(await readFile(new URL('catalog.json', directory), 'utf8')) : [];
+const appearanceFile = new URL('../../tests/vehicle-appearance-fixtures.json', directory);
+const appearance = selectedId ? JSON.parse(await readFile(appearanceFile, 'utf8')).filter(model => model.id !== selectedId) : [];
 const browser = await vehicleExportBrowser();
 try {
   for (const definition of VEHICLES) {
+    if (selectedId && definition.id !== selectedId) continue;
     const gauges = Object.keys(definition.bogiesByGauge).map(Number);
     const entry = { ...definition, gauges, models: {} };
     delete entry.thumbnailSvg; delete entry.bogiesByGauge; delete entry.sections;
@@ -46,12 +51,14 @@ try {
       appearance.push({ id: definition.id, gauge, lettering: result.lettering });
       entry.models[gauge] = `res://assets/vehicles/${file}`;
     }
-    catalog.push(entry);
+    const previous = catalog.findIndex(vehicle => vehicle.id === entry.id);
+    if (previous >= 0) catalog[previous] = entry; else catalog.push(entry);
   }
 } finally { await browser.close(); }
 assert.ok(appearance.some(model => model.lettering > 0), 'Browser lettering must not silently disappear');
-await writeFile(new URL('../../tests/vehicle-appearance-fixtures.json', directory), JSON.stringify(appearance, null, 2) + '\n');
+appearance.sort((a, b) => VEHICLES.findIndex(v => v.id === a.id) - VEHICLES.findIndex(v => v.id === b.id) || a.gauge - b.gauge);
+await writeFile(appearanceFile, JSON.stringify(appearance, null, 2) + '\n');
 await writeFile(new URL('catalog.json', directory), JSON.stringify(catalog, null, 2) + '\n');
 await import('./export-godot-train-metadata.mjs');
-await import('./export-godot-terrain-fixtures.mjs');
-console.log(`Exported ${catalog.length} vehicle definitions, all supported gauges, including browser lettering, and terrain parity fixtures.`);
+if (!selectedId) await import('./export-godot-terrain-fixtures.mjs');
+console.log(selectedId ? `Replaced ${selectedId} geometry and catalog metadata.` : `Exported ${catalog.length} vehicle definitions, all supported gauges, including browser lettering, and terrain parity fixtures.`);
