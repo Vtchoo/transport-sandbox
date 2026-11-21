@@ -193,6 +193,8 @@ public partial class TrainEditor
             return (true, double.PositiveInfinity);
         }
         orders.Status = "Go to " + destination + (journey.ViaDeadEnd ? " - via dead-end reversal" : "");
+        if (order.Kind == TrainOrderKind.Station && !journey.ViaDeadEnd && !journey.HoldForReplan &&
+            parked.StationAudio.Approach(order.Target, journey.Distance, train.Speed)) StationHorn(parked, train);
         if (journey.Distance <= .05 && (order.Kind == TrainOrderKind.Waypoint || Math.Abs(train.Speed) < .1))
         {
             var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
@@ -212,7 +214,7 @@ public partial class TrainEditor
                 parked.Journey = null; orders.Status = "Finding route...";
                 return (true, double.PositiveInfinity);
             }
-            if (order.Kind == TrainOrderKind.Station) train.Speed = 0;
+            if (order.Kind == TrainOrderKind.Station) { train.Speed = 0; parked.StationAudio.Arrive(order.Target); }
             orders.Advance(); parked.Journey = null;
             return (order.Kind == TrainOrderKind.Station, double.PositiveInfinity);
         }

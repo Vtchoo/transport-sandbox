@@ -55,10 +55,12 @@ public partial class TrainEditor
                 { state.Station = stop.Station; state.EndRouteIndex = stop.EndRouteIndex; state.EndEdge = stop.EndEdge; state.Distance = stop.Distance; }
             }
         }
+        if (parked.StationAudio.Approach(state.Station, state.Distance, train.Speed)) StationHorn(parked, train);
         if (state.Station != 0 && state.Distance <= .05 && Math.Abs(train.Speed) < .1)
         {
             train.Speed = 0;
             state.ServicedStation = state.Station; state.ServicedIndex = state.EndRouteIndex;
+            parked.StationAudio.Arrive(state.Station);
             state.Servicing = true;
             train.Orders.Status = $"Wandering - stopped at Station {state.Station}";
             return (true, 0);

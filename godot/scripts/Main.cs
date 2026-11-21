@@ -22,6 +22,7 @@ public partial class Main : Node3D
     public SignalWindows SignalUI = null!;
     public PauseMenu PauseUI = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
+    public SoundSettings SoundSettings = new();
     public JsonElement Catalog;
     public VehicleCatalog Vehicles = null!;
     public int MenuPresetOverride = -1;
@@ -29,6 +30,7 @@ public partial class Main : Node3D
     public override void _Ready()
     {
         GetViewport().GuiEmbedSubwindows = true;
+        SoundSettings.Load();
         Catalog = JsonData.Read("res://assets/vehicles/catalog.json");
         Vehicles = new(Catalog);
         Camera = new();
@@ -37,6 +39,7 @@ public partial class Main : Node3D
         MenuScene = new()
         {
             Preset = MenuPresetOverride,
+            SoundSettings = SoundSettings,
             Catalog = Vehicles
         };
         AddChild(MenuScene);
@@ -106,12 +109,14 @@ public partial class Main : Node3D
             World = World,
             Editor = TrackEditor,
             Windows = GameWindows,
-            PreferencesFile = HudSettingsFile
+            PreferencesFile = HudSettingsFile,
+            SoundSettings = SoundSettings
         };
         Interface.AddChild(HUD);
         Trains = new()
         {
             HoPhysics = settings.Physics == "ho",
+            SoundSettings = SoundSettings,
             WorldSeed = settings.Seed,
             Network = TrackNetwork,
             Catalog = Vehicles,

@@ -1,0 +1,47 @@
+{
+  "f7": {
+    "mode": "simple_motor",
+    "sourceVehicle": "USF7A25",
+    "sourceName": "US EMD F7A Santa Fe",
+    "idleFrequencyHz": 12801,
+    "idleVolume": 200,
+    "coastThresholdMps": 5.36448,
+    "coastingFrequencyHz": 20481,
+    "coastingVolume": 210,
+    "accelerationFrequencyHz": 23041,
+    "accelerationVolume": 210,
+    "frequencyIncreasePerTick": 257,
+    "frequencyDecreasePerTick": 376,
+    "volumeIncreasePerTick": 1,
+    "volumeDecreasePerTick": 1,
+    "speedFrequencyPerMps": 143.16392269148176
+  },
+  "ge": {
+    "mode": "simple_motor",
+    "sourceVehicle": "USATP383",
+    "sourceName": "USP Amtrak P32BH (Dash 8-32BWH) (Phase 3 - Pepsi Can)",
+    "idleFrequencyHz": 17000,
+    "idleVolume": 180,
+    "coastThresholdMps": 5.36448,
+    "coastingFrequencyHz": 19000,
+    "coastingVolume": 191,
+    "accelerationFrequencyHz": 22050,
+    "accelerationVolume": 210,
+    "frequencyIncreasePerTick": 200,
+    "frequencyDecreasePerTick": 150,
+    "volumeIncreasePerTick": 3,
+    "volumeDecreasePerTick": 3,
+    "speedFrequencyPerMps": 71.58196134574088
+  },
+  "electric": {
+    "mode": "friction",
+    "sourceVehicle": "USATACEL",
+    "sourceName": "USP Amtrak Acela Power Car",
+    "minSpeedMps": 1.7881599999999997,
+    "speedFrequencyPerMps": 286.3278453829635,
+    "baseFrequencyHz": 13000,
+    "speedVolumePerMps": 1.1184681460272012,
+    "baseVolume": 180,
+    "maxVolume": 210
+  }
+}

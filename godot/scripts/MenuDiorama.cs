@@ -17,6 +17,8 @@ public partial class MenuDiorama : Node3D
     public ConsistVisual Train = null!;
     public TrackNetwork Network = null!;
     public TrackRenderer Track = null!;
+    public TrainAudio Audio = null!;
+    public SoundSettings SoundSettings = new();
     private double _elapsed;
     public override void _Ready()
     {
@@ -74,6 +76,8 @@ public partial class MenuDiorama : Node3D
         };
         Smoke.Outlets.AddRange(Train.WorldExhausts());
         AddChild(Smoke);
+        Audio = new() { Settings = SoundSettings };
+        AddChild(Audio);
         UpdateCamera(0, 16.0 / 9);
     }
     public void UpdateCamera(double timeMs, double aspect)
@@ -87,5 +91,14 @@ public partial class MenuDiorama : Node3D
         _elapsed += delta;
         var viewport = GetViewport().GetVisibleRect().Size;
         UpdateCamera(_elapsed * 1000, viewport.X / Math.Max(1.0, viewport.Y));
+        Audio.UpdateSounds(AudioVehicles(), Camera, delta);
+    }
+    private IEnumerable<TrainAudioVehicle> AudioVehicles()
+    {
+        for (int i = 0; i < Train.Vehicles.Count; i++)
+        {
+            var vehicle = Train.Vehicles[i];
+            yield return new(i, vehicle.Definition.Id, vehicle.GlobalPosition, 0, 0, double.PositiveInfinity);
+        }
     }
 }

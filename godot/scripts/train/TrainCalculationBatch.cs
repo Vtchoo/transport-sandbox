@@ -32,6 +32,7 @@ internal sealed class MovementWork
     public readonly VehiclePhysics[] Definitions;
     private readonly double[] _offsets;
     private readonly TrainPerformance _performance;
+    public double MaximumSpeed => _performance.MaxSpeed;
     private readonly TrainPosition _position;
     private readonly bool _ho;
     public readonly int Direction;

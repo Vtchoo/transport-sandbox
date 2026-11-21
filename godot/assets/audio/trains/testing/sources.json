@@ -1,0 +1,86 @@
+{
+  "f7": {
+    "object": "SNDFP7FA",
+    "source": "wav/sndfp7fa-77ade02229c7.wav",
+    "name": "D-Lok FP7",
+    "pack": "extracted-audio"
+  },
+  "dash9": {
+    "object": "SNDDSH9E",
+    "source": "wav/snddsh9e-9c2b4ad55137.wav",
+    "name": "Sound Dash 9 Engine",
+    "pack": "extracted-audio"
+  },
+  "electric": {
+    "object": "SNDACLEN",
+    "source": "wav/sndaclen-882dabbad731.wav",
+    "name": "Sound Acela Engine",
+    "pack": "extracted-audio"
+  },
+  "wheels-freight-1": {
+    "object": "SNDFRGH2",
+    "source": "wav/sndfrgh2-d28f355693b3.wav",
+    "name": "Track sound- Freight 2 for US Set",
+    "pack": "extracted-audio"
+  },
+  "wheels-freight-2": {
+    "object": "SNDFRGHT",
+    "source": "wav/sndfrght-62af392d24a5.wav",
+    "name": "Track sound- Freight for US Set",
+    "pack": "extracted-audio"
+  },
+  "steam-idle": {
+    "object": "SNDS1",
+    "source": "wav/snds1-cecede7d929f.wav",
+    "name": "Steam idle sound 1",
+    "pack": "objdata-audio"
+  },
+  "chuff-a": {
+    "object": "SNDCH1A",
+    "source": "wav/sndch1a-62ebfb2ef3fc.wav",
+    "name": "Chuff 1 (a)",
+    "pack": "objdata-audio"
+  },
+  "chuff-b": {
+    "object": "SNDCH1B",
+    "source": "wav/sndch1b-b79a0bff8aee.wav",
+    "name": "Chuff 1 (b)",
+    "pack": "objdata-audio"
+  },
+  "chuff-c": {
+    "object": "SNDCH1C",
+    "source": "wav/sndch1c-ccd53f3daa8f.wav",
+    "name": "Chuff 1 (c)",
+    "pack": "objdata-audio"
+  },
+  "chuff-d": {
+    "object": "SNDCH1D",
+    "source": "wav/sndch1d-0d02159054c3.wav",
+    "name": "Chuff 1 (d)",
+    "pack": "objdata-audio"
+  },
+  "horn-f7": {
+    "object": "SNDFP7HO",
+    "source": "wav/sndfp7ho-192f88554e25.wav",
+    "name": "D-Lok Horn FP7",
+    "pack": "extracted-audio"
+  },
+  "horn-ge": {
+    "object": "SND1CHIM",
+    "source": "wav/snd1chim-d9e44a5f2303.wav",
+    "name": "US 1 Chime Air Horn",
+    "pack": "extracted-audio"
+  },
+  "horn-electric": {
+    "object": "SNDACLHO",
+    "source": "wav/sndaclho-44fbfe71c002.wav",
+    "name": "Acela Horn",
+    "pack": "extracted-audio"
+  },
+  "whistle-steam": {
+    "object": "SND412W1",
+    "source": "wav/snd412w1-96099acf4a3e.wav",
+    "name": "Loco whistle 1 UP4-12-2",
+    "pack": "extracted-audio"
+  }
+}

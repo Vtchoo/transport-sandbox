@@ -80,6 +80,9 @@ public partial class TrainEditor
         {
             parked.Effort = 0;
             var train = Builder.Get(parked.Id);
+            parked.MotorState = Math.Abs(train.Speed) <= .001 ? TrainMotorState.Stopped
+                : train.Running ? TrainMotorState.Coasting : TrainMotorState.Braking;
+            parked.StationAudio.Initialize(Network.Edges.TryGetValue(parked.Position.Edge, out var supporting) ? supporting.Station : 0, train.Speed);
             if (train.Stopped) continue;
             var route = RouteFor(parked);
             var work = new MovementWork(parked, train, route, HoPhysics, catalogMax);
@@ -173,9 +176,12 @@ public partial class TrainEditor
                 }
                 double limit = Math.Min(work.CurveLimit, command.Hold ? 0 : Math.Sqrt(2 * braking * free));
                 var next = TrainPhysics.Step(definitions, Math.Abs(train.Speed), train.Running && !command.Hold, grade, HoPhysics, dt, limit, catalogMax);
+                var motorState = EngineAudioController.Classify(train.Speed,
+                    Math.Min(limit, work.MaximumSpeed), train.Running && !command.Hold);
                 if (free < .05 && Math.Abs(train.Speed) < .1)
                 {
                     train.Speed = 0;
+                    parked.MotorState = TrainMotorState.Stopped;
                     if (train.Running && !command.Hold && (clearance < .05 || reverseAtSignal) && command.StopDistance > .05)
                         train.TravelDirection = -direction;
                     continue;
@@ -187,6 +193,7 @@ public partial class TrainEditor
                 if (Occupied(train, poses, others))
                 {
                     train.Speed = 0;
+                    parked.MotorState = TrainMotorState.Stopped;
                     continue;
                 }
                 for (int i = 0; i < poses.Length; i++)
@@ -200,19 +207,23 @@ public partial class TrainEditor
                 parked.Poses = poses;
                 _collisions.Update(train, poses);
                 parked.Effort = next.Effort;
+                parked.MotorState = motorState;
                 parked.Supported = true;
                 train.Speed = next.Distance > free && free < .1 ? 0 : next.Speed * direction;
+                if (parked.StationAudio.Depart(train.Speed)) StationHorn(parked, train, departure: true);
                 route.Trim(position, length + 3000);
             }
             catch (RouteBlocked)
             {
                 // A broken future itinerary is different from missing supporting track.
                 train.Speed = 0;
+                parked.MotorState = TrainMotorState.Stopped;
                 if (parked.Journey is { } journey) { journey.NeedsReplan = true; journey.HoldForReplan = true; }
             }
             catch (InvalidOperationException error)
             {
                 train.Speed = 0;
+                parked.MotorState = TrainMotorState.Stopped;
                 train.Running = false;
                 parked.Supported = false;
                 Warning?.Invoke("Train stopped: " + error.Message);

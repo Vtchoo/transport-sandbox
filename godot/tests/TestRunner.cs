@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "train-audio":
+                    await TrainAudioChecks.Run(Check, Frame, this);
+                    break;
                 case "display-shortcuts":
                     await DisplayShortcutChecks.Run(Check, Frame, this);
                     break;
@@ -114,6 +117,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    await TrainAudioChecks.Run(Check, Frame, this);
                     await DisplayShortcutChecks.Run(Check, Frame, this);
                     TrainParallelChecks.Run(Check);
                     await TrainParallelChecks.Integration(Check, Frame, this);
@@ -644,6 +648,22 @@ public partial class TestRunner : Node
         Check(manager.HasModal && main.Camera.InputBlocked, "Modal settings block world camera input");
         hud.SettingsWindow.Close();
         Check(!manager.HasModal && !main.Camera.InputBlocked, "Closing settings releases camera input");
+        string audioFile = main.SoundSettings.FilePath;
+        main.SoundSettings.FilePath = "res://.godot/hud-audio-check.cfg";
+        float oldMaster = main.SoundSettings.MasterVolume;
+        bool oldMute = main.SoundSettings.Muted;
+        hud.OpenSoundSettings();
+        hud.MasterVolume.Value = 37;
+        hud.MuteSound.ButtonPressed = true;
+        var soundReloaded = new SoundSettings { FilePath = main.SoundSettings.FilePath };
+        soundReloaded.Load();
+        Check(Math.Abs(main.Trains.Audio.MasterVolume - .37f) < .001 && main.Trains.Audio.Settings.Muted,
+            "Sound menu changes the live game mixer");
+        Check(Math.Abs(soundReloaded.MasterVolume - .37f) < .001 && soundReloaded.Muted, "Sound preferences persist across sessions");
+        main.SoundSettings.MasterVolume = oldMaster; main.SoundSettings.Muted = oldMute;
+        DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(main.SoundSettings.FilePath));
+        main.SoundSettings.FilePath = audioFile;
+        hud.SettingsWindow.Close();
         bool previous = main.Camera.FreeMode;
         hud.CameraButton.EmitSignal(Button.SignalName.Pressed);
         Check(main.Camera.FreeMode != previous && hud.CameraMode.Selected == 1, "Camera button and settings stay synchronized");

@@ -15,6 +15,9 @@ public partial class GameHUD : Control
     public TrackEditor Editor = null!;
     public WindowManager Windows = null!;
     public string PreferencesFile = "user://game-ui.cfg";
+    public SoundSettings SoundSettings = new();
+    public HSlider MasterVolume = null!, EngineVolume = null!, WheelVolume = null!, CurveVolume = null!;
+    public CheckBox MuteSound = null!;
     public PanelContainer ActionBar = null!, DebugPanel = null!;
     public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, StationsButton = null!, CameraButton = null!, ViewButton = null!, SettingsButton = null!, MenuButton = null!;
     public GameWindow ViewWindow = null!, SettingsWindow = null!;
@@ -24,10 +27,11 @@ public partial class GameHUD : Control
     private HBoxContainer _top = null!;
     private HBoxContainer _brand = null!;
     private Label _debug = null!;
-    private VBoxContainer _settingsRoot = null!, _gameplayRoot = null!;
+    private VBoxContainer _settingsRoot = null!, _gameplayRoot = null!, _soundRoot = null!;
     private static readonly int[] Intervals = { 5, 10, 20, 50, 100 };
     private double _debugElapsed;
     private readonly Dictionary<Button, string> _topLabels = new();
+    private readonly Dictionary<HSlider, Label> _volumeLabels = new();
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
@@ -205,6 +209,7 @@ public partial class GameHUD : Control
         UiSkin.Selector(CameraMode);
         _gameplayRoot.AddChild(CameraMode);
         CameraMode.ItemSelected += index => Camera.SetFreeMode(index == 1);
+        BuildSoundMenu();
         UiSkin.Label(_gameplayRoot, "Overlook pans and orbits above the terrain. Free camera lets you fly and look around independently.", 12, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
         UiSkin.Label(_gameplayRoot, "Press C during gameplay to switch. Your preference is saved automatically.", 11, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
     }
@@ -213,7 +218,60 @@ public partial class GameHUD : Control
         Editor.Cancel();
         _settingsRoot.Show();
         _gameplayRoot.Hide();
+        _soundRoot.Hide();
         SettingsWindow.Open();
+    }
+    public void OpenSoundSettings()
+    {
+        OpenSettings();
+        _settingsRoot.Hide();
+        _soundRoot.Show();
+        MasterVolume.SetValueNoSignal(SoundSettings.MasterVolume * 100);
+        EngineVolume.SetValueNoSignal(SoundSettings.Engines * 100);
+        WheelVolume.SetValueNoSignal(SoundSettings.Wheels * 100);
+        CurveVolume.SetValueNoSignal(SoundSettings.Curves * 100);
+        MuteSound.SetPressedNoSignal(SoundSettings.Muted);
+        // Refresh the percentage labels along with externally changed preferences.
+        foreach (var (slider, label) in _volumeLabels) label.Text = $"{slider.Value:0}%";
+        SettingsWindow.RefreshFocus();
+        MasterVolume.GrabFocus();
+    }
+    private void BuildSoundMenu()
+    {
+        var sound = new Button { Text = "Sound →", CustomMinimumSize = new(0, 58) };
+        UiSkin.Button(sound);
+        _settingsRoot.AddChild(sound);
+        sound.Pressed += OpenSoundSettings;
+        _soundRoot = new() { Visible = false };
+        _soundRoot.AddThemeConstantOverride("separation", 9);
+        SettingsWindow.Body.AddChild(_soundRoot);
+        var back = new Button { Text = "← Settings" };
+        UiSkin.Button(back);
+        _soundRoot.AddChild(back);
+        back.Pressed += () => { _soundRoot.Hide(); _settingsRoot.Show(); SettingsWindow.RefreshFocus(); sound.GrabFocus(); };
+        UiSkin.Label(_soundRoot, "Sound", 18, "e8eddf");
+        HSlider Volume(string name, float initial, Action<float> apply)
+        {
+            var row = new HBoxContainer();
+            _soundRoot.AddChild(row);
+            UiSkin.Label(row, name, 12, "e8eddf").CustomMinimumSize = new(120, 24);
+            var percentage = UiSkin.Label(row, $"{initial * 100:0}%", 12, "b5c3b1");
+            percentage.CustomMinimumSize = new(34, 24);
+            percentage.HorizontalAlignment = HorizontalAlignment.Right;
+            var slider = new HSlider { MinValue = 0, MaxValue = 100, Step = 1, Value = initial * 100, CustomMinimumSize = new(60, 24), SizeFlagsHorizontal = SizeFlags.ExpandFill, TooltipText = name };
+            row.AddChild(slider);
+            row.MoveChild(slider, 1);
+            _volumeLabels.Add(slider, percentage);
+            slider.ValueChanged += value => { percentage.Text = $"{value:0}%"; apply((float)value / 100); SoundSettings.Save(); };
+            return slider;
+        }
+        MasterVolume = Volume("Master volume", SoundSettings.MasterVolume, value => SoundSettings.MasterVolume = value);
+        EngineVolume = Volume("Locomotive engines", SoundSettings.Engines, value => SoundSettings.Engines = value);
+        WheelVolume = Volume("Wheels", SoundSettings.Wheels, value => SoundSettings.Wheels = value);
+        CurveVolume = Volume("Curve whine", SoundSettings.Curves, value => SoundSettings.Curves = value);
+        MuteSound = new CheckBox { Text = "Mute all sounds", ButtonPressed = SoundSettings.Muted };
+        _soundRoot.AddChild(MuteSound);
+        MuteSound.Toggled += muted => { SoundSettings.Muted = muted; SoundSettings.Save(); };
     }
     private void RefreshCamera()
     {

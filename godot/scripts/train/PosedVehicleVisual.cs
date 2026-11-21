@@ -88,6 +88,7 @@ public partial class PosedVehicleVisual : Node3D
     }
     private AnimationPlayer[]? _runningGear;
     private double _wheelPhase;
+    public double WheelTurns { get; private set; }
     public void AdvanceRunningGear(double distance)
     {
         if (_runningGear == null)
@@ -99,7 +100,8 @@ public partial class PosedVehicleVisual : Node3D
                 if (name != null) { player.Play(name); player.Pause(); }
             }
         }
-        _wheelPhase = ((_wheelPhase + distance / (Math.Tau * .65)) % 1 + 1) % 1;
+        WheelTurns += distance / (Math.Tau * .65);
+        _wheelPhase = ((WheelTurns % 1) + 1) % 1;
         foreach (var player in _runningGear)
             if (!string.IsNullOrEmpty(player.AssignedAnimation)) player.Seek(_wheelPhase, true);
     }

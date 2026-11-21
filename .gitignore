@@ -92,3 +92,5 @@ godot/export_credentials.cfg
 godot/builds/
 godot/*.log
 godot/*.log.*
+
+.files/locomotion

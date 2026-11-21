@@ -7,11 +7,13 @@ namespace TransportSandbox;
 
 public sealed class ParkedTrain
 {
+    public readonly TrainStationAudioState StationAudio = new();
     public int Id;
     public TrainRoute? Route;
     public TrainOrderJourney? Journey;
     public TrainWanderingState? Wandering;
     public double Effort;
+    public TrainMotorState MotorState;
     public double DetourCooldown;
     public TrainPosition Position;
     public bool Supported = true;
@@ -54,8 +56,11 @@ public partial class TrainEditor : Node3D
     private double _previewTimer;
     public TrainInstances Instances = null!;
     public MenuSmoke Smoke = null!;
-    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); }
-    public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; _interlocking?.Dispose(); Placement.Dispose(); _pathfinder.Dispose(); }
+    public TrainAudio Audio = null!;
+    public SoundSettings SoundSettings = new();
+    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); Audio = new() { Settings = SoundSettings }; AddChild(Audio); Network.Space.Rebased += AudioRebased; }
+    private void AudioRebased(TrackVector shift) => Audio.ResetMotion();
+    public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; Network.Space.Rebased -= AudioRebased; _interlocking?.Dispose(); Placement.Dispose(); _pathfinder.Dispose(); }
     private void TrackChanged() { _trackDirty = true; _revision++; }
     public int? TrackGauge(int id) => Parked.FirstOrDefault(p => p.Id == id) is { } parked && Network.Edges.TryGetValue(parked.Position.Edge, out var edge) ? edge.Gauge : null;
     public void Select(int id) { if (Builder.Selected?.Id != id) CancelPlacement(); Builder.Selected = Builder.Get(id); }
@@ -310,6 +315,7 @@ public partial class TrainEditor : Node3D
     public override void _Process(double delta)
     {
         AdvanceMovement(delta);
+        Audio.UpdateSounds(AudioVehicles(), Camera, delta);
         Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort })));
         _trackTimer += delta;
         if (_trackDirty && _trackTimer >= .25) { _trackDirty = false; _trackTimer = 0; Revalidate(); }
@@ -321,6 +327,26 @@ public partial class TrainEditor : Node3D
                 _previewTimer += delta;
                 var signature = (GetViewport().GetMousePosition(), Camera.GlobalTransform, _revision, Facing, Builder.Selected?.Id, ReverseAppend, PlacementBlockOverride());
                 if (_previewSignature != signature || _previewTimer >= .1) { RefreshPreview(signature.Item1); _previewSignature = signature; _previewTimer = 0; }
+            }
+        }
+    }
+    private IEnumerable<TrainAudioVehicle> AudioVehicles()
+    {
+        var eye = Camera.GlobalPosition;
+        foreach (var parked in Parked)
+        {
+            var train = Builder.Get(parked.Id);
+            for (int i = 0; i < Math.Min(train.Items.Count, parked.Poses.Length); i++)
+            {
+                var item = train.Items[i]; var pose = parked.Poses[i];
+                if (eye.DistanceSquaredTo(pose.BodyCenter) > TrainAudio.AudibleDistance * TrainAudio.AudibleDistance) continue;
+                // Estimate local curvature from existing bogie tangents; never sample/mutate the route for audio.
+                var front = new Vector3(pose.FrontDirection.X, 0, pose.FrontDirection.Z);
+                var rear = new Vector3(pose.RearDirection.X, 0, pose.RearDirection.Z);
+                double angle = front.AngleTo(rear);
+                double radius = angle < .00001 ? double.PositiveInfinity : item.Definition.BogieCenters / angle;
+                yield return new(item.Id, item.Definition.Id, pose.BodyCenter, train.Speed, parked.Effort, radius,
+                    i < parked.Visuals.Length ? parked.Visuals[i].WheelTurns : double.NaN, parked.MotorState);
             }
         }
     }
