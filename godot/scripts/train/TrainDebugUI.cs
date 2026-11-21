@@ -25,7 +25,7 @@ public partial class TrainWindows
         UiSkin.Label(view.Debug, "Cyan: active route", 12, "73dce6");
         UiSkin.Label(view.Debug, "Orange: accepted detour sections", 12, "ffad58");
         var help = UiSkin.Label(view.Debug,
-            "Detours are merged into the active itinerary. The map shows the chosen track ahead, up to the current destination; it does not calculate future orders or new wandering choices.", 11);
+            "Detours are merged into the active itinerary. A successful destination replan becomes the normal cyan route. The map shows chosen track ahead, up to the current destination.", 11);
         help.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         view.DebugInfo = UiSkin.Label(view.Debug, "Select this tab to inspect the route.", 11);
         view.DebugInfo.AutowrapMode = TextServer.AutowrapMode.WordSmart;

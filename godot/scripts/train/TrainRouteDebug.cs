@@ -12,7 +12,7 @@ public sealed partial class TrainRoute
     private readonly HashSet<int> _debugDetours = new();
     /// <summary>Remaining physical metres and routing-equivalent metres for the inspected itinerary.</summary>
     public TrainRouteMetrics Measure(IReadOnlyList<TrainDebugLeg> legs, Func<int, int>? conflicts,
-        RailRoutingPolicy policy, int destinationStation = 0, bool penalizeStations = true)
+        RailRoutingPolicy policy, int destinationStation = 0, bool penalizeStations = true, Func<int, double>? edgeLength = null)
     {
         double length = 0, cost = 0;
         int previousStation = 0;
@@ -21,7 +21,7 @@ public sealed partial class TrainRoute
             var leg = legs[i];
             if (!_placement.Network.Edges.TryGetValue(leg.Edge, out var edge))
                 throw new InvalidOperationException("Track in the inspected itinerary was removed.");
-            double distance = _placement.Curve(edge).Length * Math.Abs(leg.To - leg.From);
+            double distance = (edgeLength?.Invoke(edge.Id) ?? _placement.Curve(edge).Length) * Math.Abs(leg.To - leg.From);
             length += distance;
             cost += distance * (1 + (conflicts?.Invoke(edge.Id) ?? 0));
             // Match destination routing: charge an unrelated station once on entry,

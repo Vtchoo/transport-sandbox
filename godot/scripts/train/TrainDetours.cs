@@ -6,6 +6,8 @@ namespace TransportSandbox;
 public partial class TrainEditor
 {
     public RailDetourSearch Detours { get; } = new();
+    public long DetourReplanAttempts { get; private set; }
+    public long DetourReplans { get; private set; }
     private int _detourBudget;
     private int _stationTargetRevision = -1;
     private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.Dictionary<int, double>> _stationTargets = new();
@@ -37,6 +39,7 @@ public partial class TrainEditor
                 platform.Route.MarkDetour(leading, train.TravelDirection, before, platform.States);
                 parked.Route = platform.Route; journey.Distance = platform.Distance; journey.TargetPosition = platform.Target;
                 journey.Dependencies.Clear(); journey.Dependencies.UnionWith(platform.States.Select(state => state / 2));
+                ReplanDetour(parked, train, before, platform.States, lookahead);
                 Interlocking.ReleasePending(train.Id);
                 train.Orders.Status = "Taking a clear station approach";
                 return true;
@@ -59,6 +62,7 @@ public partial class TrainEditor
             journey.Dependencies.UnionWith(candidate.After.Select(state => state / 2));
             if (journey.TargetPosition is { } target)
                 journey.TargetPosition = target with { RouteIndex = target.RouteIndex + candidate.IndexShift };
+            ReplanDetour(parked, train, candidate.Before, candidate.After, lookahead);
         }
         if (parked.Wandering is { } wandering)
         {
@@ -68,5 +72,51 @@ public partial class TrainEditor
         Interlocking.ReleasePending(train.Id);
         train.Orders.Status = "Taking a clear detour";
         return true;
+    }
+
+    /// <summary>Keep the accepted entrance, then optimize the remaining destination route without requiring a rejoin.</summary>
+    private void ReplanDetour(ParkedTrain parked, TrainConsist train, int[] before, int[] after, double lookahead)
+    {
+        if (parked.Journey is not { Reachable: true, ViaDeadEnd: false } journey || !_pathfinder.Ready
+            || train.Orders.Current is not { Kind: not TrainOrderKind.Wait } order) return;
+        int prefix = 0;
+        while (prefix < before.Length && prefix < after.Length && before[prefix] == after[prefix]) prefix++;
+        if (prefix == after.Length) return;
+        DetourReplanAttempts++;
+        var route = RouteFor(parked);
+        var candidate = route.Copy();
+        int direction = train.TravelDirection;
+        var leading = candidate.Sample(parked.Position, direction * train.Length / 2).Position;
+        // Trace on the copy materializes the accepted prefix. It must survive SetPath's
+        // new plan origin at the first divergent leg, including reverse-running consists.
+        var entrance = candidate.Trace(leading, direction, RailDetourSearch.MaxDistance).Skip(prefix).FirstOrDefault();
+        if (entrance == null || RailRouter.StateId(entrance.Edge.Id, entrance.Direction) != after[prefix]) return;
+        var planned = PlanOrder(parked, train, order, candidate, entrance.Position);
+        if (planned is not { Reachable: true, ViaDeadEnd: false }) return;
+        int limit = Math.Max(route.PlannedLegCount + route.CachedLegCount, candidate.PlannedLegCount + candidate.CachedLegCount) + 1;
+        var oldLegs = route.Inspect(leading, direction, journey.TargetPosition, out bool oldTruncated, limit);
+        var newLegs = candidate.Inspect(leading, direction, planned.TargetPosition, out bool newTruncated, limit);
+        if (oldTruncated || newTruncated) return;
+        var policy = train.Orders.RoutingPolicy;
+        int station = order.Kind == TrainOrderKind.Station ? order.Target : 0;
+        var previousCost = route.Measure(oldLegs, _pathfinder.ConflictCount, policy, station, edgeLength: _pathfinder.EdgeLength);
+        var newCost = candidate.Measure(newLegs, _pathfinder.ConflictCount, policy, station, edgeLength: _pathfinder.EdgeLength);
+        if (!(newCost.Cost < previousCost.Cost - 1e-6)) return;
+        // Include seeded continuation beyond a pass-through waypoint in reservation validation.
+        var oldStates = route.Inspect(leading, direction, null, out oldTruncated, limit)
+            .Select(leg => RailRouter.StateId(leg.Edge, leg.Direction)).ToArray();
+        var newStates = candidate.Inspect(leading, direction, null, out newTruncated, limit)
+            .Select(leg => RailRouter.StateId(leg.Edge, leg.Direction)).ToArray();
+        if (oldTruncated || newTruncated) return;
+        if (!Interlocking.CanDetour(train.Id, oldStates, newStates)) return;
+        var input = new SignalTrain(train.Id, route, parked.Position, train.Length, direction);
+        var oldLimit = Interlocking.Limit(input, lookahead, commit: false);
+        var newLimit = Interlocking.Limit(input with { Route = candidate }, lookahead, commit: false);
+        if (newLimit.CanReverse || newLimit.Distance < oldLimit.Distance) return;
+        // PlanOrder already cleared detour annotations: this is now the normal destination plan.
+        planned.Distance += entrance.Distance;
+        planned.Dependencies.UnionWith(newStates.Select(state => state / 2));
+        parked.Route = candidate; parked.Journey = planned;
+        DetourReplans++;
     }
 }

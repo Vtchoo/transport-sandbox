@@ -98,11 +98,11 @@ public partial class TrainEditor
         while (count < states.Length && states[count] != (states[count - 1] ^ 1)) count++;
         return states.Take(count).ToArray();
     }
-    private TrainOrderJourney? PlanOrder(ParkedTrain parked, TrainConsist train, TrainOrder order, TrainRoute route)
+    private TrainOrderJourney? PlanOrder(ParkedTrain parked, TrainConsist train, TrainOrder order, TrainRoute route, TrainPosition? planningStart = null)
     {
         var result = new TrainOrderJourney { Order = order.Id, OrdersRevision = train.Orders.Revision, NetworkRevision = _revision, Direction = train.TravelDirection };
         var policy = train.Orders.RoutingPolicy;
-        var leading = route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
+        var leading = planningStart ?? route.Sample(parked.Position, train.TravelDirection * train.Length / 2).Position;
         if (!_pathfinder.TryGet(new(order.Kind, order.Target), out var field, policy: policy, startEdge: leading.Edge)) return null;
         result.GraphVersion = field!.GraphVersion;
         var path = field!.Plan(leading, train.TravelDirection);

@@ -43,6 +43,10 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "detour-replan":
+                    await DetourReplanChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "earthwork-save-performance":
                     await EarthworkSavePerformance.Run(Check, Frame, this, _args.GetValueOrDefault("save", "res://.godot/earthwork-profile"));
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();

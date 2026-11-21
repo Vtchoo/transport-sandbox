@@ -23,6 +23,7 @@ public sealed class RailRoutingGraph
     public int StateCount => _length.Length;
     public int CorridorStateCount { get; }
     public int IntegratedEdges { get; private set; }
+    internal double EdgeLength(int edge) => _indices.TryGetValue(edge, out int index) ? _length[index * 2] : double.NaN;
     internal bool Matches(RailRoutingEdge[] edges) => edges.Length == _edges.Length && edges.All(edge =>
         _indices.TryGetValue(edge.Id, out int index) && Equivalent(edge, _edges[index]));
     internal static bool Equivalent(RailRoutingEdge a, RailRoutingEdge b) => a with { KnownLength = 0 } == b with { KnownLength = 0 };

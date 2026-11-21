@@ -155,5 +155,6 @@ public static class RailDetourChecks
         }
         finally { editor.Free(); layer.Free(); camera.Free(); }
         await frame();
+        await DetourReplanChecks.Run(check, frame, parent);
     }
 }
