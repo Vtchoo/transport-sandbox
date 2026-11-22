@@ -4,7 +4,11 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1, string? Livery = null);
+public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1, string? Livery = null, CargoLoad? Cargo = null)
+{
+    public double MassKg => Definition.Physics.MassKg + (Cargo?.MassKg ?? 0);
+    public VehiclePhysics Physics => Cargo == null ? Definition.Physics : Definition.Physics with { MassKg = MassKg };
+}
 public sealed class TrainConsist
 {
     public int Id;
@@ -87,6 +91,16 @@ public sealed class TrainBuilder
         int at = train.Items.FindIndex(i => i.Id == itemId);
         if (at >= 0) train.Items[at] = train.Items[at] with { Facing = -train.Items[at].Facing };
         Selected = train;
+    }
+    public void SetCargo(int trainId, int itemId, CargoLoad? load)
+    {
+        var train = Get(trainId); RequireStopped(train);
+        int at = train.Items.FindIndex(i => i.Id == itemId);
+        if (at < 0) throw new InvalidOperationException("Choose an existing vehicle.");
+        var item = train.Items[at];
+        if (load != null && item.Definition.Cargo == null) throw new InvalidOperationException("This vehicle cannot carry cargo.");
+        item.Definition.Cargo?.Validate(load);
+        train.Items[at] = item with { Cargo = load };
     }
     public void Merge(TrainConsist target, TrainConsist source, bool front, bool reverse)
     {

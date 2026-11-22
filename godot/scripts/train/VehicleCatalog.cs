@@ -10,6 +10,8 @@ public sealed record VehicleLivery(string Id, string Name, string Texture);
 
 public sealed class VehicleDefinition
 {
+    public CargoHold? Cargo { get; }
+    public string CargoSummary => Cargo == null ? "" : string.Join(" / ", Cargo.Capacities.Select(c => $"{CargoTypes.Get(c.Key).Name}: {CargoTypes.Get(c.Key).FormatAmount(c.Value)}"));
     public IReadOnlyList<VehicleLivery> Liveries { get; }
     public string LiveryMaterial { get; }
     public string? ResolveLivery(string? id) => Liveries.Count == 0 ? null : Liveries.FirstOrDefault(l => l.Id == id)?.Id ?? Liveries[0].Id;
@@ -44,6 +46,13 @@ public sealed class VehicleDefinition
         Length = data.GetProperty("length").GetDouble();
         DisplayName = data.GetProperty("name").GetString()!;
         Kind = data.GetProperty("kind").GetString()!;
+        if (data.TryGetProperty("cargo", out var cargo))
+        {
+            bool nativeUnits = cargo.TryGetProperty("capacities", out var capacities);
+            if (!nativeUnits) capacities = cargo.GetProperty("capacitiesKg");
+            Cargo = new(capacities.EnumerateObject().Select(c => new KeyValuePair<string, double>(c.Name,
+                nativeUnits ? c.Value.GetDouble() : c.Value.GetDouble() / CargoTypes.Get(c.Name).KilogramsPerUnit)));
+        }
         LiveryMaterial = data.TryGetProperty("liveryMaterial", out var paintMaterial) ? paintMaterial.GetString()! : "";
         var liveries = new List<VehicleLivery>();
         if (data.TryGetProperty("liveries", out var liveryData))

@@ -46,7 +46,7 @@ internal sealed class MovementWork
     public MovementWork(ParkedTrain parked, TrainConsist train, TrainRoute route, bool ho, double catalogMax)
     {
         Parked = parked; Train = train; Route = route; _position = parked.Position;
-        Definitions = train.Items.Select(item => item.Definition.Physics).ToArray();
+        Definitions = train.Items.Select(item => item.Physics).ToArray();
         _offsets = train.Offsets; _performance = TrainPhysics.Performance(Definitions, ho, catalogMax);
         Direction = train.TravelDirection; Length = train.Length; _ho = ho;
     }

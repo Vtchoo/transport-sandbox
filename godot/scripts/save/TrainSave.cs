@@ -18,7 +18,7 @@ public partial class TrainEditor
             var wandering = parked?.Wandering;
             return new SavedTrain
             {
-                Id = t.Id, Name = t.Name, Items = t.Items.Select(i => new SavedItem(i.Id, i.Definition.Id, i.Facing, i.Livery)).ToArray(),
+                Id = t.Id, Name = t.Name, Items = t.Items.Select(i => new SavedItem(i.Id, i.Definition.Id, i.Facing, i.Livery, i.Cargo)).ToArray(),
                 Running = t.Running, Speed = t.Speed, Direction = t.TravelDirection, Orders = t.Orders.Items.ToArray(),
                 OrderIndex = t.Orders.Index, WaitRemaining = t.Orders.WaitRemaining, NextOrder = t.Orders.NextId,
                 Position = parked?.Position, Supported = parked?.Supported ?? true, Route = parked == null ? null : RouteFor(parked).Save(),
@@ -37,7 +37,13 @@ public partial class TrainEditor
         var models = save.Trains.Select(t =>
         {
             var train = new TrainConsist { Id = t.Id, Name = t.Name, Placed = t.Position != null, Running = t.Running, Speed = t.Speed, TravelDirection = t.Direction };
-            train.Items.AddRange(t.Items.Select(i => new TrainItem(i.Id, Catalog.Get(i.Vehicle), i.Facing, Catalog.Get(i.Vehicle).ResolveLivery(i.Livery))));
+            train.Items.AddRange(t.Items.Select(i =>
+            {
+                var definition = Catalog.Get(i.Vehicle);
+                if (i.Cargo != null && definition.Cargo == null) throw new InvalidOperationException("Saved cargo belongs to a vehicle without a cargo hold.");
+                definition.Cargo?.Validate(i.Cargo);
+                return new TrainItem(i.Id, definition, i.Facing, definition.ResolveLivery(i.Livery), i.Cargo);
+            }));
             train.Orders.Restore(t.Orders, t.OrderIndex, t.WaitRemaining, t.NextOrder); return train;
         }).ToArray();
         Builder.Restore(models, null);

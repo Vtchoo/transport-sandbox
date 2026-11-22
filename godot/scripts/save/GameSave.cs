@@ -27,7 +27,7 @@ public sealed record SavedNode(int Id, int Gauge, int Group, TrackVector Positio
 public sealed record SavedGroup(int Id, int Anchor, TrackVector Origin, TrackVector Axis, System.Collections.Generic.Dictionary<int, float> Offsets);
 public sealed record SavedLease(int Train, SignalKey Signal, int[] Edges, bool Entered);
 public sealed record SavedSignal(int Node, int Side, RailSignalKind Kind);
-public sealed record SavedItem(int Id, string Vehicle, int Facing, string? Livery = null);
+public sealed record SavedItem(int Id, string Vehicle, int Facing, string? Livery = null, CargoLoad? Cargo = null);
 public sealed record SavedRouteLeg(int Index, int Edge, int Facing);
 public sealed record SavedRoute(uint Random, SavedRouteLeg[] Legs, int[] Plan, int PlanStart, int PlanStep, int Revision, int[]? DetourLegs = null);
 public sealed class SavedTrain

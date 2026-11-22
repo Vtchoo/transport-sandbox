@@ -63,7 +63,9 @@ public partial class TrainWindows
         ui.Unit.AddItem("seconds", 1); ui.Unit.AddItem("minutes", 60); ui.Unit.AddItem("hours", 3600); wait.AddChild(ui.Unit);
         var load = new HFlowContainer(); ui.Root.AddChild(load);
         ui.FullLoad = Button(load, "Wait for full load of", () => { }, "fullLoad"); ui.FullLoad.Disabled = true;
-        ui.Item = new() { Disabled = true, TooltipText = "Cargo items are not available yet" }; ui.Item.AddItem("Pick item"); UiSkin.Selector(ui.Item); load.AddChild(ui.Item);
+        ui.Item = new() { Disabled = true, TooltipText = "Station cargo loading is not implemented yet" }; ui.Item.AddItem("Pick item");
+        foreach (var cargo in CargoTypes.All.Values) ui.Item.AddItem(cargo.Name);
+        UiSkin.Selector(ui.Item); load.AddChild(ui.Item);
         var scroll = new ScrollContainer { CustomMinimumSize = new(0, 110), SizeFlagsVertical = Control.SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         ui.Root.AddChild(scroll); scroll.AddChild(ui.List); ui.List.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         ui.Trash = new() { CustomMinimumSize = new(40, 40) };

@@ -112,7 +112,7 @@ public partial class TrainWindows : Node
                 Alignment = HorizontalAlignment.Left,
                 ClipText = true,
                 Payload = TrainDragButton.Data("vehicle", vehicle: definition.Id),
-                TooltipText = definition.DisplayName
+                TooltipText = definition.DisplayName + (definition.Cargo == null ? "" : "\n" + definition.CargoSummary)
             };
             row.AddThemeConstantOverride("icon_max_width", 78);
             UiSkin.Button(row);
@@ -154,7 +154,10 @@ public partial class TrainWindows : Node
             _previewName.Text = "Hover a vehicle to preview it";
         }
         else
-            _previewName.Text = Editor.Catalog.Get(_previewVehicle).DisplayName;
+        {
+            var definition = Editor.Catalog.Get(_previewVehicle);
+            _previewName.Text = definition.DisplayName + (definition.Cargo == null ? "" : "\n" + definition.CargoSummary);
+        }
     }
     public TrainConsist? Destination()
     {
@@ -305,7 +308,7 @@ public partial class TrainWindows : Node
         view.ViewTab.SetPressedNoSignal(!view.EditTab && !view.RoutesTab && !view.DebugTab);
         view.RoutesButton.SetPressedNoSignal(view.RoutesTab);
         view.DebugButton.SetPressedNoSignal(view.DebugTab);
-        view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.Definition.Physics.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
+        view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
         view.OverviewSpecs.Text = view.Specs.Text;
         view.Empty.Visible = train.Items.Count == 0;
         view.Trash.Visible = train.Items.Count > 0;
@@ -332,6 +335,13 @@ public partial class TrainWindows : Node
             caption.MouseFilter = Control.MouseFilterEnum.Ignore;
             caption.ClipText = true;
             button.Pressed += () => { view.Selected = item.Id; Render(Editor.Builder.Get(train.Id), view); };
+            if (item.Definition.Cargo is { } hold)
+            {
+                string capacity = string.Join("\n", hold.Capacities.Select(c => $"{CargoTypes.Get(c.Key).Name}: {CargoTypes.Get(c.Key).FormatAmount(c.Value)}"));
+                var type = item.Cargo == null ? null : CargoTypes.Get(item.Cargo.Type);
+                var cargo = UiSkin.Label(card, item.Cargo == null ? capacity : $"{type!.Name}: {type.FormatQuantity(item.Cargo.Quantity)}/{type.FormatAmount(hold.CapacityFor(item.Cargo.Type))}", 10);
+                cargo.TooltipText = "Capacity (one cargo type per car)\n" + capacity;
+            }
             if (item.Definition.Liveries.Count > 0)
             {
                 var selector = new OptionButton { TooltipText = "Livery", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, FitToLongestItem = false };
