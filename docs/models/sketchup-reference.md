@@ -72,10 +72,23 @@ Do not leave a whole-vehicle scale transform to correct dimensions. Avoid negati
 
 Paint actual front faces, rather than relying on inherited group paint. Orient face fronts outward; inspect in Monochrome mode. A reversed face is not repaired by painting its back. Use the same named material wherever its appearance and customization role match.
 
-The following are **proposed semantic material slots**, not existing automatic replacements:
+### Mark faces for livery UV mapping with `paint`
+
+Create one SketchUp material named exactly **`paint`** (lowercase). Apply it **directly to every front face that should receive the livery texture**. Enter the group or component to select its faces; assigning `paint` only to the enclosing group/component is not sufficient. The placeholder material can have any convenient solid color.
+
+For a Dash 9, mark the main hood and cab sides, nose surfaces, roof panels, front/rear end panels, and equipment cabinet panels that need paint or lettering. Leave glass, handrails, wheels, bogies, coupling rods, hoses, steps, underframe and minor fittings with their normal solid-color materials unless a particular face intentionally needs textured artwork. Select by the intended surface treatment, not by component membership: a paintable body component can also contain unpainted fittings.
+
+Reuse the same `paint` material across these faces. Do not create separate `paint1`, `paint2`, or per-face copies. Shared component instances inherit edits to their definition; make a component unique first if only one instance should have different paintable faces.
+
+Preserve material names and face assignments in the exported model. Check that `paint` survives export before supplying it for UV preparation. This explicit selection replaces guessing which surfaces are paintable from their position or orientation. It identifies **which faces to unwrap**; it does not itself create UV coordinates, arrange the panels, or enable in-game color selection. The Dash 9 v3 UV generator recognizes this marker with `--paint-material paint`; the older v2 kit used geometric selection.
+
+For this workflow, use `paint` for the shared livery atlas. The `paint-primary`, `paint-secondary` and `paint-accent` names below describe a separate, proposed color-customization workflow; they are not substitutes for the `paint` selection marker.
+
+The following are semantic material slots. Apart from the `paint` authoring marker, these are **proposed roles**, not existing automatic replacements:
 
 | Material name | Intended use | Suggested metalness / roughness |
 | --- | --- | --- |
+| `paint` | Faces selected for a shared livery texture and UV layout | 0.0 / 0.45 |
 | `paint-primary` | Main selectable body color | 0.0 / 0.45 |
 | `paint-secondary` | Second selectable color | 0.0 / 0.45 |
 | `paint-accent` | Selectable stripe or trim color | 0.0 / 0.45 |
@@ -134,7 +147,7 @@ The current `VehicleDefinition` stores length, body length, width, height, bogie
 ## Export and acceptance checklist
 
 1. Save the source, then make an export copy. Remove reference photos, dimensions, people, ground, tracks and calibration meshes. Purge unused components/materials in that copy.
-2. Keep hierarchy and important names. Export only the intended vehicle assembly. Do not include a second copy of a reusable bogie beside the vehicle.
+2. Keep hierarchy, important names, and direct face material assignments. Verify that faces selected for livery UV mapping retain the exact material name `paint`. Export only the intended vehicle assembly. Do not include a second copy of a reusable bogie beside the vehicle.
 3. Where available, use **File → Export → 3D Model → GLTF Binary File (.glb)** for future GLB integration. For the current Dash 9 adapter, use **COLLADA File (.dae)** and run `npm run import:dash9` after exporting. Record the tool/version used. See [SketchUp's GLTF instructions](https://help.sketchup.com/en/sketchup/working-gltf-files).
 4. Prefer glTF 2.0 metallic-roughness materials, embedded textures and uncompressed geometry for the first integration. Do not introduce extension-dependent compression until the loader supports it. Three.js recommends glTF for runtime assets: [model loading guide](https://threejs.org/manual/pages/loading-3d-models.html).
 5. Reopen the GLB in a glTF viewer or conversion tool. Check metre dimensions, Y-up/+Z-forward, front/side asymmetry, outward normals, materials, textures, and component pivots. A rotated wrapper is acceptable if documented and normalized during integration. Do not rotate each child independently to fix a root-axis conversion.

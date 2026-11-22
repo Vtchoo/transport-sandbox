@@ -27,6 +27,22 @@ bogie-root
 
 For three axles add `wheelset-03`. Number axle stations from the designated front (+green Y) toward the rear. Put each wheelset's component origin at the axle midpoint, at **rolling radius above railhead**, and at its measured longitudinal station. Its red axis is the rotation axis. Within a wheelset, each individual wheel origin may be on its own axle center for future independent animation. All rest axes stay aligned with the bogie axes.
 
+### Wheelset numbering when the rear bogie faces the other way
+
+`wheelset-01` is the axle nearest the **bogie's own designated front**, its local +green Y end. The numbering belongs to the reusable bogie component, rather than the locomotive's front or its current direction of travel. For a symmetric three-axle bogie, `01` is at local +Y, `02` at zero and `03` at local -Y.
+
+If the same component is placed at the rear with a **180-degree rotation about its vertical pivot**, keep its wheelset names. Its local front now points toward the locomotive's rear, so its `wheelset-01` is the rearmost axle of the locomotive. Reading from locomotive front to rear:
+
+```text
+Locomotive front -> rear
+bogie-front:  wheelset-01  wheelset-02  wheelset-03
+bogie-rear:   wheelset-03  wheelset-02  wheelset-01  (rotated 180 degrees)
+```
+
+This is separate from any prototype axle numbering from 1 to 6 across the entire locomotive. Do not rename shared wheelsets or make a component unique solely to make both instances read 01-to-03 in vehicle coordinates. Record the rear bogie's rest rotation and each axle's local station on the measurement sheet. Names remain fixed when the train reverses.
+
+A 180-degree rotation and a mirror are different transforms. Use rotation when the real arrangement is an identical truck facing the opposite direction. If the prototype instead requires handed geometry, make the appropriate variant and bake any reflected geometry into an export copy with outward normals; avoid negative-scale instances. Record its local axes and rest orientation explicitly. The importer must use those transforms for future wheel animation; wheelset names alone do not determine rotation direction.
+
 A frame/bolster origin may share the bogie datum; suspension geometry stays at measured heights. Keep attached brakes, motors and shoes with the correct moving part. Detailed spring compression and suspension travel are not currently simulated. A visually detailed frame does not create additional physical suspension.
 
 ## Measurement example

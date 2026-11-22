@@ -63,7 +63,13 @@ public static class VehicleAppearanceChecks
                         instancedTextures.Add(material.AlbedoTexture.GetInstanceId());
                         using var arrays = mesh.SurfaceGetArrays(surface);
                         var uvs = arrays[(int)Mesh.ArrayType.TexUV].AsVector2Array();
-                        check(uvs.Any(uv => uv.X > .9f) && uvs.Any(uv => uv.Y > .9f), name + ": instanced lettering keeps its UV coordinates");
+                        if (textures.Contains(material.AlbedoTexture.GetInstanceId()))
+                            check(uvs.Any(uv => uv.X > .9f) && uvs.Any(uv => uv.Y > .9f), name + ": instanced lettering keeps its UV coordinates");
+                        else
+                        {
+                            var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+                            check(uvs.Length == vertices.Length && uvs.All(uv => float.IsFinite(uv.X) && float.IsFinite(uv.Y) && uv.X >= 0 && uv.X <= 1 && uv.Y >= 0 && uv.Y <= 1), name + ": instanced body atlas keeps valid UVs for every vertex");
+                        }
                     }
                 }
                 check(textures.IsSubsetOf(instancedTextures), name + ": instancing preserves every lettering texture");

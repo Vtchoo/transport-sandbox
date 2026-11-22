@@ -120,9 +120,23 @@ Trainiax's [dimension-source explanation](https://www.trainiax.net/medimension.p
 
 Use `body`, `bogie-front`, `bogie-rear`; keep fuel tank, cab, walkways and radiator with the body. Put `wheelset-01`, `wheelset-02`, `wheelset-03` within each bogie. Use the paint/material slots from the [shared guide](../sketchup-reference.md) and separate fixed railway lettering from selectable paint.
 
-Supply the chosen road number/date, wheel/axle and truck reference dimensions, shell/clearance/coupler envelope, gauge, operating mass and sourced physics values with the export. The catalog includes the v2 SketchUp model as **GE Dash 9 · SketchUp prototype**, with separate authored body and bogie frames and temporary three-axle wheelsets. The browser uses converted geometry; Godot uses the exported GLB.
+Supply the chosen road number/date, wheel/axle and truck reference dimensions, shell/clearance/coupler envelope, gauge, operating mass and sourced physics values with the export. The legacy browser catalog includes its older SketchUp model as **GE Dash 9 · SketchUp prototype**, with separate authored body and bogie frames and temporary three-axle wheelsets. The browser uses converted geometry; Godot uses the exported GLB.
 
 ## Current game import workflow
+
+### Current Godot asset
+
+Godot uses `godot/assets/vehicles/ge-dash9-1435.glb` with Santa Fe paint on the major body panels. Small hardware, glass, running gear and underframe retain solid-color materials. The PNG is embedded in the GLB.
+
+Run `node scripts/import-godot-dash9.mjs` to import `.files/dash-9/uv-paint-only/v5/dash9-v5-uv.dae`. The current texture is `.files/dash-9/dash9 v5 santa fe texture.png`, painted for the revised v5 layout. Generate the v5 kit with `python -B scripts/generate-dash9-uv.py --source .files/dash-9/dash9-v5.dae --paint-material paint --name dash9-v5 --output .files/dash-9/uv-paint-only/v5`.
+
+V5 keeps the same overall dimensions and bogie pivot stations, but its geometry and UV layout differ from v4. The revised layout has 658 marked paint triangles and 24 UV islands. Cabinet doors occupy their physical positions in the body side views. The cabinet and the hood behind it intentionally share projected paint coordinates so artwork stays aligned; these two documented triangle overlaps do not represent an accidental atlas collision. Use the current v5 guide when revising the texture rather than assuming the v4 artwork fits every panel.
+
+The native importer replaces temporary running gear with the authored bogies and six wheelsets. It retains `wheelset-01` through `wheelset-03` beneath each bogie, including the rear bogie's opposite orientation, and preserves their authored rest transforms. Wheel rotation animation is a separate integration step. A 1.8 mm transverse offset in the authored rear bogie is retained in its geometry relative to the game's centerline pivot.
+
+Optional `--source=...` and `--texture=...` arguments select authoring files with this hierarchy and pivot convention; each bogie must contain three named wheelsets. Run `node scripts/test-godot-dash9-import.mjs` to verify geometry placement, wheelset hierarchy and texture embedding. The Godot-only importer converts COLLADA UV orientation for glTF and replaces only the Dash 9 asset. The legacy browser exporter below would overwrite this model with its older geometry.
+
+### Legacy browser workflow
 
 1. Export the SketchUp assembly as **COLLADA (`.dae`)**, replacing `public/models/locomotives/dash-9/dash9.dae`.
 2. Keep the three main components named `body`, `bogie_front` and `bogie_rear` (hyphens are accepted too). Set the body origin at the centerline/railhead datum and both bogie origins at their intended rail-level pivots, symmetrically placed about the body origin. Export component hierarchy; keep reference images and dimensions out of the assembly.
@@ -132,7 +146,7 @@ Supply the chosen road number/date, wheel/axle and truck reference dimensions, s
 
 The initial integration supports static triangle geometry and **solid-color** materials. It reports unsupported texture/animation data explicitly. Material colors/names are retained; runtime materials use a standard rough surface approximation. Player-selected paint colors and arbitrary asset registration still require additional work. GLB export is unnecessary for this working COLLADA path.
 
-**Current v2 asset:** `.files/dash-9/dash9.dae` replaces the original bounding-box model. Imported mesh bounds are approximately **3.660552 × 4.699 × 21.673018 m** (width × height × length), with **14.097 m** between bogie pivots. These are measurements of the authored export, preserved without rescaling. Temporary procedural wheelsets still use a 4.064 m outer-axle span. The importer discards collapsed faces from the COLLADA mesh while preserving valid geometry, materials and component pivots.
+**Legacy browser asset:** `public/models/locomotives/dash-9/dash9.dae` contains the older model. Its obsolete authoring exports and UV kits have been removed; use v5 for Godot. Imported mesh bounds are approximately **3.660552 × 4.699 × 21.673018 m** (width × height × length), with **14.097 m** between bogie pivots. These are measurements of the authored export, preserved without rescaling. Temporary procedural wheelsets still use a 4.064 m outer-axle span. The importer discards collapsed faces from the COLLADA mesh while preserving valid geometry, materials and component pivots.
 
 The checked export declares inches (`0.0254` metres per unit) and Z-up; conversion produces the measured body dimensions approximately **3.1242 × 4.6990 × 22.3012 m** (game X/Y/Z), and **16.1544 m** between authored bogie pivots. The adapter follows the named front bogie toward game +Z. In this export the named front is toward SketchUp negative green Y, so its recorded mapping is `(X, Z, -Y)`; exports following the general +green-front convention receive the corresponding yaw correction. No scale-to-fit correction is applied.
 

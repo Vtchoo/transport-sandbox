@@ -27,7 +27,7 @@ exhaust: {
 
 Omit `exhaust` to disable emissions for that model. Omit `idleRate` for the diesel default of 1.2 particles/second, or set it to zero to emit only under effort. Working engines automatically produce more exhaust. The effect is shared by placed trains and menu trains; catalog models and placement ghosts do not emit. Component-name discovery, multiple outlets and configurable outlet directions are not implemented yet.
 
-Use `paint-primary` for the main customizable body, `paint-secondary` for another chosen livery region, and `paint-accent` for selectable striping. Fixed historical logos remain `decal-fixed`; unpainted stainless and wheel treads use their own metal materials. Keep handrail paint separate only if it needs a different material or selectable color.
+For the livery UV workflow, apply the exact material **`paint` directly to paintable faces** on the hood, cab, nose, roof, ends and equipment cabinets. Keep glass, handrails, running gear and small fittings in their normal materials. Follow the [shared `paint` material directive](sketchup-reference.md#mark-faces-for-livery-uv-mapping-with-paint), including export checks. The separate proposed color-customization workflow uses `paint-primary`, `paint-secondary` and `paint-accent`; these do not replace the `paint` UV-selection marker. Fixed logos and unpainted metal can retain their own materials.
 
 ## Measurement sheet additions
 

@@ -1,0 +1,1158 @@
+{
+  "source": ".files\\dash-9\\dash9-v5.dae",
+  "sourceSha256": "63d389bcfa5b7cc1e03a3f05941e6c1c53e1b134b4b757b17d6cd98fcae8a66f",
+  "textureSize": [
+    4096,
+    4096
+  ],
+  "atlasCount": 1,
+  "chartCount": 24,
+  "internalPackSize": [
+    4096,
+    4096
+  ],
+  "utilization": 0.3928745182712392,
+  "meshes": [
+    {
+      "mesh": "uv-3-ID781",
+      "part": "body",
+      "triangles": 2,
+      "unwrapTriangles": 2,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-4-ID787",
+      "part": "body",
+      "triangles": 8,
+      "unwrapTriangles": 8,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-5-ID793",
+      "part": "body",
+      "triangles": 8,
+      "unwrapTriangles": 4,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-6-ID799",
+      "part": "body",
+      "triangles": 8,
+      "unwrapTriangles": 4,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-8-ID6",
+      "part": "body",
+      "triangles": 200,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-9-ID14",
+      "part": "body",
+      "triangles": 64,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-10-ID20",
+      "part": "body",
+      "triangles": 64,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-11-ID26",
+      "part": "body",
+      "triangles": 64,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-13-ID39",
+      "part": "body",
+      "triangles": 224,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-14-ID45",
+      "part": "body",
+      "triangles": 68,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-15-ID51",
+      "part": "body",
+      "triangles": 60,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-16-ID57",
+      "part": "body",
+      "triangles": 60,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-17-ID63",
+      "part": "body",
+      "triangles": 60,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-20-ID309",
+      "part": "body",
+      "triangles": 312,
+      "unwrapTriangles": 306,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-21-ID315",
+      "part": "body",
+      "triangles": 50,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-22-ID323",
+      "part": "body",
+      "triangles": 104,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-23-ID329",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-24-ID335",
+      "part": "body",
+      "triangles": 2,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-25-ID341",
+      "part": "body",
+      "triangles": 4,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-26-ID349",
+      "part": "body",
+      "triangles": 11,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-27-ID355",
+      "part": "body",
+      "triangles": 188,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-28-ID361",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-29-ID367",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-30-ID373",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-31-ID379",
+      "part": "body",
+      "triangles": 2,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-32-ID385",
+      "part": "body",
+      "triangles": 4,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-34-ID84",
+      "part": "body",
+      "triangles": 44,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-36-ID95",
+      "part": "body",
+      "triangles": 172,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-37-ID101",
+      "part": "body",
+      "triangles": 84,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-38-ID107",
+      "part": "body",
+      "triangles": 140,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-39-ID113",
+      "part": "body",
+      "triangles": 112,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-41-ID136",
+      "part": "body",
+      "triangles": 140,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-42-ID142",
+      "part": "body",
+      "triangles": 602,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-43-ID148",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-44-ID154",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-45-ID160",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-46-ID166",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-47-ID172",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-48-ID178",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-49-ID184",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-50-ID190",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-51-ID196",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-52-ID202",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-53-ID208",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-55-ID255",
+      "part": "body",
+      "triangles": 20,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-57-ID262",
+      "part": "body",
+      "triangles": 16,
+      "unwrapTriangles": 8,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-58-ID270",
+      "part": "body",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-61-ID278",
+      "part": "body",
+      "triangles": 151,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-64-ID278",
+      "part": "body",
+      "triangles": 151,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-67-ID423",
+      "part": "body",
+      "triangles": 6,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-68-ID429",
+      "part": "body",
+      "triangles": 6,
+      "unwrapTriangles": 6,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-71-ID437",
+      "part": "body",
+      "triangles": 6,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-72-ID443",
+      "part": "body",
+      "triangles": 6,
+      "unwrapTriangles": 6,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-75-ID675",
+      "part": "body",
+      "triangles": 312,
+      "unwrapTriangles": 306,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-76-ID681",
+      "part": "body",
+      "triangles": 50,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-77-ID687",
+      "part": "body",
+      "triangles": 104,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-78-ID693",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-79-ID699",
+      "part": "body",
+      "triangles": 2,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-80-ID705",
+      "part": "body",
+      "triangles": 4,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-81-ID711",
+      "part": "body",
+      "triangles": 11,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-82-ID717",
+      "part": "body",
+      "triangles": 188,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-83-ID723",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-84-ID729",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-85-ID735",
+      "part": "body",
+      "triangles": 5,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-86-ID741",
+      "part": "body",
+      "triangles": 2,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-87-ID747",
+      "part": "body",
+      "triangles": 4,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-89-ID452",
+      "part": "body",
+      "triangles": 44,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-91-ID463",
+      "part": "body",
+      "triangles": 172,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-92-ID469",
+      "part": "body",
+      "triangles": 84,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-93-ID475",
+      "part": "body",
+      "triangles": 140,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-94-ID481",
+      "part": "body",
+      "triangles": 112,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-96-ID504",
+      "part": "body",
+      "triangles": 140,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-97-ID510",
+      "part": "body",
+      "triangles": 602,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-98-ID516",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-99-ID522",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-100-ID528",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-101-ID534",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-102-ID540",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-103-ID546",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-104-ID552",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-105-ID558",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-106-ID564",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-107-ID570",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-108-ID576",
+      "part": "body",
+      "triangles": 40,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-110-ID623",
+      "part": "body",
+      "triangles": 20,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-112-ID630",
+      "part": "body",
+      "triangles": 16,
+      "unwrapTriangles": 8,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-113-ID636",
+      "part": "body",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-116-ID644",
+      "part": "body",
+      "triangles": 151,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-119-ID644",
+      "part": "body",
+      "triangles": 151,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-130-ID815",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-131-ID821",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-132-ID827",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-133-ID833",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-136-ID845",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-137-ID851",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-138-ID857",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-139-ID863",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-146-ID815",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-147-ID821",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-148-ID827",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-149-ID833",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-152-ID845",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-153-ID851",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-154-ID857",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-155-ID863",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-162-ID815",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-163-ID821",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-164-ID827",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-165-ID833",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-168-ID845",
+      "part": "bogie-front",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-169-ID851",
+      "part": "bogie-front",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-170-ID857",
+      "part": "bogie-front",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-171-ID863",
+      "part": "bogie-front",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-174-ID893",
+      "part": "bogie-front",
+      "triangles": 936,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-175-ID899",
+      "part": "bogie-front",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-176-ID905",
+      "part": "bogie-front",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-177-ID911",
+      "part": "bogie-front",
+      "triangles": 32,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-180-ID919",
+      "part": "bogie-front",
+      "triangles": 936,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-181-ID925",
+      "part": "bogie-front",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-182-ID931",
+      "part": "bogie-front",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-183-ID937",
+      "part": "bogie-front",
+      "triangles": 32,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-194-ID815",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-195-ID821",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-196-ID827",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-197-ID833",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-200-ID845",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-201-ID851",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-202-ID857",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-203-ID863",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-210-ID815",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-211-ID821",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-212-ID827",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-213-ID833",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-216-ID845",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-217-ID851",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-218-ID857",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-219-ID863",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-226-ID815",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-227-ID821",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-228-ID827",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-229-ID833",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-232-ID845",
+      "part": "bogie-rear",
+      "triangles": 22,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-233-ID851",
+      "part": "bogie-rear",
+      "triangles": 96,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-234-ID857",
+      "part": "bogie-rear",
+      "triangles": 118,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-235-ID863",
+      "part": "bogie-rear",
+      "triangles": 48,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-238-ID893",
+      "part": "bogie-rear",
+      "triangles": 936,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-239-ID899",
+      "part": "bogie-rear",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-240-ID905",
+      "part": "bogie-rear",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-241-ID911",
+      "part": "bogie-rear",
+      "triangles": 32,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-244-ID919",
+      "part": "bogie-rear",
+      "triangles": 936,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-245-ID925",
+      "part": "bogie-rear",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-246-ID931",
+      "part": "bogie-rear",
+      "triangles": 56,
+      "unwrapTriangles": 0,
+      "charts": 0
+    },
+    {
+      "mesh": "uv-247-ID937",
+      "part": "bogie-rear",
+      "triangles": 32,
+      "unwrapTriangles": 0,
+      "charts": 0
+    }
+  ],
+  "triangles": 14276,
+  "layout": "paintable-panels-only",
+  "primaryPanelOverlaps": 0,
+  "panels": [
+    {
+      "name": "left",
+      "rectanglePixels": [
+        90.0,
+        100.0,
+        3900.0,
+        810.0
+      ],
+      "label": "LEFT SIDE - front at right"
+    },
+    {
+      "name": "right",
+      "rectanglePixels": [
+        90.0,
+        1030.0,
+        3900.0,
+        810.0
+      ],
+      "label": "RIGHT SIDE - front at left"
+    },
+    {
+      "name": "roof",
+      "rectanglePixels": [
+        90.0,
+        1990.0,
+        3900.0,
+        660.0
+      ],
+      "label": "ROOF - top view, front at left"
+    },
+    {
+      "name": "front",
+      "rectanglePixels": [
+        90.0,
+        2800.0,
+        1200.0,
+        1150.0
+      ],
+      "label": "FRONT VIEW - nose and cab"
+    },
+    {
+      "name": "rear",
+      "rectanglePixels": [
+        1410.0,
+        2800.0,
+        1200.0,
+        1150.0
+      ],
+      "label": "REAR VIEW"
+    },
+    {
+      "name": "extra",
+      "rectanglePixels": [
+        2730.0,
+        2800.0,
+        1270.0,
+        1150.0
+      ],
+      "label": "SECONDARY PAINTED SURFACES"
+    }
+  ],
+  "paintedTriangles": 658,
+  "solidColorTriangles": 13618,
+  "selectionMaterial": "paint",
+  "selectionRule": "Exact exported face-material name; no geometry-ID or position-based selection",
+  "intentionalSideProjectionOverlaps": 2
+}
