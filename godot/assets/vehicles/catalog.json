@@ -405,6 +405,13 @@
 	  "capacities": {
 		"coal": 70,
 		"iron-ore": 70
+	  },
+	  "visual": {
+		"bottomY": 1.92,
+		"topY": 3.66,
+		"bottomWidth": 1.24,
+		"topWidth": 2.78,
+		"length": 11.6
 	  }
 	},
 	"thumbnail": "res://assets/vehicles/thumbnails/open-hopper.svg"

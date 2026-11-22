@@ -4,8 +4,8 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-public enum TrainOrderKind { Station, Wait, Waypoint }
-public sealed record TrainOrder(int Id, TrainOrderKind Kind, int Target = 0, double Seconds = 0);
+public enum TrainOrderKind { Station, Wait, Waypoint, FullLoad }
+public sealed record TrainOrder(int Id, TrainOrderKind Kind, int Target = 0, double Seconds = 0, string? Cargo = null);
 
 /// <summary>Independent order lists; clipboard copies configuration, never execution progress.</summary>
 public sealed class TrainOrders
@@ -13,6 +13,8 @@ public sealed class TrainOrders
     public readonly List<TrainOrder> Items = new();
     public int Index;
     public double WaitRemaining = -1;
+    public int ServiceStation;
+    public bool ServicingStation;
     public int Revision { get; private set; }
     public string Status = "No orders - wandering";
     private int _nextId = 1;
@@ -34,15 +36,16 @@ public sealed class TrainOrders
     public TrainOrder? Current => Items.Count == 0 ? null : Items[Math.Clamp(Index, 0, Items.Count - 1)];
     public TrainOrders Copy()
     {
-        var copy = new TrainOrders { Index = Index, WaitRemaining = WaitRemaining, Revision = Revision, Status = Status, _nextId = _nextId };
+        var copy = new TrainOrders { Index = Index, WaitRemaining = WaitRemaining, Revision = Revision, Status = Status, _nextId = _nextId, ServiceStation = ServiceStation, ServicingStation = ServicingStation };
         copy.Items.AddRange(Items);
         return copy;
     }
-    public void Add(TrainOrderKind kind, int target = 0, double seconds = 0)
+    public void Add(TrainOrderKind kind, int target = 0, double seconds = 0, string? cargo = null)
     {
         if (kind == TrainOrderKind.Wait && (!double.IsFinite(seconds) || seconds < 0))
             throw new InvalidOperationException("Choose a non-negative wait duration.");
-        Items.Add(new(_nextId++, kind, target, seconds));
+        if (kind == TrainOrderKind.FullLoad) CargoTypes.Get(cargo ?? throw new InvalidOperationException("Choose a cargo type."));
+        Items.Add(new(_nextId++, kind, target, seconds, cargo));
         Changed();
     }
     public void Append(IEnumerable<TrainOrder> orders)
@@ -82,7 +85,7 @@ public sealed class TrainOrders
         Index = Items.Count == 0 ? 0 : Math.Clamp(index, 0, Items.Count - 1); WaitRemaining = waitRemaining;
         Changed();
     }
-    private void Changed() { Revision++; Status = Items.Count == 0 ? "No orders - wandering" : "Route updated"; }
+    private void Changed() { Revision++; ServiceStation = 0; ServicingStation = false; Status = Items.Count == 0 ? "No orders - wandering" : "Route updated"; }
 }
 
 /// <summary>Planning cache belongs to one placed train and is discarded after edits/repositioning.</summary>

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1, string? Livery = null, CargoLoad? Cargo = null)
+public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1, string? Livery = null, CargoLoad? Cargo = null, string? CargoAssignment = null)
 {
     public double MassKg => Definition.Physics.MassKg + (Cargo?.MassKg ?? 0);
     public VehiclePhysics Physics => Cargo == null ? Definition.Physics : Definition.Physics with { MassKg = MassKg };
@@ -94,13 +94,24 @@ public sealed class TrainBuilder
     }
     public void SetCargo(int trainId, int itemId, CargoLoad? load)
     {
-        var train = Get(trainId); RequireStopped(train);
+        var train = Get(trainId);
+        if (!double.IsFinite(train.Speed) || Math.Abs(train.Speed) > .001) throw new InvalidOperationException("Train must be stationary to transfer cargo.");
         int at = train.Items.FindIndex(i => i.Id == itemId);
         if (at < 0) throw new InvalidOperationException("Choose an existing vehicle.");
         var item = train.Items[at];
         if (load != null && item.Definition.Cargo == null) throw new InvalidOperationException("This vehicle cannot carry cargo.");
         item.Definition.Cargo?.Validate(load);
         train.Items[at] = item with { Cargo = load };
+    }
+    public void AssignCargo(int trainId, int itemId, string? type)
+    {
+        var train = Get(trainId); RequireStopped(train);
+        int at = train.Items.FindIndex(i => i.Id == itemId);
+        if (at < 0) throw new InvalidOperationException("Choose an existing vehicle.");
+        var item = train.Items[at];
+        if (type != null && item.Definition.Cargo?.Accepts(type) != true) throw new InvalidOperationException("This car cannot carry that cargo.");
+        if (type != null && item.Cargo != null && item.Cargo.Type != type) throw new InvalidOperationException("Unload this car before changing its cargo assignment.");
+        train.Items[at] = item with { CargoAssignment = type };
     }
     public void Merge(TrainConsist target, TrainConsist source, bool front, bool reverse)
     {

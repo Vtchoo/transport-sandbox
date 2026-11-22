@@ -45,6 +45,7 @@ public partial class TrainEditor
     }
     public void OrdersChanged(int id)
     {
+        EndCargoVisit?.Invoke(id);
         var parked = Parked.FirstOrDefault(p => p.Id == id);
         if (parked != null) { parked.Journey = null; parked.Wandering = null; }
         Changed?.Invoke(null);
@@ -119,7 +120,7 @@ public partial class TrainEditor
             // Seed the exit beyond a pass-through waypoint from the next travel order,
             // before braking/pose lookahead has a chance to choose a random junction.
             var next = train.Orders.Items[(train.Orders.Index + 1) % train.Orders.Items.Count];
-            if (next.Kind != TrainOrderKind.Wait)
+            if (next.Kind is TrainOrderKind.Station or TrainOrderKind.Waypoint)
             {
                 int last = states[^1], direction = RailRouter.Direction(last);
                 if (!_pathfinder.TryGet(new(next.Kind, next.Target), out var nextField, urgent: true, policy: policy, startEdge: last / 2)) return null;
@@ -144,18 +145,38 @@ public partial class TrainEditor
         if (orders.Current is not { } order) return ExecuteWandering(parked, train, route, dt, lookahead);
         parked.Wandering = null;
         if (!train.Running) return (true, double.PositiveInfinity);
+        if (orders.ServicingStation)
+        {
+            orders.Status = $"Working at Station {orders.ServiceStation}";
+            if (ServiceStation?.Invoke(train, orders.ServiceStation, dt) == true) return (true, 0);
+            orders.ServicingStation = false; orders.Advance(); parked.Journey = null;
+            return (true, 0);
+        }
+        if (order.Kind == TrainOrderKind.FullLoad)
+        {
+            parked.Journey = null;
+            if (orders.ServiceStation == 0) { orders.Status = "Full load needs a preceding station order"; return (true, 0); }
+            ServiceStation?.Invoke(train, orders.ServiceStation, dt);
+            var capable = train.Items.Where(i => i.Definition.Cargo?.Accepts(order.Cargo ?? "") == true && (i.CargoAssignment == null || i.CargoAssignment == order.Cargo)).ToArray();
+            bool full = capable.Length > 0 && capable.All(i => i.Cargo is { } load && load.Type == order.Cargo && load.Quantity >= i.Definition.Cargo!.CapacityFor(order.Cargo!) - 1e-8);
+            orders.Status = capable.Length == 0 ? "No cars assigned to carry this cargo" : "Waiting for full load of " + CargoTypes.Get(order.Cargo!).Name;
+            if (full) orders.Advance();
+            return (true, 0);
+        }
         if (order.Kind == TrainOrderKind.Wait)
         {
             parked.Journey = null;
             if (orders.WaitRemaining < 0) orders.WaitRemaining = order.Seconds;
             if (Math.Abs(train.Speed) <= .001)
             {
+                if (orders.ServiceStation != 0) ServiceStation?.Invoke(train, orders.ServiceStation, dt);
                 orders.WaitRemaining = Math.Max(0, orders.WaitRemaining - dt);
                 if (orders.WaitRemaining <= 1e-8) orders.Advance();
             }
             orders.Status = FormattableString.Invariant($"Waiting - {Math.Max(0, orders.WaitRemaining):F1} s remaining");
             return (true, double.PositiveInfinity);
         }
+        if (orders.ServiceStation != 0) { EndCargoVisit?.Invoke(train.Id); orders.ServiceStation = 0; }
         bool plannedNow = false;
         var journey = parked.Journey;
         if (journey != null && (journey.Order != order.Id || journey.OrdersRevision != orders.Revision || journey.Direction != train.TravelDirection))
@@ -214,8 +235,10 @@ public partial class TrainEditor
                 parked.Journey = null; orders.Status = "Finding route...";
                 return (true, double.PositiveInfinity);
             }
-            if (order.Kind == TrainOrderKind.Station) { train.Speed = 0; parked.StationAudio.Arrive(order.Target); }
-            orders.Advance(); parked.Journey = null;
+            if (order.Kind == TrainOrderKind.Station)
+            { train.Speed = 0; parked.StationAudio.Arrive(order.Target); orders.ServiceStation = order.Target; orders.ServicingStation = true; }
+            else orders.Advance();
+            parked.Journey = null;
             return (order.Kind == TrainOrderKind.Station, double.PositiveInfinity);
         }
         return (false, order.Kind == TrainOrderKind.Station && !journey.ViaDeadEnd ? Math.Max(0, journey.Distance) : double.PositiveInfinity);

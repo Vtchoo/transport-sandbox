@@ -20,6 +20,7 @@ public partial class GameHUD : Control
     public CheckBox MuteSound = null!;
     public PanelContainer ActionBar = null!, DebugPanel = null!;
     public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, StationsButton = null!, CameraButton = null!, ViewButton = null!, SettingsButton = null!, MenuButton = null!;
+    public Button IndustriesButton = null!;
     public GameWindow ViewWindow = null!, SettingsWindow = null!;
     public CheckBox Contours = null!;
     public OptionButton ContourInterval = null!, CameraMode = null!;
@@ -113,6 +114,8 @@ public partial class GameHUD : Control
         StationsButton = ActionButton("", "station");
         StationsButton.IconAlignment = HorizontalAlignment.Center;
         StationsButton.TooltipText = "Stations";
+        IndustriesButton = ActionButton("", "industry");
+        IndustriesButton.IconAlignment = HorizontalAlignment.Center; IndustriesButton.TooltipText = "Industries";
         Editor.EnabledChanged += SynchronizeBuild;
         Hint = UiSkin.Label(this, "", 9, "edf1e6");
         Hint.MouseFilter = MouseFilterEnum.Ignore;

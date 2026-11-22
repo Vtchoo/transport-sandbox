@@ -25,6 +25,7 @@ public partial class VehicleVisual : Node3D
     // Never edit the imported material: other locomotives may use another texture.
     private static readonly Dictionary<(ulong Material, string Texture), StandardMaterial3D> LiveryMaterials = new();
     public string? Livery { get; }
+    public CargoVisual? CargoFill { get; }
     public VehicleDefinition Definition
     {
         get;
@@ -41,7 +42,7 @@ public partial class VehicleVisual : Node3D
     {
         get;
     }
-    public VehicleVisual(VehicleDefinition definition, int gauge, bool reversed = false, string? livery = null)
+    public VehicleVisual(VehicleDefinition definition, int gauge, bool reversed = false, string? livery = null, bool cargoPreview = false)
     {
         if (!definition.Models.TryGetValue(gauge, out var model))
             throw new ArgumentException($"{definition.Id} is unavailable for {gauge} mm track.");
@@ -56,6 +57,7 @@ public partial class VehicleVisual : Node3D
             ApplyLivery(Model, definition, definition.Liveries.First(l => l.Id == Livery));
         ConfigureLettering(Model);
         AddChild(Model);
+        if (definition.CargoVisual != null) { CargoFill = new(definition, cargoPreview); AddChild(CargoFill); }
         Rotation = new(0, reversed ? Mathf.Pi : 0, 0);
     }
     private static void ApplyLivery(Node node, VehicleDefinition definition, VehicleLivery livery)

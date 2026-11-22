@@ -1,0 +1,10 @@
+{
+  "catchmentRadiusM": 250,
+  "stationCapacities": { "coal": 1000, "iron-ore": 1000, "steel": 1000 },
+  "transferRates": { "coal": 2, "iron-ore": 2, "steel": 2 },
+  "types": [
+    { "id": "coal-mine", "name": "Coal mine", "inputs": {}, "outputs": { "coal": 1 }, "inputStorage": {}, "outputStorage": { "coal": 500 } },
+    { "id": "iron-mine", "name": "Iron mine", "inputs": {}, "outputs": { "iron-ore": 1 }, "inputStorage": {}, "outputStorage": { "iron-ore": 500 } },
+    { "id": "steel-mill", "name": "Steel mill", "inputs": { "coal": 0.5, "iron-ore": 1 }, "outputs": { "steel": 0.8 }, "inputStorage": { "coal": 500, "iron-ore": 1000 }, "outputStorage": { "steel": 500 } }
+  ]
+}

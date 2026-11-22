@@ -22,7 +22,7 @@ public partial class PosedVehicleVisual : Node3D
     public PosedVehicleVisual(VehicleDefinition definition, int gauge, bool preview = false, string? livery = null)
     {
         Definition = definition; Gauge = gauge;
-        Vehicle = new(definition, gauge, livery: livery);
+        Vehicle = new(definition, gauge, livery: livery, cargoPreview: preview);
         AddChild(Vehicle);
         if (preview) TintParts(Vehicle);
     }
@@ -68,6 +68,7 @@ public partial class PosedVehicleVisual : Node3D
         Pose = pose;
         Position = pose.Center;
         ApplyParts(Definition, pose, "");
+        if (Vehicle.CargoFill != null) Vehicle.CargoFill.GlobalTransform = new(pose.Basis, pose.BodyCenter);
     }
     private void ApplyParts(VehicleDefinition definition, VehiclePose pose, string prefix)
     {

@@ -11,6 +11,7 @@ public sealed record VehicleLivery(string Id, string Name, string Texture);
 public sealed class VehicleDefinition
 {
     public CargoHold? Cargo { get; }
+    public HopperProfile? CargoVisual { get; }
     public string CargoSummary => Cargo == null ? "" : string.Join(" / ", Cargo.Capacities.Select(c => $"{CargoTypes.Get(c.Key).Name}: {CargoTypes.Get(c.Key).FormatAmount(c.Value)}"));
     public IReadOnlyList<VehicleLivery> Liveries { get; }
     public string LiveryMaterial { get; }
@@ -48,6 +49,7 @@ public sealed class VehicleDefinition
         Kind = data.GetProperty("kind").GetString()!;
         if (data.TryGetProperty("cargo", out var cargo))
         {
+            if (cargo.TryGetProperty("visual", out var visual)) CargoVisual = HopperProfile.Read(visual);
             bool nativeUnits = cargo.TryGetProperty("capacities", out var capacities);
             if (!nativeUnits) capacities = cargo.GetProperty("capacitiesKg");
             Cargo = new(capacities.EnumerateObject().Select(c => new KeyValuePair<string, double>(c.Name,

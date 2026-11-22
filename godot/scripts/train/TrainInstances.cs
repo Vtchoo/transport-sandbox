@@ -81,7 +81,7 @@ public partial class TrainInstances : Node3D
         var active = vehicles.ToArray();
         var activeSet = active.ToHashSet();
         foreach (var obsolete in _parts.Keys.Where(v => !activeSet.Contains(v)).ToArray()) _parts.Remove(obsolete);
-        var batches = new Dictionary<string, (ArrayMesh Mesh, List<Transform3D> Transforms)>();
+        var batches = new Dictionary<string, (ArrayMesh Mesh, List<Transform3D> Transforms, List<Color>? Data)>();
         foreach (var vehicle in active)
         {
             if (!_parts.TryGetValue(vehicle, out var parts))
@@ -99,8 +99,16 @@ public partial class TrainInstances : Node3D
                 }
                 var world = Space.ToWorld(part.GlobalPosition);
                 string key = templateKey + $":{Math.Floor(world.X / 512)}:{Math.Floor(world.Z / 512)}";
-                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (mesh, new());
+                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (mesh, new(), null);
                 batch.Transforms.Add(part.GlobalTransform);
+            }
+            if (vehicle.Vehicle.CargoFill is { Load: not null } cargo)
+            {
+                cargo.Visible = false;
+                var world = Space.ToWorld(cargo.GlobalPosition);
+                string key = cargo.BatchKey + $":{Math.Floor(world.X / 512)}:{Math.Floor(world.Z / 512)}";
+                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (cargo.Template, new(), new());
+                batch.Transforms.Add(cargo.GlobalTransform); batch.Data!.Add(cargo.InstanceData);
             }
         }
         BatchCount = batches.Count;
@@ -113,12 +121,16 @@ public partial class TrainInstances : Node3D
             if (!_batches.TryGetValue(key, out var node))
             {
                 node = new MultiMeshInstance3D(); _batches[key] = node; AddChild(node);
-                using var created = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = batch.Mesh };
+                using var created = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = batch.Mesh, UseCustomData = batch.Data != null };
                 node.Multimesh = created;
             }
             using var multi = node.Multimesh;
             if (multi.InstanceCount != batch.Transforms.Count) multi.InstanceCount = batch.Transforms.Count;
-            for (int i = 0; i < batch.Transforms.Count; i++) multi.SetInstanceTransform(i, batch.Transforms[i]);
+            for (int i = 0; i < batch.Transforms.Count; i++)
+            {
+                multi.SetInstanceTransform(i, batch.Transforms[i]);
+                if (batch.Data != null) multi.SetInstanceCustomData(i, batch.Data[i]);
+            }
         }
     }
 }

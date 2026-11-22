@@ -20,6 +20,7 @@ public sealed class TrainView
     public int? Selected;
     public VBoxContainer Edit = null!, Overview = null!;
     public HBoxContainer Consist = null!, Tools = null!;
+    public Dictionary<int, Label> CargoLabels = new();
     public Label Specs = null!, OverviewSpecs = null!, Location = null!, Status = null!, SelectedName = null!, Empty = null!;
     public TrainDragButton Trash = null!;
     public VehiclePreview Preview = null!;
@@ -240,7 +241,7 @@ public partial class TrainWindows : Node
         view.Window.Body.AddChild(view.Edit);
         view.Specs = UiSkin.Label(view.Edit, "", 11);
         UiSkin.Label(view.Edit, "FRONT  <                                       >  REAR", 10);
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Auto, VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, CustomMinimumSize = new(0, 168) };
+        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Auto, VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, CustomMinimumSize = new(0, 198) };
         view.Edit.AddChild(scroll);
         view.Consist = new();
         scroll.AddChild(view.Consist);
@@ -308,12 +309,11 @@ public partial class TrainWindows : Node
         view.ViewTab.SetPressedNoSignal(!view.EditTab && !view.RoutesTab && !view.DebugTab);
         view.RoutesButton.SetPressedNoSignal(view.RoutesTab);
         view.DebugButton.SetPressedNoSignal(view.DebugTab);
-        view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
-        view.OverviewSpecs.Text = view.Specs.Text;
+        RefreshSpecs(train, view);
         view.Empty.Visible = train.Items.Count == 0;
         view.Trash.Visible = train.Items.Count > 0;
         view.Location.Text = !train.Placed ? "In construction - not placed" : Editor.Parked.First(p => p.Id == train.Id).Supported ? "Stopped on track" : "Supporting track changed. The train remains at its last valid location.";
-        Clear(view.Consist);
+        Clear(view.Consist); view.CargoLabels.Clear();
         Gap(view, train.Id, 0);
         for (int i = 0; i < train.Items.Count; i++)
         {
@@ -341,6 +341,13 @@ public partial class TrainWindows : Node
                 var type = item.Cargo == null ? null : CargoTypes.Get(item.Cargo.Type);
                 var cargo = UiSkin.Label(card, item.Cargo == null ? capacity : $"{type!.Name}: {type.FormatQuantity(item.Cargo.Quantity)}/{type.FormatAmount(hold.CapacityFor(item.Cargo.Type))}", 10);
                 cargo.TooltipText = "Capacity (one cargo type per car)\n" + capacity;
+                view.CargoLabels[item.Id] = cargo;
+                var assignment = new OptionButton { TooltipText = "Cargo assignment", FitToLongestItem = false };
+                UiSkin.Selector(assignment); card.AddChild(assignment); assignment.AddItem("Automatic");
+                assignment.SetItemMetadata(0, "");
+                foreach (var id in hold.AcceptedTypes)
+                { assignment.AddItem(CargoTypes.Get(id).Name); assignment.SetItemMetadata(assignment.ItemCount - 1, id); if (item.CargoAssignment == id) assignment.Select(assignment.ItemCount - 1); }
+                assignment.ItemSelected += selected => Editor.SetCargoAssignment(train.Id, item.Id, selected == 0 ? null : assignment.GetItemMetadata((int)selected).AsString());
             }
             if (item.Definition.Liveries.Count > 0)
             {
@@ -386,10 +393,23 @@ public partial class TrainWindows : Node
         foreach (var (id, view) in Views)
             if (Editor.Builder.Trains.FirstOrDefault(t => t.Id == id) is { } train)
             {
+                if (!view.Window.Visible || view.Window.IsCollapsed) continue;
+                RefreshSpecs(train, view);
                 RefreshRunButton(train, view);
+                foreach (var item in train.Items)
+                    if (view.CargoLabels.TryGetValue(item.Id, out var label))
+                    {
+                        if (item.Cargo is { } load) { var type = CargoTypes.Get(load.Type); label.Text = type.Name + ": " + type.FormatQuantity(load.Quantity) + "/" + type.FormatAmount(item.Definition.Cargo!.CapacityFor(load.Type)); }
+                        else label.Text = string.Join("\n", item.Definition.Cargo!.Capacities.Select(c => $"{CargoTypes.Get(c.Key).Name}: {CargoTypes.Get(c.Key).FormatAmount(c.Value)}"));
+                    }
                 if (train.Placed) view.Location.Text = FormattableString.Invariant($"{Math.Abs(train.Speed) * 3.6:F1} km/h - {(train.Running ? "Started" : train.Stopped ? "Stopped" : "Stopping")}");
                 RefreshOrderStatus(train, view);
             }
+    }
+    private static void RefreshSpecs(TrainConsist train, TrainView view)
+    {
+        view.Specs.Text = FormattableString.Invariant($"{train.Items.Count} vehicles - {train.Length:F2} m - {train.Items.Sum(i => i.MassKg) / 1000:F1} t\nGauge: ") + string.Join(" / ", TrainBuilder.Gauges(train.Items.Select(i => i.Definition))) + " mm";
+        view.OverviewSpecs.Text = view.Specs.Text;
     }
     private void Rebased(TrackVector worldShift)
     {

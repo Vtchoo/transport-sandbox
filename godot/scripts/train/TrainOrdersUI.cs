@@ -62,9 +62,13 @@ public partial class TrainWindows
         ui.Unit = new(); UiSkin.Selector(ui.Unit);
         ui.Unit.AddItem("seconds", 1); ui.Unit.AddItem("minutes", 60); ui.Unit.AddItem("hours", 3600); wait.AddChild(ui.Unit);
         var load = new HFlowContainer(); ui.Root.AddChild(load);
-        ui.FullLoad = Button(load, "Wait for full load of", () => { }, "fullLoad"); ui.FullLoad.Disabled = true;
-        ui.Item = new() { Disabled = true, TooltipText = "Station cargo loading is not implemented yet" }; ui.Item.AddItem("Pick item");
-        foreach (var cargo in CargoTypes.All.Values) ui.Item.AddItem(cargo.Name);
+        ui.FullLoad = Button(load, "Wait for full load of", () =>
+        {
+            if (ui.Item.Selected < 0) return;
+            var cargo = ui.Item.GetItemMetadata(ui.Item.Selected).AsString();
+            Editor.Builder.Get(id).Orders.Add(TrainOrderKind.FullLoad, cargo: cargo); Editor.OrdersChanged(id);
+        }, "fullLoad");
+        ui.Item = new() { TooltipText = "Cargo to wait for; add this order after a station" };
         UiSkin.Selector(ui.Item); load.AddChild(ui.Item);
         var scroll = new ScrollContainer { CustomMinimumSize = new(0, 110), SizeFlagsVertical = Control.SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         ui.Root.AddChild(scroll); scroll.AddChild(ui.List); ui.List.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -100,12 +104,23 @@ public partial class TrainWindows
     {
         TrainOrderKind.Station => $"Go to Station {order.Target}" + (Editor.Network.Edges.Values.Any(edge => edge.Station == order.Target) ? "" : " (missing)"),
         TrainOrderKind.Waypoint => $"Go to Waypoint {order.Target}" + (Editor.Network.Nodes.ContainsKey(order.Target) ? "" : " (missing)"),
+        TrainOrderKind.FullLoad => "Wait for full load of " + CargoTypes.Get(order.Cargo!).Name,
         _ => order.Seconds >= 3600 && order.Seconds % 3600 == 0 ? $"Wait {order.Seconds / 3600:g} hours"
             : order.Seconds >= 60 && order.Seconds % 60 == 0 ? $"Wait {order.Seconds / 60:g} minutes" : $"Wait {order.Seconds:g} seconds"
     };
     private void RenderOrders(TrainConsist train, TrainView view)
     {
         var ui = view.Orders;
+        var types = train.Items.Where(i => i.Definition.Cargo != null).SelectMany(i => i.Definition.Cargo!.AcceptedTypes).Distinct().ToArray();
+        var existing = Enumerable.Range(0, ui.Item.ItemCount).Select(i => ui.Item.GetItemMetadata(i).AsString()).ToArray();
+        if (!types.SequenceEqual(existing))
+        {
+            string? chosen = ui.Item.Selected >= 0 ? ui.Item.GetItemMetadata(ui.Item.Selected).AsString() : null;
+            ui.Item.Clear();
+            foreach (string type in types) { ui.Item.AddItem(CargoTypes.Get(type).Name); ui.Item.SetItemMetadata(ui.Item.ItemCount - 1, type); }
+            if (chosen != null && Array.IndexOf(types, chosen) is >= 0 and var selected) ui.Item.Select(selected);
+        }
+        ui.FullLoad.Disabled = ui.Item.Disabled = types.Length == 0;
         if (ui.Revision != train.Orders.Revision)
         {
             ui.Revision = train.Orders.Revision; Clear(ui.List); ui.Rows.Clear();
@@ -114,7 +129,7 @@ public partial class TrainWindows
             {
                 var order = train.Orders.Items[i]; int before = i;
                 var row = new TrainDragButton { Text = $"{i + 1}. {OrderText(order)}", ToggleMode = true, Alignment = HorizontalAlignment.Left, ClipText = true,
-                    Icon = UiSkin.Icon(order.Kind == TrainOrderKind.Station ? "station" : order.Kind == TrainOrderKind.Waypoint ? "waypoint" : "wait"), IconAlignment = HorizontalAlignment.Left,
+                    Icon = UiSkin.Icon(order.Kind == TrainOrderKind.Station ? "station" : order.Kind == TrainOrderKind.Waypoint ? "waypoint" : order.Kind == TrainOrderKind.FullLoad ? "fullLoad" : "wait"), IconAlignment = HorizontalAlignment.Left,
                     Payload = TrainDragButton.Data("order", train.Id, order.Id), TooltipText = OrderText(order), CustomMinimumSize = new(0, 34) };
                 UiSkin.Button(row); ui.List.AddChild(row); ui.Rows[order.Id] = row;
                 row.Accept = data => TrainDragButton.Read(data) is { } d && d["type"].AsString() == "order" && d["train"].AsInt32() == train.Id;

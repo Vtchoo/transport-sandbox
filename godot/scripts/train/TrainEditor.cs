@@ -84,6 +84,7 @@ public partial class TrainEditor : Node3D
             for (int i = 0; i < train.Items.Count; i++)
             {
                 var visual = new PosedVehicleVisual(train.Items[i].Definition, gauges[i], livery: train.Items[i].Livery);
+                visual.Vehicle.CargoFill?.SetLoad(train.Items[i].Cargo);
                 visuals.Add(visual); AddChild(visual); visual.Apply(poses[i]);
             }
             return visuals.ToArray();
@@ -186,10 +187,13 @@ public partial class TrainEditor : Node3D
         }
         return true;
     });
+    public bool SetCargoAssignment(int trainId, int itemId, string? type) => Perform("Assign cargo", () =>
+    { Builder.AssignCargo(trainId, itemId, type); return true; });
     public bool RemoveFromTrack(int id) => Perform("Remove from track", () =>
     {
         var train = Builder.Get(id); TrainBuilder.RequireStopped(train);
         var parked = Parked.FirstOrDefault(p => p.Id == id); if (parked == null) return false;
+        EndCargoVisit?.Invoke(id); train.Orders.ServiceStation = 0; train.Orders.ServicingStation = false;
         Builder.Selected = train; RemoveVisuals(parked.Visuals); Parked.Remove(parked);
         train.Placed = train.Running = false; train.Speed = 0; train.TravelDirection = 1; return true;
     });
@@ -253,13 +257,14 @@ public partial class TrainEditor : Node3D
         if (Target is { } location && AppendTarget == null && appendError == null && Placement.SnapStation(location, train.Length) is { } snap) { Target = snap.Position; SnappedStation = snap.Station; }
         if (Target is not { } target) { SuspendPreview(); Message = appendError ?? "Hover track to preview the train. R reverses facing."; return; }
         int gauge = Network.Edges[target.Edge].Gauge;
-        var key = train.Id + ":" + string.Join(",", train.Items.Select(i => $"{i.Id}:{i.Livery}")) + ":" + gauge;
+        var key = train.Id + ":" + string.Join(",", train.Items.Select(i => $"{i.Id}:{i.Livery}:{i.Cargo}")) + ":" + gauge;
         if (key != _ghostKey)
         {
             RemoveVisuals(Ghosts); Ghosts.Clear(); _ghostKey = key;
             foreach (var item in train.Items)
             {
                 var ghost = new PosedVehicleVisual(item.Definition, item.Definition.Models.ContainsKey(gauge) ? gauge : item.Definition.Models.Keys.Order().First(), true, item.Livery);
+                ghost.Vehicle.CargoFill?.SetLoad(item.Cargo);
                 Ghosts.Add(ghost); AddChild(ghost);
             }
         }
@@ -330,10 +335,26 @@ public partial class TrainEditor : Node3D
             catch (InvalidOperationException) { parked.Supported = false; var train = Builder.Get(parked.Id); train.Running = false; train.Speed = 0; }
         SyncInstances(); Changed?.Invoke(null);
     }
-    private void SyncInstances() => Instances.Sync(Parked.SelectMany(p => p.Visuals));
+    private bool SyncCargo()
+    {
+        bool changed = false;
+        foreach (var parked in Parked)
+        {
+            var items = Builder.Get(parked.Id).Items;
+            for (int i = 0; i < parked.Visuals.Length; i++)
+                if (parked.Visuals[i].Vehicle.CargoFill is { } cargo) changed |= cargo.SetLoad(items[i].Cargo);
+        }
+        return changed;
+    }
+    private void SyncInstances()
+    {
+        SyncCargo();
+        Instances.Sync(Parked.SelectMany(p => p.Visuals));
+    }
     public override void _Process(double delta)
     {
         AdvanceMovement(delta);
+        if (SyncCargo()) SyncInstances();
         Audio.UpdateSounds(AudioVehicles(), Camera, delta);
         Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort })));
         _trackTimer += delta;

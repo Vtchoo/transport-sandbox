@@ -43,6 +43,14 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "industries":
+                    await IndustryChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
+                case "cargo-render":
+                    await CargoChecks.Run(Check, Frame, this);
+                    await CargoVisualChecks.Capture(this, Frame);
+                    break;
                 case "cargo":
                     await CargoChecks.Run(Check, Frame, this);
                     break;
@@ -123,6 +131,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    await IndustryChecks.Run(Check, Frame, this);
                     await CargoChecks.Run(Check, Frame, this);
                     await TrainLiveryChecks.Run(Check, Frame, this);
                     await TrainAudioChecks.Run(Check, Frame, this);
@@ -490,7 +499,7 @@ public partial class TestRunner : Node
         main.MenuSettingsFile = "res://.godot/startup-test-preferences.cfg";
         AddChild(main);
         await Frame();
-        Check(main.Catalog.GetArrayLength() == 10, "All catalog definitions present");
+        Check(main.Catalog.GetArrayLength() == 11 && main.Vehicles.Get("open-hopper").Cargo != null, "All catalog definitions, including the cargo hopper, are present");
         foreach (var definition in main.Catalog.EnumerateArray())
             foreach (var model in definition.GetProperty("models").EnumerateObject())
             {
@@ -503,6 +512,7 @@ public partial class TestRunner : Node
         main.MenuUI.Relief.Value = 800;
         main.MenuUI.Physics.Select(1);
         main.StartWorld(true);
+        Check(main.HUD.IndustriesButton.Icon != null && main.Industries.Simulation.Catalog.Types.Count == 3, "Industry toolbar and production simulation start with the world");
         Check(main.Camera.Enabled && main.Generator.SeedText == "native-startup-check", "Advanced world starts");
         Check(main.World.GetMeta("physics_mode").AsString() == "realistic", "Physics option preserved");
         Check(main.Camera.Target.X == 600 && main.Camera.Target.Z == 900 && main.Camera.Distance == 1100 && main.Camera.Fov == 65, "Browser startup framing preserved");

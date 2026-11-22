@@ -49,6 +49,9 @@ public partial class WorldCamera : Camera3D
     public TerrainGenerator? Ground;
     private Node3D? _lastFollowing;
     private Vector3 _published, _publishedRotation;
+    private SavedCamera? _goToFrom, _goToTo;
+    private double _goToElapsed;
+    public bool GoToAnimating => _goToTo != null;
     private MouseButton _drag;
     private bool _orbitDrag;
     private double Height(double x, double z) => Ground == null ? 0 : Math.Max(Ground.SeaLevel, GroundHeight?.Invoke(x, z) ?? Ground.HeightWorld(x, z));
@@ -96,8 +99,21 @@ public partial class WorldCamera : Camera3D
         _publishedRotation = Rotation;
     }
     public SavedCamera Capture() => new() { Position = WorldPosition, Target = Rig.Target, Yaw = Rig.Yaw, Pitch = Rig.Pitch, Distance = Rig.Distance, Free = Rig.Free };
+    public void GoTo(TrackVector point)
+    {
+        StopFollowing(); ReleaseMouse();
+        var from = Capture();
+        double pitch = -.65, distance = 240;
+        var position = point + new TrackVector(Math.Sin(Rig.Yaw) * Math.Cos(pitch), -Math.Sin(pitch), Math.Cos(Rig.Yaw) * Math.Cos(pitch)) * distance;
+        var goal = new SavedCamera { Position = position, Target = point, Yaw = Rig.Yaw, Pitch = pitch, Distance = distance };
+        double travel = (point - from.Position).Length;
+        if (!from.Free && travel <= 2000 && travel > 1)
+        { _goToFrom = from; _goToTo = goal; _goToElapsed = 0; }
+        else Restore(goal);
+    }
     public void Restore(SavedCamera saved)
     {
+        _goToFrom = _goToTo = null;
         Following = _lastFollowing = null; Rig.Following = false;
         Rig.Position = saved.Position; Rig.Target = saved.Target; Rig.Yaw = saved.Yaw; Rig.Pitch = saved.Pitch; Rig.Distance = saved.Distance; Rig.Free = saved.Free;
         Publish(); ModeChanged?.Invoke();
@@ -142,7 +158,15 @@ public partial class WorldCamera : Camera3D
                         keys.Add(name);
             bool wasFollowing = IsInstanceValid(Following) || Rig.Following;
             Rig.Following = wasFollowing;
-            Rig.Update(keys, Math.Clamp(delta, 0, .05), Height, Loaded);
+            if (keys.Count > 0) _goToFrom = _goToTo = null;
+            if (_goToTo is { } goal && _goToFrom is { } from)
+            {
+                _goToElapsed += delta; double t = Math.Clamp(_goToElapsed / .6, 0, 1); t = t * t * (3 - 2 * t);
+                Rig.Position = from.Position * (1 - t) + goal.Position * t; Rig.Target = from.Target * (1 - t) + goal.Target * t;
+                Rig.Pitch = from.Pitch * (1 - t) + goal.Pitch * t; Rig.Distance = from.Distance * (1 - t) + goal.Distance * t;
+                if (t >= 1) _goToFrom = _goToTo = null;
+            }
+            else Rig.Update(keys, Math.Clamp(delta, 0, .05), Height, Loaded);
             if (wasFollowing && !Rig.Following)
                 StopFollowing();
         }
@@ -166,6 +190,7 @@ public partial class WorldCamera : Camera3D
     }
     public void SetFreeMode(bool free)
     {
+        _goToFrom = _goToTo = null;
         if (FreeMode == free)
             return;
         ImportPose();
@@ -177,12 +202,14 @@ public partial class WorldCamera : Camera3D
     }
     public void Look(double dx, double dy)
     {
+        _goToFrom = _goToTo = null;
         ImportPose();
         Rig.Look(dx, dy, Height);
         Publish();
     }
     public void Pan(double dx, double dy)
     {
+        _goToFrom = _goToTo = null;
         ImportPose();
         if (dx != 0 || dy != 0)
             StopFollowing();
@@ -191,6 +218,7 @@ public partial class WorldCamera : Camera3D
     }
     public void Scroll(double pixels)
     {
+        _goToFrom = _goToTo = null;
         ImportPose();
         Rig.Scroll(pixels, Height);
         Publish();

@@ -25,13 +25,15 @@ public static class CargoTypes
     public const string IronOreId = "iron-ore";
     public const string OilId = "oil";
     public const string PassengersId = "passengers";
+    public const string SteelId = "steel";
     public static readonly CargoType Coal = new(CoalId, "Coal", CargoUnit.Tonnes, 1000);
     public static readonly CargoType IronOre = new(IronOreId, "Iron ore", CargoUnit.Tonnes, 1000);
     // Configurable gameplay mass allowances, not specifications for a particular oil or passenger population.
     public static readonly CargoType Oil = new(OilId, "Oil", CargoUnit.Litres, .85);
     public static readonly CargoType Passengers = new(PassengersId, "Passengers", CargoUnit.Passengers, 75);
+    public static readonly CargoType Steel = new(SteelId, "Steel", CargoUnit.Tonnes, 1000);
     public static IReadOnlyDictionary<string, CargoType> All { get; } = new ReadOnlyDictionary<string, CargoType>(
-        new Dictionary<string, CargoType> { [CoalId] = Coal, [IronOreId] = IronOre, [OilId] = Oil, [PassengersId] = Passengers });
+        new Dictionary<string, CargoType> { [CoalId] = Coal, [IronOreId] = IronOre, [OilId] = Oil, [PassengersId] = Passengers, [SteelId] = Steel });
     public static CargoType Get(string id) => All.TryGetValue(id, out var cargo) ? cargo : throw new ArgumentException("Unknown cargo: " + id);
 }
 

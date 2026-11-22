@@ -11,6 +11,14 @@ public partial class StationWindows : Node
     public TrackNetwork Network = null!;
     public WindowManager Windows = null!;
     public TrackRenderer Renderer = null!;
+    public Func<int, string>? CargoDetails;
+    private readonly Dictionary<int, Label> _cargoLabels = new();
+    private double _cargoTime;
+    public override void _Process(double delta)
+    {
+        _cargoTime += delta; if (_cargoTime < .5) return; _cargoTime = 0;
+        foreach (var (id, label) in _cargoLabels) if (Views[id].Visible && !Views[id].IsCollapsed) label.Text = CargoDetails?.Invoke(id) ?? "";
+    }
     public readonly Dictionary<int, GameWindow> Views = new();
     private readonly Dictionary<int, (SubViewport Viewport, Camera3D Camera, Label Length)> _views = new();
     public override void _Ready() { Network.Changed += Sync; Network.Space.Rebased += Rebased; }
@@ -31,6 +39,8 @@ public partial class StationWindows : Node
             var camera = new Camera3D { Fov = 45, Far = 20000, Current = true };
             viewport.AddChild(camera);
             var label = UiSkin.Label(window.Body, "", 11, "e8eddf");
+            _cargoLabels[id] = UiSkin.Label(window.Body, CargoDetails?.Invoke(id) ?? "", 11);
+            _cargoLabels[id].AutowrapMode = TextServer.AutowrapMode.WordSmart;
             _views[id] = (viewport, camera, label);
             window.StateChanged += () => viewport.RenderTargetUpdateMode = window.Visible && !window.IsCollapsed ? SubViewport.UpdateMode.Always : SubViewport.UpdateMode.Disabled;
         }

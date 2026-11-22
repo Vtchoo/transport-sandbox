@@ -48,7 +48,7 @@ public partial class TrainOrderHighlights : Control
         var network = Trains.Editor.Network;
         // Repeated destinations share a badge with every corresponding order number.
         foreach (var group in train.Orders.Items.Select((order, i) => (Order: order, Number: i + 1))
-            .Where(item => item.Order.Kind != TrainOrderKind.Wait).GroupBy(item => (item.Order.Kind, item.Order.Target)))
+            .Where(item => item.Order.Kind is TrainOrderKind.Station or TrainOrderKind.Waypoint).GroupBy(item => (item.Order.Kind, item.Order.Target)))
         {
             bool active = group.Any(item => item.Order.Id == _current);
             string numbers = string.Join(", ", group.Select(item => item.Number));

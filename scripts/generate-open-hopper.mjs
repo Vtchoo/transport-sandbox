@@ -115,7 +115,7 @@ const catalogPath = new URL('catalog.json', root), catalog = JSON.parse(await re
 const entry = { id: 'open-hopper', name: 'Open hopper', kind: 'freight', length: 14.5, width: 3.25, height: 3.9, bogieCenters: 9.6,
   physics: { massKg: 23000, powerW: 0, tractiveEffortN: 0, maxSpeedMps: 27.777777778 },
   gauges: [1435], models: { '1435': 'res://assets/vehicles/open-hopper-1435.glb' }, exhausts: [],
-  cargo: { capacities: { coal: 70, 'iron-ore': 70 } }, thumbnail: 'res://assets/vehicles/thumbnails/open-hopper.svg' };
+  cargo: { capacities: { coal: 70, 'iron-ore': 70 }, visual: { bottomY: 1.92, topY: 3.66, bottomWidth: 1.24, topWidth: 2.78, length: 11.6 } }, thumbnail: 'res://assets/vehicles/thumbnails/open-hopper.svg' };
 const at = catalog.findIndex(v => v.id === entry.id); if (at < 0) catalog.push(entry); else catalog[at] = entry;
 await writeFile(catalogPath, JSON.stringify(catalog, null, 2) + '\n');
 await mkdir(new URL('thumbnails/', root), { recursive: true });

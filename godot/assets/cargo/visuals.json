@@ -1,0 +1,24 @@
+{
+  "coal": {
+    "baseColor": "24272a",
+    "texture": "res://assets/cargo/coal.tres",
+    "displacementMap": "res://assets/cargo/coal-height.tres",
+    "normalMap": "res://assets/cargo/coal-normal.tres",
+    "tileMetres": 1.2,
+    "textureDistance": 250,
+    "detailDistance": 70,
+    "displacementMetres": 0.055,
+    "normalStrength": 0.45
+  },
+  "iron-ore": {
+    "baseColor": "744235",
+    "texture": "res://assets/cargo/iron-ore.tres",
+    "displacementMap": "res://assets/cargo/iron-ore-height.tres",
+    "normalMap": "res://assets/cargo/iron-ore-normal.tres",
+    "tileMetres": 1.2,
+    "textureDistance": 250,
+    "detailDistance": 70,
+    "displacementMetres": 0.055,
+    "normalStrength": 0.45
+  }
+}

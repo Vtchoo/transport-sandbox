@@ -34,7 +34,7 @@ public partial class Main
     public GameSave CaptureGame()
     {
         var save = new GameSave { Name = WorldName, Settings = Generator.Settings, Camera = Camera.Capture() };
-        TrackNetwork.Capture(save); Trains.Capture(save); return save;
+        TrackNetwork.Capture(save); Trains.Capture(save); Industries?.Capture(save); return save;
     }
     public Task<bool> SaveGame()
     {
@@ -71,7 +71,7 @@ public partial class Main
         foreach (var item in save.Trains.SelectMany(t => t.Items)) Vehicles.Get(item.Vehicle);
         WorldDirectory = directory; WorldName = save.Name;
         StartWithSettings(save.Settings);
-        TrackNetwork.Restore(save); Camera.Restore(save.Camera); Trains.Restore(save);
+        TrackNetwork.Restore(save); Camera.Restore(save.Camera); Trains.Restore(save); Industries.Restore(save);
         World.InitialReady = () => !TreeClearance.IsPending;
     }
     public void OpenLoadGames()

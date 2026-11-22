@@ -13,8 +13,9 @@ public sealed class TrainWanderingState
 
 public partial class TrainEditor
 {
-    /// <summary>Advance station loading/unloading; return true while work remains. No cargo system means idle.</summary>
+    /// <summary>Advance station loading/unloading; return true while work remains.</summary>
     public Func<TrainConsist, int, double, bool>? ServiceStation;
+    public Action<int>? EndCargoVisit;
     private (bool Hold, double StopDistance) ExecuteWandering(ParkedTrain parked, TrainConsist train, TrainRoute route, double dt, double lookahead)
     {
         parked.Journey = null;
@@ -41,6 +42,7 @@ public partial class TrainEditor
         {
             train.Orders.Status = $"Wandering - working at Station {state.Station}";
             if (ServiceStation?.Invoke(train, state.Station, dt) == true) return (true, 0);
+            EndCargoVisit?.Invoke(train.Id);
             state.Station = 0; state.Servicing = false; state.Distance = double.PositiveInfinity; state.ScanTimer = 0;
         }
         if (state.Station == 0)

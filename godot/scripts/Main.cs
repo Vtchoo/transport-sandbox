@@ -19,6 +19,7 @@ public partial class Main : Node3D
     public GameHUD HUD = null!;
     public TrainEditor Trains = null!;
     public TrainWindows TrainUI = null!;
+    public IndustryWorld Industries = null!;
     public SignalWindows SignalUI = null!;
     public PauseMenu PauseUI = null!;
     public string HudSettingsFile = "user://game-ui.cfg";
@@ -132,6 +133,17 @@ public partial class Main : Node3D
             Interface = Interface
         };
         AddChild(TrainUI);
+        Industries = new() { Generator = Generator, Network = TrackNetwork, Camera = Camera, TrackEditor = TrackEditor, Trains = Trains, TrainUI = TrainUI, Windows = GameWindows, Interface = Interface };
+        AddChild(Industries);
+        TrackEditor.Stations.CargoDetails = id =>
+        {
+            var sim = Industries.Simulation;
+            string names = string.Join(", ", System.Linq.Enumerable.Select(sim.Connected(id), i => sim.Catalog.Types[i.Type].Name));
+            if (!sim.Stations.TryGetValue(id, out var storage)) return "";
+            string amounts(System.Collections.Generic.Dictionary<string, double> values) => string.Join(" / ", System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(values, c => c.Value > .000001), c => CargoTypes.Get(c.Key).Name + ": " + CargoTypes.Get(c.Key).FormatAmount(c.Value)));
+            return "Connected industries: " + (names.Length == 0 ? "none" : names) + "\nFor pickup: " + amounts(storage.Outbound) + "\nFor delivery: " + amounts(storage.Inbound);
+        };
+        HUD.IndustriesButton.Pressed += Industries.OpenList;
         SignalUI = new() { Network = TrackNetwork, Interlocking = Trains.Interlocking, Windows = GameWindows,
             Renderer = TrackRenderer.Signals, Camera = Camera, Interface = Interface };
         AddChild(SignalUI);
@@ -147,7 +159,7 @@ public partial class Main : Node3D
         Interface.MoveChild(GameWindows, -1);
         Camera.Loaded = World.HasTerrainAt;
         Camera.GroundHeight = World.GroundHeight;
-        Camera.BuildMode = () => TrackEditor.Enabled || Trains.Placing;
+        Camera.BuildMode = () => TrackEditor.Enabled || Trains.Placing || Industries.Placing;
         Camera.NavigationBlocked = () => TrackEditor.IsDragging;
         Camera.FloatingOriginEnabled = true;
         HUD.SaveRequested += () => _ = SaveGame();
