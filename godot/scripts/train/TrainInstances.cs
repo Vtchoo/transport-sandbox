@@ -18,6 +18,8 @@ public partial class TrainInstances : Node3D
         public readonly List<Color> Data = new();
         public readonly MultiMesh Multi = new() { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = mesh, UseCustomData = custom };
         public readonly MultiMeshInstance3D Node = new();
+        public readonly Aabb MeshBounds = mesh.GetAabb();
+        public Vector3 Origin;
     }
     private readonly Dictionary<PosedVehicleVisual, Part[]> _parts = new();
     private readonly HashSet<PosedVehicleVisual> _active = new();
@@ -93,7 +95,11 @@ public partial class TrainInstances : Node3D
     public void Sync(IEnumerable<PosedVehicleVisual> vehicles)
     {
         _active.Clear();
-        foreach (var batch in _batches.Values) { batch.Transforms.Clear(); batch.Data.Clear(); }
+        foreach (var (key, batch) in _batches)
+        {
+            batch.Transforms.Clear(); batch.Data.Clear();
+            PositionBatch(key, batch);
+        }
         foreach (var vehicle in vehicles)
         {
             _active.Add(vehicle);
@@ -117,7 +123,10 @@ public partial class TrainInstances : Node3D
             {
                 var world = Space.ToWorld(part.Node.GlobalPosition);
                 var key = new BatchKey(part.Template, (int)Math.Floor(world.X / 512), (int)Math.Floor(world.Z / 512));
-                GetBatch(key, part.Mesh, false).Transforms.Add(part.Node.GlobalTransform);
+                var batch = GetBatch(key, part.Mesh, false);
+                var transform = part.Node.GlobalTransform;
+                transform.Origin -= batch.Origin;
+                batch.Transforms.Add(transform);
             }
             if (vehicle.Vehicle.CargoFill is { Load: not null } cargo)
             {
@@ -125,7 +134,9 @@ public partial class TrainInstances : Node3D
                 var world = Space.ToWorld(cargo.GlobalPosition);
                 var key = new BatchKey(cargo.BatchKey, (int)Math.Floor(world.X / 512), (int)Math.Floor(world.Z / 512));
                 var batch = GetBatch(key, cargo.Template, true);
-                batch.Transforms.Add(cargo.GlobalTransform); batch.Data.Add(cargo.InstanceData);
+                var transform = cargo.GlobalTransform;
+                transform.Origin -= batch.Origin;
+                batch.Transforms.Add(transform); batch.Data.Add(cargo.InstanceData);
             }
         }
         _removedParts.Clear();
@@ -142,17 +153,37 @@ public partial class TrainInstances : Node3D
         {
             var multi = batch.Multi;
             if (multi.InstanceCount != batch.Transforms.Count) multi.InstanceCount = batch.Transforms.Count;
+            var bounds = batch.Transforms[0] * batch.MeshBounds;
             for (int i = 0; i < batch.Transforms.Count; i++)
             {
                 multi.SetInstanceTransform(i, batch.Transforms[i]);
                 if (multi.UseCustomData) multi.SetInstanceCustomData(i, batch.Data[i]);
+                if (i > 0) bounds = bounds.Merge(batch.Transforms[i] * batch.MeshBounds);
             }
+            // Automatic MultiMesh bounds can lag buffer updates by one rendered frame.
+            // Publish the current bounds for camera and shadow culling, including new cells.
+            multi.CustomAabb = bounds;
         }
     }
     private Batch GetBatch(BatchKey key, ArrayMesh mesh, bool custom)
     {
-        if (_batches.TryGetValue(key, out var batch)) return batch;
-        batch = new(mesh, custom); batch.Node.Multimesh = batch.Multi;
-        _batches.Add(key, batch); AddChild(batch.Node); return batch;
+        if (!_batches.TryGetValue(key, out var batch))
+        {
+            batch = new(mesh, custom); batch.Node.Multimesh = batch.Multi;
+            // The batch's axes match world axes even when the owner has a transform.
+            batch.Node.TopLevel = true;
+            _batches.Add(key, batch); AddChild(batch.Node);
+            PositionBatch(key, batch);
+        }
+        return batch;
+    }
+    private void PositionBatch(BatchKey key, Batch batch)
+    {
+        // Keep instance coordinates relative to a stable world cell. Rebasing moves the
+        // spatial node instead of teleporting all geometry inside its instance buffer.
+        var origin = Space.ToLocal(new TrackVector(key.X * 512.0, 0, key.Z * 512.0));
+        if (batch.Origin == origin) return;
+        batch.Origin = origin;
+        batch.Node.GlobalPosition = origin;
     }
 }

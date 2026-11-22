@@ -26,6 +26,7 @@ public sealed class ParkedTrain
 }
 public partial class TrainEditor : Node3D
 {
+    internal bool DiagnosticInterpolation = true;
     public TrackNetwork Network = null!;
     public VehicleCatalog Catalog = null!;
     public WorldCamera Camera = null!;
@@ -61,8 +62,8 @@ public partial class TrainEditor : Node3D
     public MenuSmoke Smoke = null!;
     public TrainAudio Audio = null!;
     public SoundSettings SoundSettings = new();
-    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); Audio = new() { Settings = SoundSettings }; AddChild(Audio); Network.Space.Rebased += AudioRebased; }
-    private void AudioRebased(TrackVector shift) => Audio.ResetMotion();
+    public override void _Ready() { Placement = new(Network); Network.Changed += TrackChanged; Network.Space.Rebased += Rebased; Instances = new() { Space = Network.Space }; AddChild(Instances); Smoke = new() { Camera = Camera }; AddChild(Smoke); Audio = new() { Settings = SoundSettings, ProcessPriority = 200, FrameUpdate = delta => { if (IsProcessing()) UpdateAudio(delta); } }; AddChild(Audio); Network.Space.Rebased += AudioRebased; }
+    private void AudioRebased(TrackVector shift) => Audio.Rebase(shift);
     public override void _ExitTree() { Network.Changed -= TrackChanged; Network.Space.Rebased -= Rebased; Network.Space.Rebased -= AudioRebased; _interlocking?.Dispose(); Placement.Dispose(); _pathfinder.Dispose(); }
     private void TrackChanged() { _trackDirty = true; _revision++; }
     public int? TrackGauge(int id) => Parked.FirstOrDefault(p => p.Id == id) is { } parked && Network.Edges.TryGetValue(parked.Position.Edge, out var edge) ? edge.Gauge : null;
@@ -359,9 +360,8 @@ public partial class TrainEditor : Node3D
     public override void _Process(double delta)
     {
         using var updateProbe = FrameProbe.Measure("train.update");
-        AdvanceMovement(delta, interpolate: true);
+        AdvanceMovement(delta, interpolate: DiagnosticInterpolation);
         using (FrameProbe.Measure("cargo.sync")) if (SyncCargo()) SyncInstances();
-        using (FrameProbe.Measure("audio.update")) Audio.UpdateSounds(AudioVehicles(), Camera, delta);
         using (FrameProbe.Measure("smoke.outlets"))
         { Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort }))); }
         _trackTimer += delta;
@@ -377,6 +377,13 @@ public partial class TrainEditor : Node3D
             }
         }
     }
+    private void UpdateAudio(double delta)
+    {
+        // Simulation/visuals run at priority 0, followed by the camera at 100.
+        // Source and listener positions must describe the same rendered instant.
+        using var probe = FrameProbe.Measure("audio.update");
+        Audio.UpdateSounds(AudioVehicles(), Camera, delta);
+    }
     private IEnumerable<TrainAudioVehicle> AudioVehicles()
     {
         var eye = Camera.GlobalPosition;
@@ -385,7 +392,7 @@ public partial class TrainEditor : Node3D
             var train = Builder.Get(parked.Id);
             for (int i = 0; i < Math.Min(train.Items.Count, parked.Poses.Length); i++)
             {
-                var item = train.Items[i]; var pose = parked.Poses[i];
+                var item = train.Items[i]; var pose = parked.Visuals[i].Pose ?? parked.Poses[i];
                 if (eye.DistanceSquaredTo(pose.BodyCenter) > TrainAudio.AudibleDistance * TrainAudio.AudibleDistance) continue;
                 // Estimate local curvature from existing bogie tangents; never sample/mutate the route for audio.
                 var front = new Vector3(pose.FrontDirection.X, 0, pose.FrontDirection.Z);

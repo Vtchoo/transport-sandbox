@@ -33,6 +33,14 @@ public partial class TrainAudio : Node3D
     private bool _cameraValid;
     private double _selectionTimer;
     public int ActiveVehicles => _voices.Count;
+    internal bool DiagnosticEnabled, DiagnosticDisableDoppler;
+    internal long DiagnosticCreates, DiagnosticRemoves, DiagnosticStarts, DiagnosticStops;
+    internal float DiagnosticDopplerJump, DiagnosticSourceSpeed;
+    internal int DiagnosticFocus;
+    internal float DiagnosticHornDoppler = 1, DiagnosticHornJump, DiagnosticListenerSpeed, DiagnosticFocusSpeed;
+    internal bool DiagnosticHornActive;
+    internal Action<double>? FrameUpdate;
+    public override void _Process(double delta) => FrameUpdate?.Invoke(delta);
 
     private sealed class Voice
     {
@@ -48,6 +56,7 @@ public partial class TrainAudio : Node3D
         public int ChuffIndex;
         public double FallbackTurns;
         public EngineAudioController? Engine;
+        public float PreviousDoppler = 1;
     }
 
     public override void _Ready()
@@ -91,6 +100,19 @@ public partial class TrainAudio : Node3D
         foreach (var voice in _horns.Values) voice.MotionValid = false;
     }
 
+    public void Rebase(TrackVector worldShift)
+    {
+        var shift = worldShift.Float();
+        // Spatial mixing runs independently of rendering. Move emitters in the same
+        // rebase callback as the listener, before the next audio/physics mix can see
+        // a false 512 m separation. Preserve loops, one-shots and velocity history.
+        foreach (var child in GetChildren())
+            if (child is Node3D spatial) spatial.Position -= shift;
+        _lastCamera -= shift;
+        foreach (var voice in _voices.Values) voice.Previous -= shift;
+        foreach (var voice in _horns.Values) voice.Previous -= shift;
+    }
+
     public bool PlayHorn(TrainAudioVehicle vehicle, Camera3D camera, bool departure = false)
     {
         if (Settings.Muted || MasterVolume <= 0 || Settings.Engines <= 0 ||
@@ -103,6 +125,10 @@ public partial class TrainAudio : Node3D
             Position = vehicle.Position + Vector3.Up };
         AddChild(player);
         var voice = new Voice { Model = vehicle.Model, Layers = new[] { player } };
+        // A station horn starts during simulation, before this frame's late mixer.
+        // Reuse the emitter's history so its first update has a real velocity too.
+        if (_voices.TryGetValue(vehicle.Id, out var engineVoice))
+        { voice.Previous = engineVoice.Previous; voice.MotionValid = engineVoice.MotionValid; }
         _horns.Add(vehicle.Id, voice);
         player.Finished += () => { if (_horns.Remove(vehicle.Id)) player.QueueFree(); };
         player.Play();
@@ -120,7 +146,15 @@ public partial class TrainAudio : Node3D
         if (velocity.Length() > 150) velocity = Vector3.Zero;
         var player = voice.Layers[0];
         player.GlobalPosition = vehicle.Position + Vector3.Up;
-        player.PitchScale = Doppler(vehicle.Position, eye, velocity, cameraVelocity);
+        player.PitchScale = DiagnosticDisableDoppler ? 1 : Doppler(vehicle.Position, eye, velocity, cameraVelocity);
+        if (DiagnosticEnabled && vehicle.Id == DiagnosticFocus)
+        {
+            DiagnosticHornActive = true;
+            DiagnosticHornDoppler = player.PitchScale;
+            DiagnosticHornJump = voice.MotionValid ? Math.Abs(player.PitchScale - voice.PreviousDoppler) : 0;
+            DiagnosticFocusSpeed = velocity.Length();
+        }
+        voice.PreviousDoppler = player.PitchScale;
         float gain = Settings.Muted ? 0 : .3f * Math.Clamp(MasterVolume, 0, 1) * Math.Clamp(Settings.Engines, 0, 1);
         player.VolumeDb = gain <= .0001 ? -80 : Mathf.LinearToDb(gain);
         voice.Previous = vehicle.Position; voice.MotionValid = true;
@@ -148,9 +182,11 @@ public partial class TrainAudio : Node3D
     public void UpdateSounds(IEnumerable<TrainAudioVehicle> vehicles, Camera3D camera, double delta)
     {
         if (delta <= 0) return;
+        if (DiagnosticEnabled) { DiagnosticDopplerJump = 0; DiagnosticSourceSpeed = 0; DiagnosticHornActive = false; DiagnosticHornJump = 0; }
         var eye = camera.GlobalPosition;
         var cameraVelocity = _cameraValid ? (eye - _lastCamera) / (float)delta : Vector3.Zero;
         if (cameraVelocity.Length() > 150) { cameraVelocity = Vector3.Zero; ResetMotion(); }
+        if (DiagnosticEnabled) DiagnosticListenerSpeed = cameraVelocity.Length();
         _lastCamera = eye; _cameraValid = true;
         _selectionTimer -= delta;
         bool select = _selectionTimer <= 0;
@@ -190,6 +226,7 @@ public partial class TrainAudio : Node3D
 
     private Voice CreateVoice(int id, string model)
     {
+        if (DiagnosticEnabled) DiagnosticCreates++;
         _models.TryGetValue(model, out var definition);
         // Stable per vehicle across voice culling, with an audio-only random seed for this session.
         var rolling = _wheelOverrides.TryGetValue(model, out var custom) ? custom
@@ -227,6 +264,7 @@ public partial class TrainAudio : Node3D
 
     private void RemoveVoice(int id)
     {
+        if (DiagnosticEnabled) DiagnosticRemoves++;
         foreach (var player in _voices[id].Layers) { player.Stop(); player.QueueFree(); }
         foreach (var player in _voices[id].Chuffs) player.Stop();
         _voices[id].ChuffRoot?.QueueFree();
@@ -238,6 +276,13 @@ public partial class TrainAudio : Node3D
         var velocity = voice.MotionValid ? (vehicle.Position - voice.Previous) / (float)delta : Vector3.Zero;
         if (velocity.Length() > 150) velocity = Vector3.Zero;
         float doppler = Doppler(vehicle.Position, eye, velocity, cameraVelocity);
+        if (DiagnosticDisableDoppler) doppler = 1;
+        if (DiagnosticEnabled)
+        {
+            DiagnosticDopplerJump = Math.Max(DiagnosticDopplerJump, Math.Abs(doppler - voice.PreviousDoppler));
+            DiagnosticSourceSpeed = Math.Max(DiagnosticSourceSpeed, velocity.Length());
+        }
+        voice.PreviousDoppler = doppler;
         voice.Previous = vehicle.Position; voice.MotionValid = true;
         var mix = Mix(vehicle.Speed, vehicle.Effort, vehicle.Radius);
         float load = (float)Math.Clamp(vehicle.Effort, 0, 1);
@@ -256,8 +301,10 @@ public partial class TrainAudio : Node3D
             // Profile engines already apply OpenLoco's tick-based ramps; do not smooth them twice.
             player.VolumeDb = i == 0 && voice.Engine != null ? db : Mathf.Lerp(player.VolumeDb, db, smoothing);
             player.PitchScale = i == 0 && voice.Engine != null ? pitches[i] * doppler : Mathf.Lerp(player.PitchScale, pitches[i] * doppler, smoothing);
-            if (gain > .0001 && player.Stream != null && !player.Playing) player.Play(i == 1 ? voice.WheelOffset : 0);
-            else if (gain <= .0001 && player.VolumeDb < -65) player.Stop();
+            if (gain > .0001 && player.Stream != null && !player.Playing)
+            { if (DiagnosticEnabled) DiagnosticStarts++; player.Play(i == 1 ? voice.WheelOffset : 0); }
+            else if (gain <= .0001 && player.VolumeDb < -65)
+            { if (DiagnosticEnabled && player.Playing) DiagnosticStops++; player.Stop(); }
         }
         UpdateChuffs(voice, vehicle, delta, doppler);
     }

@@ -10,6 +10,7 @@ public static class TrainAudioChecks
     public static async Task Run(Action<bool, string> check, Func<Task> frame, Node root)
     {
         EngineAudioChecks.Run(check);
+        FollowingHorn(check, root);
         var source = new Vector3(0, 0, 30);
         var clock = new SteamChuffClock();
         check(clock.Advance(0) == 0 && clock.Advance(.24) == 0 && clock.Advance(.25) == 1 && clock.Advance(1) == 3,
@@ -59,6 +60,21 @@ public static class TrainAudioChecks
         check(audio.PlayHorn(vehicles[0], camera, departure: true) && !audio.PlayHorn(vehicles[0], camera), "A departure horn plays once without overlapping itself");
         var hornPlayer = audio.GetChildren().OfType<AudioStreamPlayer3D>().Last();
         check(hornPlayer.Stream is AudioStreamWav horn && horn.LoopMode == AudioStreamWav.LoopModeEnum.Disabled, "Horn samples play once even when source objects were looping");
+        var allEmitters = players.Concat(chuffs).Append(hornPlayer).ToArray();
+        var positions = allEmitters.Select(p => p.GlobalPosition).ToArray();
+        var playing = allEmitters.Select(p => p.Playing).ToArray();
+        var pitches = allEmitters.Select(p => p.PitchScale).ToArray();
+        var shift = new TrackVector(512, 0, -512);
+        audio.Rebase(shift); camera.Position -= shift.Float();
+        check(allEmitters.Select((p, i) => p.GlobalPosition.DistanceTo(positions[i] - shift.Float()) < .001).All(v => v),
+            "Origin shift immediately relocates engine, wheel, curve, steam and horn emitters with the listener");
+        check(allEmitters.Select((p, i) => p.Playing == playing[i] && p.PitchScale == pitches[i]).All(v => v),
+            "Origin shift preserves playing loops, one-shots and pitch without restarting audio");
+        vehicles = vehicles.Select(v => v with { Position = v.Position - shift.Float() }).ToArray();
+        audio.UpdateSounds(vehicles, camera, .016);
+        check(audio.ActiveVehicles == TrainAudio.MaxVehicles, "Rebased voices remain in range on the following update");
+        audio.Rebase(shift * -1); camera.Position += shift.Float();
+        vehicles = vehicles.Select(v => v with { Position = v.Position + shift.Float() }).ToArray();
         audio.ResetMotion(); camera.Position = new(0, 0, 20);
         audio.UpdateSounds(vehicles, camera, .016);
         check(players.All(p => float.IsFinite(p.PitchScale) && p.PitchScale > 0), "Motion reset keeps valid pitches");
@@ -75,5 +91,39 @@ public static class TrainAudioChecks
         var restoredPaths = audio.GetChildren().OfType<AudioStreamPlayer3D>().Where((_, i) => i % 4 == 1).Select(p => p.Stream.ResourcePath);
         check(restoredPaths.SequenceEqual(wheelPaths), "Vehicles retain their chosen wheel recording after voice culling");
         audio.QueueFree(); camera.QueueFree(); await frame(); await frame();
+    }
+    private static void FollowingHorn(Action<bool, string> check, Node root)
+    {
+        var camera = new Camera3D(); root.AddChild(camera);
+        var audio = new TrainAudio(); root.AddChild(audio);
+        try
+        {
+            var vehicle = new TrainAudioVehicle(9999, "tgv-sud-est-power", new(0, 0, 30), 60, .8, double.PositiveInfinity);
+            audio.UpdateSounds(new[] { vehicle }, camera, .02);
+            var cadences = new[] { 1.0 / 144, 1.0 / 55, 1.0 / 90, 1.0 / 30 };
+            AudioStreamPlayer3D? horn = null;
+            for (int i = 0; i < 24; i++)
+            {
+                double dt = cadences[i % cadences.Length];
+                var travel = new Vector3(0, 0, (float)(60 * dt));
+                camera.Position += travel; vehicle = vehicle with { Position = vehicle.Position + travel };
+                if (i == 0)
+                {
+                    check(audio.PlayHorn(vehicle, camera), "Moving TGV can begin a station horn with existing emitter motion history");
+                    horn = audio.GetChildren().OfType<AudioStreamPlayer3D>().Last();
+                }
+                if (i == 12)
+                {
+                    var shift = new TrackVector(512, 0, -512);
+                    audio.Rebase(shift); camera.Position -= shift.Float(); vehicle = vehicle with { Position = vehicle.Position - shift.Float() };
+                }
+                audio.UpdateSounds(new[] { vehicle }, camera, dt);
+                check(Math.Abs(horn!.PitchScale - 1) < .0001, "Following horn retains neutral Doppler from its first update across variable frame cadence and origin shifts");
+            }
+            vehicle = vehicle with { Position = vehicle.Position + new Vector3(0, 0, 1.2f) };
+            audio.UpdateSounds(new[] { vehicle }, camera, .02);
+            check(horn!.PitchScale < .99, "Stopping the listener retains genuine Doppler for a receding train");
+        }
+        finally { audio.Free(); camera.Free(); }
     }
 }

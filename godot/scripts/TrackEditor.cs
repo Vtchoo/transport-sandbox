@@ -416,6 +416,11 @@ public partial class TrackEditor : Node
         if (PlatformTarget is { } platform) PlatformTarget = platform with { Point = platform.Point - shift };
         if (IsInstanceValid(_splitMarker)) _splitMarker!.Position -= shift;
         if (IsInstanceValid(PlatformPreview)) PlatformPreview!.Position -= shift;
+        if (SignalTarget is { } signal && Network.Nodes.TryGetValue(signal.Node, out var signalNode))
+        {
+            SignalPreview?.Place(signalNode, signal.Side);
+            OppositeSignalPreview?.Place(signalNode, -signal.Side);
+        }
         GridOverlay.Position -= shift;
     }
     internal void RefreshHover(Vector2 mouse)

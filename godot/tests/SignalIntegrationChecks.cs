@@ -64,6 +64,15 @@ public static class SignalIntegrationChecks
             editor.SignalAction.Select(0); editor.SignalDirections.Select(1);
             editor.RefreshSignalHover(Side(1));
             check(editor.OppositeSignalPreview != null, "Both directions previews both poles before placement");
+            var preview = editor.SignalPreview!;
+            var opposite = editor.OppositeSignalPreview!;
+            var previewWorld = network.Space.ToWorld(preview.GlobalPosition);
+            var oppositeWorld = network.Space.ToWorld(opposite.GlobalPosition);
+            network.Space.Rebase(new(512, 0, -512));
+            check((network.Space.ToWorld(preview.GlobalPosition) - previewWorld).Length < .001
+                && (network.Space.ToWorld(opposite.GlobalPosition) - oppositeWorld).Length < .001,
+                "Both signal placement previews rebase immediately without a hover refresh");
+            network.Space.Rebase(new(0, 0, 0));
             editor.CommitSignal(Side(1));
             check(network.Signals.Count == 2 && network.Signals.Values.All(signal => signal.Kind == RailSignalKind.Chain),
                 "Both directions places or replaces both directional slots in one click");

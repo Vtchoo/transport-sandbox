@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-22",
+  "engine": "Godot 4.7.2 .NET",
+  "renderer": "OpenGL Compatibility, AMD Radeon RX 6600",
+  "resolution": [1280, 800],
+  "save": "Copied new-world snapshot from 2026-11-22T16:28:18.9168174Z; original untouched",
+  "train": 2,
+  "reproduction": {
+    "method": "Freeze train simulation and follow camera after loading terrain; alternate the world origin by 512 m on X/Z; capture the first four rendered frames after each shift.",
+    "before": "The entire instanced train disappears on the first rendered frame after the shift and returns on the second. Track, scenery and UI remain visible.",
+    "captures": "godot/.godot/shadow-profile/baseline-terrain"
+  },
+  "cause": "MultiMesh geometry moved inside its instance buffer during floating-origin rebases while automatic culling bounds lagged behind. Both camera rendering and shadow rendering depend on these bounds.",
+  "fix": [
+    "Anchor each batch node to its absolute 512 m world cell; store per-instance transforms relative to that cell.",
+    "On rebase, move the batch node without teleporting geometry inside its buffer.",
+    "Publish tight explicit MultiMesh bounds from current transformed template bounds on every sync, including new or resized batches.",
+    "Cache template bounds and local batch origins; only update native node positions when their origin changes."
+  ],
+  "validation": {
+    "saved_world_render": "Four alternating origin shifts; train and shadow remain visible on the first rendered frame.",
+    "first_vs_second_frame_mean_absolute_rgb_error_in_train_region": [0, 0, 0, 0],
+    "captures_and_trace": "godot/.godot/shadow-profile/final",
+    "native_graphics_train_suite": "PASS; includes immediate bounds containment after origin rebases and moving a vehicle across cells",
+    "headless_core_suite": "PASS",
+    "headless_cargo_suite": "PASS",
+    "build": "0 warnings, 0 errors"
+  },
+  "limits": "This isolates origin-shift rendering rather than measuring moving-camera frame times. Shadow rendering stays enabled with the existing 1 km limit; culling remains enabled. Native instance-transform readback checks require a real renderer because the headless dummy renderer returns identity transforms."
+}

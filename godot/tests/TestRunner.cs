@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "signal-visuals":
+                    SignalVisualChecks.Run(Check, this);
+                    break;
                 case "bridges-render":
                     await BridgeChecks.Run(Check, Frame, this);
                     await BridgeChecks.Capture(this, Frame);
@@ -85,6 +88,9 @@ public partial class TestRunner : Node
                     await TrainParallelChecks.Integration(Check, Frame, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
                     break;
+                case "shadow-rebase":
+                    await ShadowRebaseChecks.Run(Check, this, Frame, _args.GetValueOrDefault("save", "res://.godot/shadow-profile/save"));
+                    break;
                 case "follow-performance":
                     await FollowTrainPerformance.Run(this, Frame, _args.GetValueOrDefault("save", "res://.godot/follow-profile/save"));
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
@@ -97,6 +103,7 @@ public partial class TestRunner : Node
                     await StationTrafficChecks.Saved(Check, Frame, this, _args.GetValueOrDefault("save", "res://.godot/station-traffic-repro"));
                     break;
                 case "signals":
+                    SignalVisualChecks.Run(Check, this);
                     TrainCollisionChecks.Run(Check);
                     StationTrafficChecks.Run(Check);
                     SignalChecks.Run(Check);
@@ -113,6 +120,7 @@ public partial class TestRunner : Node
                 case "saves":
                     await SaveGameChecks.Run(Check, Frame, this);
                     await PauseMenuChecks.Run(Check, Frame, this);
+                    SignalVisualChecks.Run(Check, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
                     break;
                 case "performance":

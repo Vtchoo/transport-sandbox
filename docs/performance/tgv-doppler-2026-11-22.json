@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-22",
+  "save_snapshot": "2026-11-22T17:04:15.074252Z",
+  "train": 1,
+  "vehicle": "TGV Sud-Est",
+  "recording": "45-second master-bus and Windows WASAPI loopback recordings, no microphone; repeated diagnostic horns every 8 seconds while following the TGV from a copied save",
+  "results": {
+    "baseline": {
+      "horn_frames": 1439,
+      "doppler_range": [
+        0.9004972577095032,
+        1.2434585094451904
+      ],
+      "maximum_pitch_jump": 0.31010985374450684,
+      "origin_shifts": 6,
+      "speed_kmh_range": [
+        78.48988256442344,
+        236.1517257643852
+      ],
+      "captured_discarded_frames": 0
+    },
+    "no-interpolation": {
+      "horn_frames": 1765,
+      "doppler_range": [
+        0.7064820528030396,
+        1.3588334321975708
+      ],
+      "maximum_pitch_jump": 0.6232303380966187,
+      "origin_shifts": 6,
+      "speed_kmh_range": [
+        78.39228887406094,
+        234.8420323847057
+      ],
+      "captured_discarded_frames": 0
+    },
+    "fixed": {
+      "horn_frames": 1448,
+      "doppler_range": [
+        0.9997273683547974,
+        1.0002837181091309
+      ],
+      "maximum_pitch_jump": 0.00025093555450439453,
+      "origin_shifts": 6,
+      "speed_kmh_range": [
+        78.39228887406094,
+        237.12397722280738
+      ],
+      "captured_discarded_frames": 0
+    }
+  },
+  "cause": "Audio consumed discrete physics poses before the camera update; the camera followed interpolated visual poses from another instant. Finite-difference velocities therefore disagreed despite following the same train.",
+  "fix": "Keep visual interpolation; update the gameplay mixer at priority 200 after the camera (100), using current visual poses. Newly started horns inherit the engine emitter motion history.",
+  "validation": [
+    "train-audio PASS",
+    "train PASS",
+    "build: zero errors/warnings",
+    "fixed master recording: no silent gaps over 1 ms, six origin shifts, zero discarded capture frames"
+  ],
+  "raw_recordings_and_traces": "godot/.godot/doppler-profile",
+  "limits": "Quantitative pitch/velocity and silence analysis; no claim of listening to the recordings. This is an audio comparison, not a controlled rendering-performance benchmark."
+}

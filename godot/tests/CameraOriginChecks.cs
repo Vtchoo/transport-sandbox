@@ -86,12 +86,41 @@ public static class CameraOriginChecks
         bool running = train.Running;
         space.Rebase(new(1000000000, 200, -1000000000));
         space.Rebase(new(4096, 200, -2048));
+        InstanceBounds(check, editor);
         check(node.WorldPosition == nodeWorld && parked.Position == position && train.Running == running, "Origin shifts preserve track graph, route position and train command");
         check((space.ToWorld(parked.Poses[0].BodyCenter) - worldPoint).Length < .001, "Returning a distant train to local coordinates retains its precise pose");
         check(parked.Visuals[0].GlobalPosition.DistanceTo(parked.Poses[0].Center) < .001, "Train visuals and instancing follow the rebased route");
         space.Rebase(new(0, 200, 0));
+        InstanceBounds(check, editor);
+        var visual = parked.Visuals[0];
+        var beforeMigration = visual.Position;
+        visual.Position += new Vector3(1024, 0, -1024);
+        editor.Instances.Sync(editor.Parked.SelectMany(p => p.Visuals));
+        InstanceBounds(check, editor);
+        visual.Position = beforeMigration;
+        editor.Instances.Sync(editor.Parked.SelectMany(p => p.Visuals));
         check(camera.Space == space && parked.Poses[0].BodyCenter.DistanceTo(origin) < .001, "Main camera and trains share one floating coordinate frame");
         NativeInput(check, camera);
+    }
+    private static void InstanceBounds(Action<bool, string> check, TrainEditor editor)
+    {
+        var batches = editor.Instances.GetChildren().OfType<MultiMeshInstance3D>().ToArray();
+        check(batches.Length > 0, "Origin and cell migration retain rendered train batches");
+        // The headless dummy renderer returns identity for every instance transform.
+        // Validate native buffer/bounds readback in the real-renderer train suite.
+        if (DisplayServer.GetName() == "headless") return;
+        foreach (var batch in batches)
+        {
+            var multi = batch.Multimesh;
+            var bounds = multi.CustomAabb.Grow(.01f);
+            bool contains = true;
+            for (int i = 0; i < multi.InstanceCount; i++)
+            {
+                var transformed = multi.GetInstanceTransform(i) * multi.Mesh.GetAabb();
+                for (int corner = 0; corner < 8; corner++) contains &= bounds.HasPoint(transformed.GetEndpoint(corner));
+            }
+            check(contains, "Current train culling bounds contain every instance immediately after rebasing or changing cells");
+        }
     }
     private static void NativeInput(Action<bool, string> check, WorldCamera camera)
     {

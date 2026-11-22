@@ -94,3 +94,7 @@ godot/*.log
 godot/*.log.*
 
 .files/locomotion
+
+# Optional output-device audio profiling helper
+scripts/audio-loopback/bin/
+scripts/audio-loopback/obj/

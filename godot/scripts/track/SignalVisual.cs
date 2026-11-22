@@ -79,6 +79,15 @@ public partial class SignalRenderer : Node3D
     public Func<bool>? DirectionVisibility;
     private readonly Dictionary<SignalKey, (RailSignalKind Kind, SignalVisual Visual)> _visuals = new();
     private readonly List<SignalKey> _removed = new();
+    public override void _Ready() => Network.Space.Rebased += Rebased;
+    public override void _ExitTree() => Network.Space.Rebased -= Rebased;
+    private void Rebased(TrackVector shift)
+    {
+        // The follow camera may rebase after this renderer's process tick. Move
+        // existing visuals now, before rendering, rather than waiting one frame.
+        foreach (var (key, entry) in _visuals)
+            if (Network.Nodes.TryGetValue(key.Node, out var node)) entry.Visual.Place(node, key.Side);
+    }
     public SignalKey? Pick(Camera3D camera, Vector2 mouse)
     {
         var origin = camera.ProjectRayOrigin(mouse); var direction = camera.ProjectRayNormal(mouse);

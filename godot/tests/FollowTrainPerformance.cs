@@ -21,6 +21,10 @@ public static class FollowTrainPerformance
         bool capture = Option("images", "false") == "true", floating = Option("floating", "true") == "true";
         bool cameraLate = Option("camera-late", "false") == "true";
         bool probes = Option("probes", "true") != "false";
+        bool audio = Option("audio", "false") == "true";
+        bool interpolation = Option("interpolation", "true") != "false", testHorns = Option("test-horns", "false") == "true";
+        AudioProfileCapture? recording = null;
+        string layers = Option("audio-layers", "all");
         var save = WorldSaveStore.Read(directory);
         int id = int.Parse(Option("train", "0"));
         if (id == 0) id = save.Trains.Where(t => t.Running && t.Items.Any(i => i.Vehicle == "ge-dash9") && t.Items.Any(i => i.Vehicle == "atsf-coach"))
@@ -30,8 +34,19 @@ public static class FollowTrainPerformance
         game.Trains.SetProcess(false); game.Camera.SetProcess(false); game.Camera.SetProcessUnhandledInput(false);
         game.Camera.InputBlocked = false; game.TrackEditor.SetProcess(false); game.TrackEditor.SetProcessUnhandledInput(false); game.Trains.SetProcessUnhandledInput(false);
         game.Camera.FloatingOriginEnabled = floating;
+        game.Trains.Audio.DiagnosticEnabled = audio;
+        game.Trains.DiagnosticInterpolation = interpolation;
+        game.Trains.Audio.DiagnosticDisableDoppler = Option("doppler", "true") == "false";
+        if (layers != "all")
+        {
+            game.SoundSettings.Engines = layers == "engine" ? 1 : 0;
+            game.SoundSettings.Wheels = layers == "wheels" ? 1 : 0;
+            game.SoundSettings.Curves = layers == "curves" ? 1 : 0;
+        }
         if (cameraLate) game.Camera.ProcessPriority = 100;
         var train = game.Trains.Builder.Get(id); var parked = game.Trains.Parked.Single(p => p.Id == id);
+        game.Trains.Audio.DiagnosticFocus = train.Items[0].Id;
+        double nextHorn = 2;
         int rebases = 0; game.TrackNetwork.Space.Rebased += _ => rebases++;
         var samples = new List<Dictionary<string, double>>(); var pictures = new List<object>();
         var viewport = parent.GetViewport().GetViewportRid(); RenderingServer.ViewportSetMeasureRenderTime(viewport, true);
@@ -44,12 +59,14 @@ public static class FollowTrainPerformance
             while (quiet < 5 && settle.Elapsed.TotalSeconds < 35)
             {
                 await frame();
-                bool pending = game.World.Chunks.Count < game.World.Wanted.Count || game.World.ActiveJobs > 0 || game.World.PendingEarthworks > 0 || game.TreeClearance.IsPending;
+                bool pending = game.World.Chunks.Count == 0 || game.World.Chunks.Count < game.World.Wanted.Count || game.World.ActiveJobs > 0 || game.World.PendingEarthworks > 0 || game.TreeClearance.IsPending;
                 quiet = pending ? 0 : quiet + 1;
             }
             GD.Print($"Follow trace: save={save.SavedUtc:O}, train={id}, cars={train.Items.Count}, speed={train.Speed * 3.6:F1} km/h, chunks={game.World.Chunks.Count}, warmup={settle.Elapsed.TotalSeconds:F1}s, images={capture}, floating={floating}");
             game.Trains.SetProcess(true); game.Camera.SetProcess(true);
+            if (Option("terrain-streaming", "true") == "false") game.World.SetProcess(false);
             await parent.ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            if (audio) recording = new(Path.Combine(output, name + "-master.wav"));
             FrameProbe.Enabled = probes; clock.Start();
             var previousCamera = game.Camera.WorldPosition; var previousTrain = game.TrackNetwork.Space.ToWorld(parked.Poses[0].BodyCenter);
             var previousOrigin = game.TrackNetwork.Space.Origin;
@@ -89,8 +106,33 @@ public static class FollowTrainPerformance
                     ["train.batches"] = game.Trains.Instances.BatchCount
                 };
                 samples.Add(sample);
+                if (recording != null)
+                {
+                    sample["audio.frames"] = recording.Frames;
+                    sample["audio.discarded"] = recording.Discarded;
+                    sample["audio.voices"] = game.Trains.Audio.ActiveVehicles;
+                    sample["audio.creates"] = game.Trains.Audio.DiagnosticCreates;
+                    sample["audio.removes"] = game.Trains.Audio.DiagnosticRemoves;
+                    sample["audio.starts"] = game.Trains.Audio.DiagnosticStarts;
+                    sample["audio.stops"] = game.Trains.Audio.DiagnosticStops;
+                    sample["audio.doppler_jump"] = game.Trains.Audio.DiagnosticDopplerJump;
+                    sample["audio.source_speed"] = game.Trains.Audio.DiagnosticSourceSpeed;
+                    sample["audio.listener_speed"] = game.Trains.Audio.DiagnosticListenerSpeed;
+                    sample["audio.horn_active"] = game.Trains.Audio.DiagnosticHornActive ? 1 : 0;
+                    sample["audio.horn_doppler"] = game.Trains.Audio.DiagnosticHornDoppler;
+                    sample["audio.horn_jump"] = game.Trains.Audio.DiagnosticHornJump;
+                    sample["audio.horn_source_speed"] = game.Trains.Audio.DiagnosticFocusSpeed;
+                    sample["audio.mix_age"] = AudioServer.GetTimeSinceLastMix();
+                    sample["audio.output_latency"] = AudioServer.GetOutputLatency();
+                    if (clock.Elapsed.TotalSeconds % .1 < elapsed / 1000) recording.Pump();
+                }
                 previousCamera = camera; previousTrain = worldPose; previousOrigin = origin; previousScreen = screen; previousRebases = rebases;
                 previousJobs = game.World.SubmittedJobs; previousEvictions = game.World.MeshCache.Evictions;
+                if (testHorns && clock.Elapsed.TotalSeconds >= nextHorn)
+                {
+                    game.Trains.Audio.PlayHorn(new(train.Items[0].Id, train.Items[0].Definition.Id, parked.Poses[0].BodyCenter, train.Speed, parked.Effort, double.PositiveInfinity), game.Camera);
+                    nextHorn += 8;
+                }
                 double median = recent.Count == 0 ? elapsed : recent.Order().ElementAt(recent.Count / 2);
                 recent.Enqueue(elapsed); if (recent.Count > 120) recent.Dequeue();
                 bool spike = elapsed > Math.Max(50, median * 2.5);
@@ -118,12 +160,14 @@ public static class FollowTrainPerformance
             var slowest = samples.OrderByDescending(s => s["elapsed"]).Take(25).ToArray();
             File.WriteAllText(Path.Combine(output, name + ".json"), JsonSerializer.Serialize(new
             {
-                save.SavedUtc, train = id, seconds, capture, floating, cameraLate, probes, width = parent.GetViewport().GetVisibleRect().Size.X, height = parent.GetViewport().GetVisibleRect().Size.Y,
+                save.SavedUtc, train = id, seconds, capture, floating, cameraLate, probes, audio, layers, interpolation, testHorns,
+                audioStartedUtc = recording?.StartedUtc, audioRate = AudioServer.GetMixRate(),
+                width = parent.GetViewport().GetVisibleRect().Size.X, height = parent.GetViewport().GetVisibleRect().Size.Y,
                 summary = new { frames = samples.Count, mean = values.Average(), p50 = values[values.Length / 2], p95 = values[(int)(values.Length * .95)], p99 = values[(int)(values.Length * .99)], max = values[^1], rebases, over50 = values.Count(v => v > 50), over100 = values.Count(v => v > 100) },
                 slowest, pictures, samples
             }, new JsonSerializerOptions { WriteIndented = true }));
             GD.Print($"Follow profile {name}: {samples.Count} frames, mean={values.Average():F2}ms p99={values[(int)(values.Length * .99)]:F2}ms max={values[^1]:F2}ms rebases={rebases}; written to {output}");
         }
-        finally { FrameProbe.Enabled = false; game.Free(); await frame(); }
+        finally { FrameProbe.Enabled = false; recording?.Dispose(); game.Free(); await frame(); }
     }
 }
