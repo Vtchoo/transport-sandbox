@@ -237,7 +237,7 @@ public partial class TrainWindows : Node
         view.Window.Body.AddChild(view.Edit);
         view.Specs = UiSkin.Label(view.Edit, "", 11);
         UiSkin.Label(view.Edit, "FRONT  <                                       >  REAR", 10);
-        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Auto, VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, CustomMinimumSize = new(0, 125) };
+        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Auto, VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, CustomMinimumSize = new(0, 168) };
         view.Edit.AddChild(scroll);
         view.Consist = new();
         scroll.AddChild(view.Consist);
@@ -315,9 +315,11 @@ public partial class TrainWindows : Node
         for (int i = 0; i < train.Items.Count; i++)
         {
             var item = train.Items[i];
+            var card = new VBoxContainer { CustomMinimumSize = new(135, 0) };
+            view.Consist.AddChild(card);
             var button = new TrainDragButton { Payload = TrainDragButton.Data("item", train.Id, item.Id), CustomMinimumSize = new(135, 105), TooltipText = item.Definition.DisplayName };
             UiSkin.Button(button);
-            view.Consist.AddChild(button);
+            card.AddChild(button);
             button.ToggleMode = true;
             button.SetPressedNoSignal(view.Selected == item.Id);
             var content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -330,6 +332,19 @@ public partial class TrainWindows : Node
             caption.MouseFilter = Control.MouseFilterEnum.Ignore;
             caption.ClipText = true;
             button.Pressed += () => { view.Selected = item.Id; Render(Editor.Builder.Get(train.Id), view); };
+            if (item.Definition.Liveries.Count > 0)
+            {
+                var selector = new OptionButton { TooltipText = "Livery", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, FitToLongestItem = false };
+                UiSkin.Selector(selector);
+                card.AddChild(selector);
+                for (int variant = 0; variant < item.Definition.Liveries.Count; variant++)
+                {
+                    var livery = item.Definition.Liveries[variant];
+                    selector.AddItem(livery.Name);
+                    if (livery.Id == item.Definition.ResolveLivery(item.Livery)) selector.Select(variant);
+                }
+                selector.ItemSelected += index => Editor.SetLivery(train.Id, item.Id, item.Definition.Liveries[(int)index].Id);
+            }
             Gap(view, train.Id, i + 1);
         }
         int selected = train.Items.FindIndex(i => i.Id == view.Selected);

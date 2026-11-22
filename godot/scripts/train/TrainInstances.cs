@@ -91,7 +91,7 @@ public partial class TrainInstances : Node3D
             }
             foreach (var part in parts)
             {
-                string templateKey = $"{vehicle.Definition.Id}:{vehicle.Gauge}:{part.Name}";
+                string templateKey = $"{vehicle.Definition.Id}:{vehicle.Gauge}:{vehicle.Vehicle.Livery}:{part.Name}";
                 if (!_templates.TryGetValue(templateKey, out var mesh))
                 {
                     if (!Meshes(part).Any()) continue;

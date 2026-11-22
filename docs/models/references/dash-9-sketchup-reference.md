@@ -128,6 +128,10 @@ Supply the chosen road number/date, wheel/axle and truck reference dimensions, s
 
 Godot uses `godot/assets/vehicles/ge-dash9-1435.glb` with Santa Fe paint on the major body panels. Small hardware, glass, running gear and underframe retain solid-color materials. The PNG is embedded in the GLB.
 
+The Edit train tab has a livery dropdown below each Dash 9: **Default**, **Santa Fe**, **Vale** and **Ferronorte**. Default is selected for new vehicles and older saves without a recorded livery. Each vehicle saves its own choice; changing paint preserves its position on the track. Placement previews and instance batches use the selected texture. Only the paintable body material is replaced.
+
+After editing the four `dash9 v5 ...png` textures in `.files/dash-9`, run `node scripts/import-dash9-liveries.mjs` to copy them into `godot/assets/vehicles/liveries/dash9/` and update the native catalog. The images can use different resolutions while retaining the same square UV layout. This command does not rebuild geometry. Additional vehicles can declare `liveryMaterial` (the imported material name) and a `liveries` list of `{ id, name, texture }` entries in the native catalog; the first entry is the default.
+
 Run `node scripts/import-godot-dash9.mjs` to import `.files/dash-9/uv-paint-only/v5/dash9-v5-uv.dae`. The current texture is `.files/dash-9/dash9 v5 santa fe texture.png`, painted for the revised v5 layout. Generate the v5 kit with `python -B scripts/generate-dash9-uv.py --source .files/dash-9/dash9-v5.dae --paint-material paint --name dash9-v5 --output .files/dash-9/uv-paint-only/v5`.
 
 V5 keeps the same overall dimensions and bogie pivot stations, but its geometry and UV layout differ from v4. The revised layout has 658 marked paint triangles and 24 UV islands. Cabinet doors occupy their physical positions in the body side views. The cabinet and the hood behind it intentionally share projected paint coordinates so artwork stays aligned; these two documented triangle overlaps do not represent an accidental atlas collision. Use the current v5 guide when revising the texture rather than assuming the v4 artwork fits every panel.

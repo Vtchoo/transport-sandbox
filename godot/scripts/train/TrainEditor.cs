@@ -83,7 +83,7 @@ public partial class TrainEditor : Node3D
         {
             for (int i = 0; i < train.Items.Count; i++)
             {
-                var visual = new PosedVehicleVisual(train.Items[i].Definition, gauges[i]);
+                var visual = new PosedVehicleVisual(train.Items[i].Definition, gauges[i], livery: train.Items[i].Livery);
                 visuals.Add(visual); AddChild(visual); visual.Apply(poses[i]);
             }
             return visuals.ToArray();
@@ -167,6 +167,25 @@ public partial class TrainEditor : Node3D
         if (!Allows(definition, train)) throw new InvalidOperationException("This vehicle is incompatible with this train's track gauge.");
         Builder.Add(train, definition, index); return true;
     });
+    public bool SetLivery(int trainId, int itemId, string livery) => Perform("Change livery", () =>
+    {
+        var train = Builder.Get(trainId);
+        int index = train.Items.FindIndex(i => i.Id == itemId);
+        if (index < 0) throw new InvalidOperationException("Choose an existing vehicle.");
+        var item = train.Items[index];
+        if (!item.Definition.Liveries.Any(l => l.Id == livery)) throw new InvalidOperationException("This livery is unavailable for this vehicle.");
+        if (item.Definition.ResolveLivery(item.Livery) == livery) return false;
+        train.Items[index] = item with { Livery = livery };
+        var parked = Parked.FirstOrDefault(p => p.Id == trainId);
+        if (parked != null)
+        {
+            var visual = new PosedVehicleVisual(item.Definition, parked.Visuals[index].Gauge, livery: livery);
+            AddChild(visual); visual.Apply(parked.Poses[index]);
+            RemoveVisuals(new[] { parked.Visuals[index] });
+            parked.Visuals[index] = visual;
+        }
+        return true;
+    });
     public bool RemoveFromTrack(int id) => Perform("Remove from track", () =>
     {
         var train = Builder.Get(id); TrainBuilder.RequireStopped(train);
@@ -234,13 +253,13 @@ public partial class TrainEditor : Node3D
         if (Target is { } location && AppendTarget == null && appendError == null && Placement.SnapStation(location, train.Length) is { } snap) { Target = snap.Position; SnappedStation = snap.Station; }
         if (Target is not { } target) { SuspendPreview(); Message = appendError ?? "Hover track to preview the train. R reverses facing."; return; }
         int gauge = Network.Edges[target.Edge].Gauge;
-        var key = train.Id + ":" + string.Join(",", train.Items.Select(i => i.Id)) + ":" + gauge;
+        var key = train.Id + ":" + string.Join(",", train.Items.Select(i => $"{i.Id}:{i.Livery}")) + ":" + gauge;
         if (key != _ghostKey)
         {
             RemoveVisuals(Ghosts); Ghosts.Clear(); _ghostKey = key;
             foreach (var item in train.Items)
             {
-                var ghost = new PosedVehicleVisual(item.Definition, item.Definition.Models.ContainsKey(gauge) ? gauge : item.Definition.Models.Keys.Order().First(), true);
+                var ghost = new PosedVehicleVisual(item.Definition, item.Definition.Models.ContainsKey(gauge) ? gauge : item.Definition.Models.Keys.Order().First(), true, item.Livery);
                 Ghosts.Add(ghost); AddChild(ghost);
             }
         }

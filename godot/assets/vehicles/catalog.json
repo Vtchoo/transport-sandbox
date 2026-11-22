@@ -355,6 +355,29 @@
 		"idleRate": 1.2
 	  }
 	],
-	"thumbnail": "res://assets/vehicles/thumbnails/ge-dash9.svg"
+	"thumbnail": "res://assets/vehicles/thumbnails/ge-dash9.svg",
+	"liveryMaterial": "Santa Fe paintable panels",
+	"liveries": [
+	  {
+		"id": "default",
+		"name": "Default",
+		"texture": "res://assets/vehicles/liveries/dash9/default.png"
+	  },
+	  {
+		"id": "santa-fe",
+		"name": "Santa Fe",
+		"texture": "res://assets/vehicles/liveries/dash9/santa-fe.png"
+	  },
+	  {
+		"id": "vale",
+		"name": "Vale",
+		"texture": "res://assets/vehicles/liveries/dash9/vale.png"
+	  },
+	  {
+		"id": "ferronorte",
+		"name": "Ferronorte",
+		"texture": "res://assets/vehicles/liveries/dash9/ferronorte.png"
+	  }
+	]
   }
 ]

@@ -19,10 +19,10 @@ public partial class PosedVehicleVisual : Node3D
         foreach (var material in _ghostMaterials) material.Dispose();
         _ghostMaterials.Clear(); _ghostMaterialCache.Clear();
     }
-    public PosedVehicleVisual(VehicleDefinition definition, int gauge, bool preview = false)
+    public PosedVehicleVisual(VehicleDefinition definition, int gauge, bool preview = false, string? livery = null)
     {
         Definition = definition; Gauge = gauge;
-        Vehicle = new(definition, gauge);
+        Vehicle = new(definition, gauge, livery: livery);
         AddChild(Vehicle);
         if (preview) TintParts(Vehicle);
     }

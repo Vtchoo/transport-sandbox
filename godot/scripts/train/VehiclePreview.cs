@@ -59,7 +59,7 @@ public partial class VehiclePreview : SubViewportContainer
         }
         else
         {
-            string key = string.Join(",", train.Items.ConvertAll(i => $"{i.Id}:{i.Facing}:{i.Definition.Id}"));
+            string key = string.Join(",", train.Items.ConvertAll(i => $"{i.Id}:{i.Facing}:{i.Definition.Id}:{i.Livery}"));
             if (_key != key || _shared)
             {
                 PrivateScene(); _key = key;
@@ -67,7 +67,7 @@ public partial class VehiclePreview : SubViewportContainer
                 for (int i = 0; i < train.Items.Count; i++)
                 {
                     var item = train.Items[i];
-                    _draft!.AddChild(new VehicleVisual(item.Definition, System.Linq.Enumerable.Min(item.Definition.Models.Keys), item.Facing == -1) { Position = new(0, 0, (float)offsets[i]) });
+                    _draft!.AddChild(new VehicleVisual(item.Definition, System.Linq.Enumerable.Min(item.Definition.Models.Keys), item.Facing == -1, item.Livery) { Position = new(0, 0, (float)offsets[i]) });
                 }
             }
             center = new(0, 2, (float)train.Offsets[0]);

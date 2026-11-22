@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "train-liveries":
+                    await TrainLiveryChecks.Run(Check, Frame, this);
+                    break;
                 case "train-audio":
                     await TrainAudioChecks.Run(Check, Frame, this);
                     break;
@@ -117,6 +120,7 @@ public partial class TestRunner : Node
                     await RoutingInvalidationChecks.Benchmark(Check);
                     break;
                 case "all":
+                    await TrainLiveryChecks.Run(Check, Frame, this);
                     await TrainAudioChecks.Run(Check, Frame, this);
                     await DisplayShortcutChecks.Run(Check, Frame, this);
                     TrainParallelChecks.Run(Check);

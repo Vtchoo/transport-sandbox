@@ -1,12 +1,18 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace TransportSandbox;
 
+public sealed record VehicleLivery(string Id, string Name, string Texture);
+
 public sealed class VehicleDefinition
 {
+    public IReadOnlyList<VehicleLivery> Liveries { get; }
+    public string LiveryMaterial { get; }
+    public string? ResolveLivery(string? id) => Liveries.Count == 0 ? null : Liveries.FirstOrDefault(l => l.Id == id)?.Id ?? Liveries[0].Id;
     public string DisplayName { get; }
     public string Kind { get; }
     public string Thumbnail { get; }
@@ -38,6 +44,12 @@ public sealed class VehicleDefinition
         Length = data.GetProperty("length").GetDouble();
         DisplayName = data.GetProperty("name").GetString()!;
         Kind = data.GetProperty("kind").GetString()!;
+        LiveryMaterial = data.TryGetProperty("liveryMaterial", out var paintMaterial) ? paintMaterial.GetString()! : "";
+        var liveries = new List<VehicleLivery>();
+        if (data.TryGetProperty("liveries", out var liveryData))
+            foreach (var livery in liveryData.EnumerateArray())
+                liveries.Add(new(livery.GetProperty("id").GetString()!, livery.GetProperty("name").GetString()!, livery.GetProperty("texture").GetString()!));
+        Liveries = liveries;
         Thumbnail = data.TryGetProperty("thumbnail", out var thumb) ? thumb.GetString()! : "";
         Width = data.GetProperty("width").GetDouble();
         Height = data.GetProperty("height").GetDouble();

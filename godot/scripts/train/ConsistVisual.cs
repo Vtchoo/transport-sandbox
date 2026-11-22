@@ -21,6 +21,10 @@ public sealed record ConsistDefinition(string Id, int Gauge, IReadOnlyList<Consi
 
 public partial class VehicleVisual : Node3D
 {
+    // Materials are shared per livery, while each model keeps its own surface overrides.
+    // Never edit the imported material: other locomotives may use another texture.
+    private static readonly Dictionary<(ulong Material, string Texture), StandardMaterial3D> LiveryMaterials = new();
+    public string? Livery { get; }
     public VehicleDefinition Definition
     {
         get;
@@ -37,7 +41,7 @@ public partial class VehicleVisual : Node3D
     {
         get;
     }
-    public VehicleVisual(VehicleDefinition definition, int gauge, bool reversed = false)
+    public VehicleVisual(VehicleDefinition definition, int gauge, bool reversed = false, string? livery = null)
     {
         if (!definition.Models.TryGetValue(gauge, out var model))
             throw new ArgumentException($"{definition.Id} is unavailable for {gauge} mm track.");
@@ -47,9 +51,30 @@ public partial class VehicleVisual : Node3D
         Name = definition.Id;
         // Imported geometry is already in metres. Never normalize or resize catalog models.
         Model = GD.Load<PackedScene>(model).Instantiate<Node3D>();
+        Livery = definition.ResolveLivery(livery);
+        if (Livery != null)
+            ApplyLivery(Model, definition, definition.Liveries.First(l => l.Id == Livery));
         ConfigureLettering(Model);
         AddChild(Model);
         Rotation = new(0, reversed ? Mathf.Pi : 0, 0);
+    }
+    private static void ApplyLivery(Node node, VehicleDefinition definition, VehicleLivery livery)
+    {
+        if (node is MeshInstance3D mesh)
+            for (int surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
+                if (mesh.GetActiveMaterial(surface) is StandardMaterial3D original && original.ResourceName == definition.LiveryMaterial)
+                {
+                    var key = (original.GetInstanceId(), livery.Texture);
+                    if (!LiveryMaterials.TryGetValue(key, out var material))
+                    {
+                        material = (StandardMaterial3D)original.Duplicate();
+                        material.AlbedoTexture = GD.Load<Texture2D>(livery.Texture);
+                        material.AlbedoColor = Colors.White;
+                        LiveryMaterials[key] = material;
+                    }
+                    mesh.SetSurfaceOverrideMaterial(surface, material);
+                }
+        foreach (var child in node.GetChildren()) ApplyLivery(child, definition, livery);
     }
     private static void ConfigureLettering(Node node)
     {

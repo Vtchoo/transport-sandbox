@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace TransportSandbox;
 
-public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1);
+public sealed record TrainItem(int Id, VehicleDefinition Definition, int Facing = 1, string? Livery = null);
 public sealed class TrainConsist
 {
     public int Id;
@@ -57,7 +57,7 @@ public sealed class TrainBuilder
         int at = index ?? train.Items.Count;
         if (at < 0 || at > train.Items.Count) throw new InvalidOperationException("Choose a valid insertion position.");
         if (Gauges(train.Items.Select(i => i.Definition).Append(definition)).Length == 0) throw new InvalidOperationException("These vehicles have no compatible gauge in common.");
-        var item = new TrainItem(_nextItem++, definition);
+        var item = new TrainItem(_nextItem++, definition, Livery: definition.ResolveLivery(null));
         train.Items.Insert(at, item);
         Selected = train;
         return item;
