@@ -45,6 +45,25 @@ public partial class TrainWindows : Node
     private string? _hoveredVehicle, _focusedVehicle;
     private bool _refreshing;
     private double _catalogTimer, _viewTimer;
+    private int? _heldHorn;
+    private bool _hornKeyDown;
+    private void ReleaseHorn()
+    {
+        if (_heldHorn is { } id) Editor.Audio.ReleaseHorn(id);
+        _heldHorn = null;
+    }
+    public override void _Input(InputEvent input)
+    {
+        // Key-up must reach the held horn even after focus moves into a text field
+        // or a modal opens. It must release the original emitter, not a new train.
+        if (input is InputEventKey { Keycode: Key.H, Pressed: false })
+        { _hornKeyDown = false; ReleaseHorn(); }
+    }
+    public override void _Notification(int what)
+    {
+        if (what == NotificationApplicationFocusOut)
+        { _hornKeyDown = false; ReleaseHorn(); }
+    }
     public int? Following
     {
         get; private set;
@@ -497,6 +516,7 @@ public partial class TrainWindows : Node
     }
     private void StopFollowing()
     {
+        ReleaseHorn();
         Following = null;
         Editor.Camera.Following = null;
     }
@@ -566,6 +586,14 @@ public partial class TrainWindows : Node
         if (HandleOrderPicking(input)) return;
         if (Manager.HasModal || input is not InputEventKey { Pressed: true, Echo: false } key)
             return;
+        if (key.Keycode == Key.H && !key.CtrlPressed && !key.AltPressed && !key.MetaPressed && Following is { } following)
+        {
+            var focus = GetViewport().GuiGetFocusOwner();
+            if (focus is LineEdit or TextEdit || focus is OptionButton select && select.GetPopup().Visible) return;
+            if (!_hornKeyDown) { _hornKeyDown = true; _heldHorn = Editor.SoundHorn(following); }
+            GetViewport().SetInputAsHandled();
+            return;
+        }
         bool active = Manager.Active == CatalogWindow || Manager.Active == FleetWindow || Views.Values.Any(v => v.Window == Manager.Active);
         if (!active)
             return;

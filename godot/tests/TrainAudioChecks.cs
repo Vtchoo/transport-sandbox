@@ -123,6 +123,16 @@ public static class TrainAudioChecks
             vehicle = vehicle with { Position = vehicle.Position + new Vector3(0, 0, 1.2f) };
             audio.UpdateSounds(new[] { vehicle }, camera, .02);
             check(horn!.PitchScale < .99, "Stopping the listener retains genuine Doppler for a receding train");
+            float fullVolume = horn.VolumeDb;
+            audio.ReleaseHorn(vehicle.Id);
+            audio.UpdateSounds(new[] { vehicle }, camera, .05);
+            check(horn.Playing && horn.VolumeDb < fullVolume, "Releasing a manual horn lowers its gain while playback continues through the fade");
+            audio.ReleaseHorn(vehicle.Id); // Repeated releases must not restart the fade.
+            audio.UpdateSounds(new[] { vehicle }, camera, .16);
+            check(!horn.Playing, "Released horn stops after the 0.2 second fade");
+            check(audio.PlayHorn(vehicle, camera), "A new press can start another one-shot after fade completion");
+            var nextHorn = audio.GetChildren().OfType<AudioStreamPlayer3D>().Last();
+            check(nextHorn.Stream is AudioStreamWav { LoopMode: AudioStreamWav.LoopModeEnum.Disabled }, "Held-key horn remains a non-looping one-shot");
         }
         finally { audio.Free(); camera.Free(); }
     }

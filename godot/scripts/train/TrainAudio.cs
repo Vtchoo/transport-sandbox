@@ -57,6 +57,7 @@ public partial class TrainAudio : Node3D
         public double FallbackTurns;
         public EngineAudioController? Engine;
         public float PreviousDoppler = 1;
+        public double? HornFadeRemaining;
     }
 
     public override void _Ready()
@@ -139,6 +140,10 @@ public partial class TrainAudio : Node3D
     {
         var player = _horns[id].Layers[0]; player.Stop(); player.QueueFree(); _horns.Remove(id);
     }
+    public void ReleaseHorn(int id)
+    {
+        if (_horns.TryGetValue(id, out var voice)) voice.HornFadeRemaining ??= .2;
+    }
 
     private void UpdateHorn(Voice voice, TrainAudioVehicle vehicle, Vector3 eye, Vector3 cameraVelocity, double delta)
     {
@@ -155,7 +160,15 @@ public partial class TrainAudio : Node3D
             DiagnosticFocusSpeed = velocity.Length();
         }
         voice.PreviousDoppler = player.PitchScale;
-        float gain = Settings.Muted ? 0 : .3f * Math.Clamp(MasterVolume, 0, 1) * Math.Clamp(Settings.Engines, 0, 1);
+        float fade = 1;
+        if (voice.HornFadeRemaining is { } remaining)
+        {
+            remaining = Math.Max(0, remaining - delta);
+            voice.HornFadeRemaining = remaining;
+            if (remaining == 0) { RemoveHorn(vehicle.Id); return; }
+            fade = (float)(remaining / .2);
+        }
+        float gain = Settings.Muted ? 0 : fade * .3f * Math.Clamp(MasterVolume, 0, 1) * Math.Clamp(Settings.Engines, 0, 1);
         player.VolumeDb = gain <= .0001 ? -80 : Mathf.LinearToDb(gain);
         voice.Previous = vehicle.Position; voice.MotionValid = true;
     }

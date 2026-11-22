@@ -33,7 +33,13 @@ public sealed class TrainStationAudioState
 
 public partial class TrainEditor
 {
-    private void StationHorn(ParkedTrain parked, TrainConsist train, bool departure = false)
+    public int? SoundHorn(int id)
+    {
+        var parked = Parked.FirstOrDefault(p => p.Id == id);
+        var train = Builder.Trains.FirstOrDefault(t => t.Id == id);
+        return parked != null && train != null ? StationHorn(parked, train) : null;
+    }
+    private int? StationHorn(ParkedTrain parked, TrainConsist train, bool departure = false)
     {
         // Use the locomotive nearest the leading end, including reverse-running consists.
         var indices = Enumerable.Range(0, Math.Min(train.Items.Count, parked.Poses.Length));
@@ -42,8 +48,9 @@ public partial class TrainEditor
         {
             var item = train.Items[i];
             if (item.Definition.Kind != "locomotive") continue;
-            Audio.PlayHorn(new(item.Id, item.Definition.Id, parked.Poses[i].BodyCenter, train.Speed, parked.Effort, double.PositiveInfinity), Camera, departure);
-            break;
+            var pose = parked.Visuals[i].Pose ?? parked.Poses[i];
+            return Audio.PlayHorn(new(item.Id, item.Definition.Id, pose.BodyCenter, train.Speed, parked.Effort, double.PositiveInfinity), Camera, departure) ? item.Id : null;
         }
+        return null;
     }
 }
