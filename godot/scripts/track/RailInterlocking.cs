@@ -32,6 +32,9 @@ public sealed partial class RailInterlocking : IDisposable
     private readonly Dictionary<(int Edge, int From), SignalKey?[]> _nextSignals = new();
     private bool _dirty = true;
     private int _aspectTick;
+    // Clearance is stable during one aspect pass; live admissions always use Clear directly.
+    private readonly Dictionary<int, bool> _aspectClear = new();
+    private readonly Dictionary<SignalKey, TrackEdge[]> _outgoing = new();
     public int ReservationCount => _leases.Count;
     public SavedLease[] SaveReservations() => _leases.Select(l => new SavedLease(l.Train, l.Signal, l.Edges.ToArray(), l.Entered)).ToArray();
     public void RestoreReservations(SavedLease[] saved, SignalTrain[] trains)
@@ -53,6 +56,7 @@ public sealed partial class RailInterlocking : IDisposable
     {
         _dirty = false; _block.Clear(); _blocks.Clear(); _incident.Clear(); _leases.Clear(); _crossings.Clear(); _bounds.Clear();
         _nextSignals.Clear();
+        _outgoing.Clear();
         foreach (var edge in _network.Edges.Values)
             foreach (int node in new[] { edge.A, edge.B })
             { if (!_incident.TryGetValue(node, out var list)) _incident[node] = list = new(); list.Add(edge); }
@@ -82,36 +86,48 @@ public sealed partial class RailInterlocking : IDisposable
         using var probe = FrameProbe.Measure("signals.update");
         if (_network.Signals.Count == 0) { _leases.Clear(); _occupied.Clear(); _footprints.Clear(); return; }
         bool rebuilt = _dirty;
-        if (_dirty) Rebuild();
-        _occupied.Clear(); _footprints.Clear();
+        if (_dirty) { using var rebuildProbe = FrameProbe.Measure("signals.rebuild"); Rebuild(); }
         var byId = trains.ToDictionary(train => train.Id);
-        foreach (var train in byId.Values)
+        using (FrameProbe.Measure("signals.footprints"))
         {
-            var edges = new HashSet<int>();
-            try
+            _occupied.Clear(); _footprints.Clear();
+            foreach (var train in byId.Values)
             {
-                var tail = train.Route.Sample(train.Position, -train.Length / 2).Position;
-                edges.UnionWith(train.Route.Trace(tail, 1, train.Length).Select(span => span.Edge.Id));
+                var edges = new HashSet<int>();
+                try
+                {
+                    var tail = train.Route.Sample(train.Position, -train.Length / 2).Position;
+                    edges.UnionWith(train.Route.Trace(tail, 1, train.Length).Select(span => span.Edge.Id));
+                }
+                catch (InvalidOperationException) { if (_network.Edges.ContainsKey(train.Position.Edge)) edges.Add(train.Position.Edge); }
+                _footprints[train.Id] = edges;
+                foreach (int edge in edges)
+                { if (!_occupied.TryGetValue(edge, out var owners)) _occupied[edge] = owners = new(); owners.Add(train.Id); }
             }
-            catch (InvalidOperationException) { if (_network.Edges.ContainsKey(train.Position.Edge)) edges.Add(train.Position.Edge); }
-            _footprints[train.Id] = edges;
-            foreach (int edge in edges)
-            { if (!_occupied.TryGetValue(edge, out var owners)) _occupied[edge] = owners = new(); owners.Add(train.Id); }
         }
-        _leases.RemoveAll(lease =>
-        {
-            if (!_footprints.TryGetValue(lease.Train, out var footprint)) return true;
-            var train = byId[lease.Train];
-            if (!lease.Entered && (lease.Route != train.Route || lease.PlanRevision != train.Route.PlanRevision || lease.Direction != train.Direction)) return true;
-            if (footprint.Overlaps(lease.Edges)) lease.Entered = true;
-            return lease.Entered && !footprint.Overlaps(lease.Edges);
-        });
+        using (FrameProbe.Measure("signals.leases"))
+            _leases.RemoveAll(lease =>
+            {
+                if (!_footprints.TryGetValue(lease.Train, out var footprint)) return true;
+                var train = byId[lease.Train];
+                if (!lease.Entered && (lease.Route != train.Route || lease.PlanRevision != train.Route.PlanRevision || lease.Direction != train.Direction)) return true;
+                if (footprint.Overlaps(lease.Edges)) lease.Entered = true;
+                return lease.Entered && !footprint.Overlaps(lease.Edges);
+            });
         if (rebuilt || ++_aspectTick % 12 == 0)
+        {
+            using var aspectsProbe = FrameProbe.Measure("signals.aspects");
+            _aspectClear.Clear();
             foreach (var signal in _network.Signals.Values)
                 signal.Aspect = signal.Kind == RailSignalKind.Path ? RailSignalAspect.Red : IdleAspect(signal, new());
+        }
     }
-    private IEnumerable<TrackEdge> Outgoing(SignalKey key) => _incident.GetValueOrDefault(key.Node, new())
-        .Where(edge => TrackNetwork.SideAt(edge, key.Node) == key.Side);
+    private TrackEdge[] Outgoing(SignalKey key)
+    {
+        if (_outgoing.TryGetValue(key, out var result)) return result;
+        return _outgoing[key] = _incident.TryGetValue(key.Node, out var incident)
+            ? incident.Where(edge => TrackNetwork.SideAt(edge, key.Node) == key.Side).ToArray() : Array.Empty<TrackEdge>();
+    }
     private HashSet<int> Footprint(SignalTrain train)
     {
         var edges = new HashSet<int>();
@@ -139,9 +155,14 @@ public sealed partial class RailInterlocking : IDisposable
         foreach (int edge in edges)
         {
             foreach (var (occupied, owners) in _occupied)
-                if (owners.Any(owner => owner != train) && Conflicts(edge, occupied)) return false;
+            {
+                bool otherOwner = false;
+                foreach (int owner in owners) if (owner != train) { otherOwner = true; break; }
+                if (otherOwner && Conflicts(edge, occupied)) return false;
+            }
             foreach (var lease in _leases)
-                if (lease.Train != train && lease.Edges.Any(other => Conflicts(edge, other))) return false;
+                if (lease.Train != train)
+                    foreach (int other in lease.Edges) if (Conflicts(edge, other)) return false;
         }
         return true;
     }
@@ -188,15 +209,18 @@ public sealed partial class RailInterlocking : IDisposable
         foreach (var edge in Outgoing(signal.Key))
         {
             var block = _blocks[_block[edge.Id]];
-            if (!Clear(block, -1)) { red = true; continue; }
+            int blockId = _block[edge.Id];
+            if (!_aspectClear.TryGetValue(blockId, out bool clear)) _aspectClear[blockId] = clear = Clear(block, -1);
+            if (!clear) { red = true; continue; }
             if (signal.Kind == RailSignalKind.Normal) { green = true; continue; }
             foreach (var exit in NextSignals(edge, signal.Key.Node))
             {
-                var aspect = exit is { } key ? IdleAspect(_network.Signals[key], new(visited)) : RailSignalAspect.Red;
+                var aspect = exit is { } key ? IdleAspect(_network.Signals[key], visited) : RailSignalAspect.Red;
                 green |= aspect != RailSignalAspect.Red;
                 red |= aspect != RailSignalAspect.Green;
             }
         }
+        visited.Remove(signal.Key);
         return green ? red && signal.Kind == RailSignalKind.Chain ? RailSignalAspect.Blue : RailSignalAspect.Green : RailSignalAspect.Red;
     }
     public SignalLimit Limit(SignalTrain train, double lookahead, bool commit = true)
@@ -309,15 +333,22 @@ public sealed partial class RailInterlocking : IDisposable
         if (!Overlap(p => p.X, width) || !Overlap(p => p.Z, width) || !Overlap(p => p.Y, 4.5)) return false;
         // Only nearby crossing candidates reach this test. Sample short chords in double precision.
         int na = Math.Clamp((int)Math.Ceiling(a.Length / 4), 1, 4096), nb = Math.Clamp((int)Math.Ceiling(b.Length / 4), 1, 4096);
+        // Sample each B chord once, rather than repeating arc-table searches for every A chord.
+        var pointsB = new TrackVector[nb + 1];
+        for (int j = 0; j <= nb; j++) pointsB[j] = b.PointAt(j / (double)nb);
+        bool Nearby(TrackVector p, TrackVector q, TrackVector r, TrackVector s) =>
+            Math.Min(p.X, q.X) <= Math.Max(r.X, s.X) + width && Math.Min(r.X, s.X) <= Math.Max(p.X, q.X) + width
+            && Math.Min(p.Z, q.Z) <= Math.Max(r.Z, s.Z) + width && Math.Min(r.Z, s.Z) <= Math.Max(p.Z, q.Z) + width
+            && Math.Min(p.Y, q.Y) <= Math.Max(r.Y, s.Y) + 4.5 && Math.Min(r.Y, s.Y) <= Math.Max(p.Y, q.Y) + 4.5;
         var lastA = a.PointAt(0);
         for (int i = 1; i <= na; i++)
         {
-            var nextA = a.PointAt(i / (double)na); var lastB = b.PointAt(0);
+            var nextA = a.PointAt(i / (double)na); var lastB = pointsB[0];
             for (int j = 1; j <= nb; j++)
             {
-                var nextB = b.PointAt(j / (double)nb);
+                var nextB = pointsB[j];
                 TrackVector Envelope(TrackVector point) => new(point.X, point.Y * width / 4.5, point.Z);
-                if (SegmentDistance(Envelope(lastA), Envelope(nextA), Envelope(lastB), Envelope(nextB)) < width) return true;
+                if (Nearby(lastA, nextA, lastB, nextB) && SegmentDistance(Envelope(lastA), Envelope(nextA), Envelope(lastB), Envelope(nextB)) < width) return true;
                 lastB = nextB;
             }
             lastA = nextA;

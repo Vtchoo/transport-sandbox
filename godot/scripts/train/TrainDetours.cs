@@ -90,7 +90,7 @@ public partial class TrainEditor
         // Trace on the copy materializes the accepted prefix. It must survive SetPath's
         // new plan origin at the first divergent leg, including reverse-running consists.
         var entrance = candidate.Trace(leading, direction, RailDetourSearch.MaxDistance).Skip(prefix).FirstOrDefault();
-        if (entrance == null || RailRouter.StateId(entrance.Edge.Id, entrance.Direction) != after[prefix]) return;
+        if (entrance.Edge == null || RailRouter.StateId(entrance.Edge.Id, entrance.Direction) != after[prefix]) return;
         var planned = PlanOrder(parked, train, order, candidate, entrance.Position);
         if (planned is not { Reachable: true, ViaDeadEnd: false }) return;
         int limit = Math.Max(route.PlannedLegCount + route.CachedLegCount, candidate.PlannedLegCount + candidate.CachedLegCount) + 1;

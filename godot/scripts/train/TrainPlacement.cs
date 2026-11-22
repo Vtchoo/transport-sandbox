@@ -6,7 +6,7 @@ using System.Linq;
 namespace TransportSandbox;
 
 public readonly record struct TrainPosition(int Edge, double U, int Facing = 1, int RouteIndex = 0);
-public sealed record TrainSample(Vector3 Point, Vector3 Tangent, TrainPosition Position);
+public readonly record struct TrainSample(Vector3 Point, Vector3 Tangent, TrainPosition Position);
 public sealed record VehiclePose(Vector3 Center, Vector3 Front, Vector3 Rear, Vector3 FrontDirection, Vector3 RearDirection, VehiclePose[] Sections)
 {
     public Vector3 BodyCenter => (Front + Rear) / 2;
@@ -43,12 +43,16 @@ public sealed class TrainPlacement : IDisposable
             }
             remaining -= available;
             int node = direction > 0 ? edge.B : edge.A;
-            var next = Network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).ToArray();
-            if (next.Length == 0) throw new InvalidOperationException("Not enough connected track for the full vehicle.");
-            if (next.Length > 1) throw new InvalidOperationException("Place clear of a turnout with multiple possible routes.");
-            edge = next[0]; direction = edge.A == node ? 1 : -1; u = direction > 0 ? 0 : 1;
+            edge = PlacementExit(edge, node, gauge); direction = edge.A == node ? 1 : -1; u = direction > 0 ? 0 : 1;
         }
         throw new InvalidOperationException("Track route is too complex for placement.");
+    }
+    private TrackEdge PlacementExit(TrackEdge edge, int node, int gauge)
+    {
+        var next = Network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).ToArray();
+        if (next.Length == 0) throw new InvalidOperationException("Not enough connected track for the full vehicle.");
+        if (next.Length > 1) throw new InvalidOperationException("Place clear of a turnout with multiple possible routes.");
+        return next[0];
     }
     public VehiclePose Pose(VehicleDefinition definition, TrainPosition position, int facing = 1, Func<TrainPosition, double, TrainSample>? sample = null)
     {
@@ -59,16 +63,23 @@ public sealed class TrainPlacement : IDisposable
         sample(position, definition.Length / 2); sample(position, -definition.Length / 2);
         var center = sample(position, 0); var front = sample(position, definition.BogieCenters / 2); var rear = sample(position, -definition.BogieCenters / 2);
         if (definition.Sections.Count == 0 && front.Point.DistanceTo(rear.Point) < definition.BogieCenters * .94) throw new InvalidOperationException("This curve is too tight for the vehicle's bogie spacing.");
-        return new(center.Point, front.Point, rear.Point, front.Tangent, rear.Tangent,
-            definition.Sections.Select(s => Pose(s.Definition, sample(position, s.Offset).Position, sample: sample)).ToArray());
+        var sections = definition.Sections.Count == 0 ? Array.Empty<VehiclePose>() : new VehiclePose[definition.Sections.Count];
+        for (int i = 0; i < sections.Length; i++)
+        { var section = definition.Sections[i]; sections[i] = Pose(section.Definition, sample(position, section.Offset).Position, sample: sample); }
+        return new(center.Point, front.Point, rear.Point, front.Tangent, rear.Tangent, sections);
     }
     public VehiclePose[] Poses(TrainConsist train, TrainPosition position, Func<TrainPosition, double, TrainSample>? sample = null)
     {
         sample ??= Sample;
         if (train.Items.Count == 0) throw new InvalidOperationException("Add at least one vehicle to this train.");
-        if (!Network.Edges.TryGetValue(position.Edge, out var edge) || !TrainBuilder.Gauges(train.Items.Select(i => i.Definition)).Contains(edge.Gauge)) throw new InvalidOperationException("This train is incompatible with this track gauge.");
+        if (!Network.Edges.TryGetValue(position.Edge, out var edge)) throw new InvalidOperationException("This train is incompatible with this track gauge.");
+        foreach (var item in train.Items)
+            if (!item.Definition.Models.ContainsKey(edge.Gauge)) throw new InvalidOperationException("This train is incompatible with this track gauge.");
         var offsets = train.Offsets;
-        return train.Items.Select((item, i) => Pose(item.Definition, sample(position, offsets[i]).Position, item.Facing, sample)).ToArray();
+        var poses = new VehiclePose[train.Items.Count];
+        for (int i = 0; i < poses.Length; i++)
+        { var item = train.Items[i]; poses[i] = Pose(item.Definition, sample(position, offsets[i]).Position, item.Facing, sample); }
+        return poses;
     }
     public (TrainPosition Incoming, TrainPosition Combined) Append(TrainPosition position, double oldLength, double incomingLength, bool front)
     {

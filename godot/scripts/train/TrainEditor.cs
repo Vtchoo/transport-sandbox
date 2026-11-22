@@ -18,6 +18,9 @@ public sealed class ParkedTrain
     public TrainPosition Position;
     public bool Supported = true;
     public int SupportRevision = -1;
+    internal bool VisualDirty;
+    internal double RunningGearDistance;
+    internal VehiclePose[]? PreviousPoses;
     public VehiclePose[] Poses = Array.Empty<VehiclePose>();
     public PosedVehicleVisual[] Visuals = Array.Empty<PosedVehicleVisual>();
 }
@@ -115,6 +118,7 @@ public partial class TrainEditor : Node3D
     {
         foreach (var other in others)
         {
+            if (other.Id == train.Id) continue;
             var model = Builder.Get(other.Id);
             for (int i = 0; i < poses.Length; i++)
                 for (int j = 0; j < other.Poses.Length; j++)
@@ -325,6 +329,7 @@ public partial class TrainEditor : Node3D
     }
     public void Revalidate()
     {
+        using var probe = FrameProbe.Measure("train.revalidate");
         foreach (var parked in Parked)
             try
             {
@@ -353,10 +358,12 @@ public partial class TrainEditor : Node3D
     }
     public override void _Process(double delta)
     {
-        AdvanceMovement(delta);
-        if (SyncCargo()) SyncInstances();
-        Audio.UpdateSounds(AudioVehicles(), Camera, delta);
-        Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort })));
+        using var updateProbe = FrameProbe.Measure("train.update");
+        AdvanceMovement(delta, interpolate: true);
+        using (FrameProbe.Measure("cargo.sync")) if (SyncCargo()) SyncInstances();
+        using (FrameProbe.Measure("audio.update")) Audio.UpdateSounds(AudioVehicles(), Camera, delta);
+        using (FrameProbe.Measure("smoke.outlets"))
+        { Smoke.Outlets.Clear(); Smoke.Outlets.AddRange(Parked.SelectMany(p => p.Visuals.SelectMany(v => v.Exhausts()).Select(o => o with { Effort = p.Effort }))); }
         _trackTimer += delta;
         if (_trackDirty && _trackTimer >= .25) { _trackDirty = false; _trackTimer = 0; Revalidate(); }
         if (Placing)

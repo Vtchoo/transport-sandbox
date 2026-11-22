@@ -15,6 +15,7 @@ public sealed class WorldSpace
     public Vector3 ToLocal(TrackVector world) => (world - Origin).Float();
     public void Rebase(TrackVector eye)
     {
+        using var probe = FrameProbe.Measure("origin.rebase");
         var next = new TrackVector(Math.Floor(eye.X / 512) * 512, 0, Math.Floor(eye.Z / 512) * 512);
         if (next == Origin)
             return;

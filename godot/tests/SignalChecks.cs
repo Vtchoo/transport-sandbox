@@ -20,6 +20,7 @@ public static class SignalChecks
     }
     public static void Run(Action<bool, string> check)
     {
+        CrossingOptimizationChecks.Run(check);
         var network = new TrackNetwork(); var line = Line(network, 0);
         check(Math.Abs(TrackNetwork.DefaultParallelSpacing(1435) - 5) < 1e-6 && TrackNetwork.DefaultParallelSpacing(914) < 5,
             "New parallel spacing is five metres at standard gauge and adjusts with gauge");

@@ -1,0 +1,2073 @@
+{
+  "date": "2026-11-22",
+  "purpose": "Identify current saved-world CPU/render bottlenecks; diagnostics only, no gameplay optimization applied.",
+  "save": {
+    "name": "New World",
+    "savedUtc": "2026-11-22T15:20:26.9903871Z",
+    "compressedSnapshotSha256": "82ec9e74e63719ee0ef994bc2a2cc08e939f67d24b17f1ef9e99b9fd54104bbb",
+    "trains": 7,
+    "vehicles": 73,
+    "edges": 255,
+    "signals": 209,
+    "industries": 60,
+    "bridgeSegments": 5,
+    "copy": "godot/.godot/performance-2026-11-22/save",
+    "source_writes": "None. The entire live world directory was copied before running; region-cache writes target only this copy."
+  },
+  "environment": {
+    "engine": "Godot 4.7.2 .NET",
+    "build": "Debug",
+    "renderer": "OpenGL Compatibility",
+    "gpu": "AMD Radeon RX 6600",
+    "logicalProcessors": 16,
+    "resolution": [
+      1280,
+      800
+    ],
+    "vsync": "disabled by CLI",
+    "residentTerrainChunks": 441
+  },
+  "method": {
+    "sequential_runs": true,
+    "camera": "Restored saved camera, held still. Save does not store open-window state, so inspection windows remain closed.",
+    "warmup": "Wait for terrain jobs/initial earthworks, then 120 unmeasured train updates at 1/60 s.",
+    "native": "world phases without fixed use the game real-time delta and original bounded substep loop.",
+    "controlled": "world-fixed phases advance exactly 1/60 s per rendered frame, isolating drawing changes from extra fractional physics substeps.",
+    "visibility_controls": "Only scene visibility/shadow flags change; routes, trains and simulation remain loaded. Bridge/track/support types in the save are not changed.",
+    "probes": "New scopes remain disabled during ordinary gameplay. Probes=false runs verify measurement overhead."
+  },
+  "findings": [
+    {
+      "priority": 1,
+      "finding": "Real-time slow frames execute two complete train substeps, including scene transform/running-gear application twice before one rendered frame.",
+      "evidence": "Native: 2 substeps and 12 per-train visual applications per frame, train.update mean 8.395 ms. Fixed 1/60 control: 1 substep, 6 visual applications, mean 5.375 ms. Native uninstrumented frame mean 20.596 ms (about 48.6 frames/s equivalent).",
+      "source": "godot/scripts/train/TrainMovement.cs:41",
+      "next": "Keep physics and reservation semantics, but accumulate visual changes and apply final car/bogie transforms and running-gear distance once per rendered frame."
+    },
+    {
+      "priority": 2,
+      "finding": "Signals generate excessive draw submissions and repeat unchanged native scene updates.",
+      "evidence": "Hiding signal geometry reduces fixed-control draw calls from about 3437 to 2048 and frame mean from 18.56 to 15.54 ms. SignalRenderer itself costs about 1.93 ms per native frame while resetting all 209 poles, lamps and arrows.",
+      "source": "godot/scripts/track/SignalVisual.cs:94",
+      "next": "Cache positions/aspects/arrow visibility and use shared instanced signal geometry by kind/material, retaining picking and per-signal identity."
+    },
+    {
+      "priority": 3,
+      "finding": "Sleepers perform LOD native calls on every track batch even when the camera and tracks are unchanged.",
+      "evidence": "Track rendering update costs about 1.48 ms per native frame. UpdateSleeperLod always sets VisibleInstanceCount and Visible for each batch. Hiding sleepers changes only about 31 draw calls in this saved view, so their drawing is not the main problem here.",
+      "source": "godot/scripts/track/TrackVisual.cs:49",
+      "next": "Skip unchanged LOD writes and camera-stationary passes; invalidate affected batches after track/origin changes."
+    },
+    {
+      "priority": 4,
+      "finding": "Main-thread allocation churn contributes to spikes.",
+      "evidence": "Native uninstrumented run allocates about 762762 bytes per frame on the main thread. In the instrumented native run, 18/300 frames contain a gen0 collection: mean 26.45 ms versus 20.47 ms on other frames. Instance synchronization allocates roughly 167 KB per fixed frame.",
+      "source": "godot/scripts/train/TrainInstances.cs:79",
+      "next": "Reuse per-frame batch/transform buffers and cached integer/template keys rather than rebuilding dictionaries, lists and formatted strings."
+    },
+    {
+      "priority": 5,
+      "finding": "Long-range shadow rendering is a significant additional GPU cost.",
+      "evidence": "Fixed controls submit roughly 10 million primitives including shadow passes; all-shadows-off control submits about 3.27 million. Tree-shadow-only removal submits about 7.04 million, and terrain-shadow-only removal about 7.28 million.",
+      "source": "godot/scripts/scenery/WorldLighting.cs",
+      "next": "Keep nearby shadows; investigate tighter caster distance/LOD, static geometry batching and terrain shadow policy instead of disabling all shadows."
+    },
+    {
+      "priority": 6,
+      "finding": "Current bridges, cargo and industries are not the primary steady-frame bottlenecks in this save.",
+      "evidence": "Native industry update averages 0.008 ms and cargo synchronization 0.001 ms. Hiding the five bridge segments does not improve measured mean frame time in its run. Industry visibility removal changes about 32 draw calls.",
+      "next": "Prioritize the measured train/track/signal work before changing these systems."
+    }
+  ],
+  "limitations": [
+    "This is a current-save diagnosis, not a comparison against an older commit on the identical save; it cannot identify a particular historical regression.",
+    "GPU timing and total frame timing vary with clocks, scheduling and scene evolution. Visibility control timings are individual observations, not additive or guaranteed savings.",
+    "CPU scope timings are nested and overlap; GPU and CPU work overlap as well. Do not sum all columns.",
+    "Allocated-byte counters cover the current main thread only, excluding worker/native/GPU allocations. GC correlation does not establish the cause of every slow frame.",
+    "The camera stays still after streaming settles. Camera movement, initial loading, editing terrain and extra inspection viewports can add costs not measured here.",
+    "The measured viewport is 1280x800; larger resolutions and different hardware may change the balance."
+  ],
+  "profiles": {
+    "world": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 20.831428,
+          "p95": 26.2954,
+          "p99": 28.6602,
+          "max": 34.4144
+        },
+        "render.cpu": {
+          "mean": 4.66445,
+          "p95": 5.337,
+          "p99": 7.481,
+          "max": 7.556
+        },
+        "render.gpu": {
+          "mean": 7.44928,
+          "p95": 9.24,
+          "p99": 12.943,
+          "max": 12.998
+        },
+        "render.setup": {
+          "mean": 0.550217,
+          "p95": 0.685,
+          "p99": 0.885,
+          "max": 1.04
+        },
+        "render.draw_calls": {
+          "mean": 3417.973333,
+          "p95": 3506,
+          "p99": 3514,
+          "max": 3514
+        },
+        "render.primitives": {
+          "mean": 9989057.066667,
+          "p95": 10052662,
+          "p99": 10058554,
+          "max": 10058558
+        },
+        "scene.nodes": {
+          "mean": 22312.95,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 8.394527,
+          "p95": 13.6407,
+          "p99": 15.6919,
+          "max": 21.0262
+        },
+        "substeps.calls": {
+          "mean": 2,
+          "p95": 2,
+          "p99": 2,
+          "max": 2
+        },
+        "poses.apply": {
+          "mean": 2.899846,
+          "p95": 3.3514,
+          "p99": 4.7379,
+          "max": 4.9521
+        },
+        "curve.batch": {
+          "mean": 1.871256,
+          "p95": 1.9945,
+          "p99": 7.4536,
+          "max": 7.5456
+        },
+        "signals.update": {
+          "mean": 0.287708,
+          "p95": 0.8089,
+          "p99": 6.2343,
+          "max": 12.685
+        },
+        "orders.execute": {
+          "mean": 0.008551,
+          "p95": 0.012,
+          "p99": 0.0189,
+          "max": 0.0459
+        },
+        "signals.render.update": {
+          "mean": 1.93128,
+          "p95": 2.0517,
+          "p99": 2.3688,
+          "max": 2.7219
+        },
+        "track.render.update": {
+          "mean": 1.480635,
+          "p95": 1.6148,
+          "p99": 1.7831,
+          "max": 2.0905
+        },
+        "instances.sync": {
+          "mean": 0.531103,
+          "p95": 0.5569,
+          "p99": 5.9482,
+          "max": 7.0031
+        },
+        "terrain": {
+          "mean": 1.158732,
+          "p95": 1.2443,
+          "p99": 1.6066,
+          "max": 6.9259
+        },
+        "industries.update": {
+          "mean": 0.008155,
+          "p95": 0.0561,
+          "p99": 0.0747,
+          "max": 0.1196
+        },
+        "cargo.sync": {
+          "mean": 0.001343,
+          "p95": 0.0019,
+          "p99": 0.0029,
+          "max": 0.0035
+        },
+        "audio.update": {
+          "mean": 0.078395,
+          "p95": 0.0936,
+          "p99": 0.1292,
+          "max": 0.1965
+        },
+        "allocated.bytes": {
+          "mean": 783648.24,
+          "p95": 912280,
+          "p99": 929112,
+          "max": 931992
+        },
+        "train.update.allocated.bytes": {
+          "mean": 644840.853333,
+          "p95": 771280,
+          "p99": 790888,
+          "max": 792928
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167186.986667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 18,
+        "mean_frame_ms_with_collection": 26.451977777777778,
+        "mean_frame_ms_without_collection": 20.4726695035461
+      }
+    },
+    "world-uninstrumented": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 20.59616,
+          "p95": 25.9811,
+          "p99": 28.6096,
+          "max": 33.4932
+        },
+        "render.cpu": {
+          "mean": 4.59368,
+          "p95": 5.024,
+          "p99": 6.093,
+          "max": 9.809
+        },
+        "render.gpu": {
+          "mean": 7.45637,
+          "p95": 9.505,
+          "p99": 12.908,
+          "max": 13.159
+        },
+        "render.setup": {
+          "mean": 0.53491,
+          "p95": 0.666,
+          "p99": 0.77,
+          "max": 0.919
+        },
+        "render.draw_calls": {
+          "mean": 3420.85,
+          "p95": 3506,
+          "p99": 3514,
+          "max": 3514
+        },
+        "render.primitives": {
+          "mean": 9993950.733333,
+          "p95": 10052666,
+          "p99": 10058552,
+          "max": 10058556
+        },
+        "scene.nodes": {
+          "mean": 22312.993333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "allocated.bytes": {
+          "mean": 762761.52,
+          "p95": 892904,
+          "p99": 905200,
+          "max": 911864
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 18,
+        "mean_frame_ms_with_collection": 26.444411111111112,
+        "mean_frame_ms_without_collection": 20.222867375886526
+      }
+    },
+    "world-fixed": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 18.56004,
+          "p95": 23.6714,
+          "p99": 29.7156,
+          "max": 30.8929
+        },
+        "render.cpu": {
+          "mean": 4.927557,
+          "p95": 5.944,
+          "p99": 7.349,
+          "max": 7.404
+        },
+        "render.gpu": {
+          "mean": 11.407413,
+          "p95": 13.31,
+          "p99": 13.765,
+          "max": 14.817
+        },
+        "render.setup": {
+          "mean": 0.529357,
+          "p95": 0.704,
+          "p99": 0.824,
+          "max": 0.871
+        },
+        "render.draw_calls": {
+          "mean": 3436.72,
+          "p95": 3506,
+          "p99": 3514,
+          "max": 3514
+        },
+        "render.primitives": {
+          "mean": 10017439.493333,
+          "p95": 10052670,
+          "p99": 10058554,
+          "max": 10058558
+        },
+        "scene.nodes": {
+          "mean": 22313.823333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.598413,
+          "p95": 6.7452,
+          "p99": 14.9344,
+          "max": 18.2621
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.987183,
+          "p95": 1.0496,
+          "p99": 8.7753,
+          "max": 9.694
+        },
+        "signals.update": {
+          "mean": 0.187829,
+          "p95": 0.7738,
+          "p99": 0.9296,
+          "max": 12.8968
+        },
+        "orders.execute": {
+          "mean": 0.005844,
+          "p95": 0.0082,
+          "p99": 0.0106,
+          "max": 0.0143
+        },
+        "track.render.update": {
+          "mean": 1.488804,
+          "p95": 1.7457,
+          "p99": 1.8772,
+          "max": 1.9614
+        },
+        "instances.sync": {
+          "mean": 0.592702,
+          "p95": 0.6345,
+          "p99": 8.52,
+          "max": 9.8956
+        },
+        "terrain": {
+          "mean": 1.196203,
+          "p95": 1.3097,
+          "p99": 8.8414,
+          "max": 9.2654
+        },
+        "industries.update": {
+          "mean": 0.008078,
+          "p95": 0.0603,
+          "p99": 0.0934,
+          "max": 0.1192
+        },
+        "cargo.sync": {
+          "mean": 0.001522,
+          "p95": 0.0025,
+          "p99": 0.0043,
+          "max": 0.0063
+        },
+        "audio.update": {
+          "mean": 0.080123,
+          "p95": 0.1026,
+          "p99": 0.1288,
+          "max": 0.1403
+        },
+        "allocated.bytes": {
+          "mean": 544501.04,
+          "p95": 677040,
+          "p99": 685320,
+          "max": 697080
+        },
+        "train.update.allocated.bytes": {
+          "mean": 405909.84,
+          "p95": 533176,
+          "p99": 542552,
+          "max": 557592
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167492.106667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 11,
+        "mean_frame_ms_with_collection": 26.736981818181818,
+        "mean_frame_ms_without_collection": 18.248806920415223
+      }
+    },
+    "world-fixed-detail": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.672708,
+          "p95": 24.5127,
+          "p99": 27.8922,
+          "max": 33.0509
+        },
+        "render.cpu": {
+          "mean": 4.705497,
+          "p95": 5.565,
+          "p99": 7.191,
+          "max": 9.124
+        },
+        "render.gpu": {
+          "mean": 11.689347,
+          "p95": 13.197,
+          "p99": 14.184,
+          "max": 15.624
+        },
+        "render.setup": {
+          "mean": 0.522497,
+          "p95": 0.664,
+          "p99": 0.768,
+          "max": 1.495
+        },
+        "render.draw_calls": {
+          "mean": 3435.653333,
+          "p95": 3506,
+          "p99": 3514,
+          "max": 3514
+        },
+        "render.primitives": {
+          "mean": 10016368.093333,
+          "p95": 10052668,
+          "p99": 10058550,
+          "max": 10058554
+        },
+        "scene.nodes": {
+          "mean": 22313.783333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.374823,
+          "p95": 5.8956,
+          "p99": 15.7512,
+          "max": 17.391
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 2.177091,
+          "p95": 2.4218,
+          "p99": 2.8648,
+          "max": 3.2459
+        },
+        "curve.batch": {
+          "mean": 0.980122,
+          "p95": 0.9546,
+          "p99": 8.7625,
+          "max": 9.4392
+        },
+        "signals.update": {
+          "mean": 0.174988,
+          "p95": 0.7514,
+          "p99": 0.8248,
+          "max": 12.4023
+        },
+        "orders.execute": {
+          "mean": 0.005556,
+          "p95": 0.0074,
+          "p99": 0.0092,
+          "max": 0.01
+        },
+        "signals.render.update": {
+          "mean": 1.922222,
+          "p95": 2.0793,
+          "p99": 2.5072,
+          "max": 3.6528
+        },
+        "track.render.update": {
+          "mean": 1.418288,
+          "p95": 1.5138,
+          "p99": 1.6434,
+          "max": 2.3335
+        },
+        "instances.sync": {
+          "mean": 0.513468,
+          "p95": 0.6008,
+          "p99": 0.7147,
+          "max": 9.003
+        },
+        "terrain": {
+          "mean": 1.128695,
+          "p95": 1.191,
+          "p99": 1.5238,
+          "max": 8.642
+        },
+        "industries.update": {
+          "mean": 0.007744,
+          "p95": 0.0593,
+          "p99": 0.0815,
+          "max": 0.1212
+        },
+        "cargo.sync": {
+          "mean": 0.001271,
+          "p95": 0.0019,
+          "p99": 0.0029,
+          "max": 0.0046
+        },
+        "audio.update": {
+          "mean": 0.076886,
+          "p95": 0.0991,
+          "p99": 0.1227,
+          "max": 0.1364
+        },
+        "allocated.bytes": {
+          "mean": 548191.226667,
+          "p95": 680960,
+          "p99": 687800,
+          "max": 700408
+        },
+        "train.update.allocated.bytes": {
+          "mean": 409219.493333,
+          "p95": 536128,
+          "p99": 542600,
+          "max": 560888
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167478.32,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.931308333333334,
+        "mean_frame_ms_without_collection": 17.32859965277778
+      }
+    },
+    "world-fixed-uninstrumented": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.684093,
+          "p95": 24.4157,
+          "p99": 27.7071,
+          "max": 29.3325
+        },
+        "render.cpu": {
+          "mean": 4.62338,
+          "p95": 5.184,
+          "p99": 7.457,
+          "max": 9.066
+        },
+        "render.gpu": {
+          "mean": 11.820583,
+          "p95": 13.271,
+          "p99": 13.692,
+          "max": 14.448
+        },
+        "render.setup": {
+          "mean": 0.515917,
+          "p95": 0.668,
+          "p99": 0.728,
+          "max": 0.745
+        },
+        "render.draw_calls": {
+          "mean": 3435.653333,
+          "p95": 3506,
+          "p99": 3514,
+          "max": 3514
+        },
+        "render.primitives": {
+          "mean": 10016367.753333,
+          "p95": 10052666,
+          "p99": 10058550,
+          "max": 10058554
+        },
+        "scene.nodes": {
+          "mean": 22313.783333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "allocated.bytes": {
+          "mean": 536363.786667,
+          "p95": 669400,
+          "p99": 676008,
+          "max": 687776
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.346066666666665,
+        "mean_frame_ms_without_collection": 17.36484409722222
+      }
+    },
+    "world-fixed-notracks": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 13.045407,
+          "p95": 20.7052,
+          "p99": 23.6201,
+          "max": 33.368
+        },
+        "render.cpu": {
+          "mean": 1.413357,
+          "p95": 1.738,
+          "p99": 2.798,
+          "max": 3.012
+        },
+        "render.gpu": {
+          "mean": 8.39444,
+          "p95": 11.801,
+          "p99": 11.892,
+          "max": 11.999
+        },
+        "render.setup": {
+          "mean": 0.406347,
+          "p95": 0.573,
+          "p99": 0.806,
+          "max": 0.929
+        },
+        "render.draw_calls": {
+          "mean": 762.04,
+          "p95": 815,
+          "p99": 815,
+          "max": 815
+        },
+        "render.primitives": {
+          "mean": 8860199.833333,
+          "p95": 8883504,
+          "p99": 8883518,
+          "max": 8883520
+        },
+        "scene.nodes": {
+          "mean": 22314.513333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 4.866642,
+          "p95": 6.5516,
+          "p99": 15.3759,
+          "max": 24.5048
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.91728,
+          "p95": 0.9638,
+          "p99": 8.9611,
+          "max": 9.4879
+        },
+        "signals.update": {
+          "mean": 0.226487,
+          "p95": 0.7322,
+          "p99": 10.8552,
+          "max": 19.6877
+        },
+        "orders.execute": {
+          "mean": 0.004006,
+          "p95": 0.0061,
+          "p99": 0.0087,
+          "max": 0.0099
+        },
+        "track.render.update": {
+          "mean": 1.336187,
+          "p95": 1.5089,
+          "p99": 2.0093,
+          "max": 2.279
+        },
+        "instances.sync": {
+          "mean": 0.5233,
+          "p95": 0.574,
+          "p99": 8.4296,
+          "max": 8.7724
+        },
+        "terrain": {
+          "mean": 1.031821,
+          "p95": 1.135,
+          "p99": 1.6814,
+          "max": 9.5263
+        },
+        "industries.update": {
+          "mean": 0.006075,
+          "p95": 0.0563,
+          "p99": 0.0863,
+          "max": 0.1959
+        },
+        "cargo.sync": {
+          "mean": 0.001361,
+          "p95": 0.0022,
+          "p99": 0.0029,
+          "max": 0.0039
+        },
+        "audio.update": {
+          "mean": 0.067482,
+          "p95": 0.0874,
+          "p99": 0.1064,
+          "max": 0.1394
+        },
+        "allocated.bytes": {
+          "mean": 532556.826667,
+          "p95": 666152,
+          "p99": 682016,
+          "max": 703312
+        },
+        "train.update.allocated.bytes": {
+          "mean": 396282,
+          "p95": 528288,
+          "p99": 538672,
+          "max": 555792
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167792.133333,
+          "p95": 170264,
+          "p99": 170296,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 21.898741666666666,
+        "mean_frame_ms_without_collection": 12.676518402777777
+      }
+    },
+    "world-fixed-nosignals": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 15.537141,
+          "p95": 22.7552,
+          "p99": 26.0833,
+          "max": 35.3557
+        },
+        "render.cpu": {
+          "mean": 3.104067,
+          "p95": 3.68,
+          "p99": 4.346,
+          "max": 5.973
+        },
+        "render.gpu": {
+          "mean": 10.308227,
+          "p95": 13.112,
+          "p99": 13.223,
+          "max": 13.46
+        },
+        "render.setup": {
+          "mean": 0.461123,
+          "p95": 0.611,
+          "p99": 0.835,
+          "max": 1.011
+        },
+        "render.draw_calls": {
+          "mean": 2047.536667,
+          "p95": 2106,
+          "p99": 2114,
+          "max": 2114
+        },
+        "render.primitives": {
+          "mean": 9963427.76,
+          "p95": 9989370,
+          "p99": 9995234,
+          "max": 9995236
+        },
+        "scene.nodes": {
+          "mean": 22314.103333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.241411,
+          "p95": 6.6229,
+          "p99": 15.7119,
+          "max": 24.5361
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 1.996615,
+          "p95": 2.2228,
+          "p99": 2.6275,
+          "max": 2.7063
+        },
+        "curve.batch": {
+          "mean": 0.93488,
+          "p95": 0.9749,
+          "p99": 9.0632,
+          "max": 9.1941
+        },
+        "signals.update": {
+          "mean": 0.233408,
+          "p95": 0.7398,
+          "p99": 11.0058,
+          "max": 20.003
+        },
+        "orders.execute": {
+          "mean": 0.005015,
+          "p95": 0.0068,
+          "p99": 0.0087,
+          "max": 0.0109
+        },
+        "signals.render.update": {
+          "mean": 1.848313,
+          "p95": 1.9971,
+          "p99": 2.7153,
+          "max": 3.1127
+        },
+        "track.render.update": {
+          "mean": 1.413244,
+          "p95": 1.5436,
+          "p99": 2.0615,
+          "max": 3.048
+        },
+        "instances.sync": {
+          "mean": 0.606528,
+          "p95": 0.5547,
+          "p99": 8.5107,
+          "max": 8.7701
+        },
+        "terrain": {
+          "mean": 1.086541,
+          "p95": 1.1501,
+          "p99": 1.5104,
+          "max": 8.5319
+        },
+        "industries.update": {
+          "mean": 0.006388,
+          "p95": 0.0542,
+          "p99": 0.081,
+          "max": 0.129
+        },
+        "cargo.sync": {
+          "mean": 0.00154,
+          "p95": 0.0024,
+          "p99": 0.003,
+          "max": 0.0035
+        },
+        "audio.update": {
+          "mean": 0.07343,
+          "p95": 0.0862,
+          "p99": 0.1107,
+          "max": 0.1389
+        },
+        "allocated.bytes": {
+          "mean": 543473.653333,
+          "p95": 677296,
+          "p99": 687824,
+          "max": 706720
+        },
+        "train.update.allocated.bytes": {
+          "mean": 404657.973333,
+          "p95": 534208,
+          "p99": 543728,
+          "max": 561152
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167597.44,
+          "p95": 170264,
+          "p99": 170320,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 23.662491666666668,
+        "mean_frame_ms_without_collection": 15.198585069444444
+      }
+    },
+    "world-fixed-nosleepers": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 18.057223,
+          "p95": 24.8508,
+          "p99": 27.4968,
+          "max": 29.3676
+        },
+        "render.cpu": {
+          "mean": 4.905313,
+          "p95": 5.792,
+          "p99": 7.748,
+          "max": 11.775
+        },
+        "render.gpu": {
+          "mean": 10.891967,
+          "p95": 12.961,
+          "p99": 13.092,
+          "max": 13.28
+        },
+        "render.setup": {
+          "mean": 0.50894,
+          "p95": 0.645,
+          "p99": 0.993,
+          "max": 1.044
+        },
+        "render.draw_calls": {
+          "mean": 3405.72,
+          "p95": 3475,
+          "p99": 3483,
+          "max": 3483
+        },
+        "render.primitives": {
+          "mean": 10008320.64,
+          "p95": 10043554,
+          "p99": 10049434,
+          "max": 10049438
+        },
+        "scene.nodes": {
+          "mean": 22313.823333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.456162,
+          "p95": 6.5342,
+          "p99": 14.2564,
+          "max": 17.7413
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 2.212863,
+          "p95": 2.4949,
+          "p99": 2.9513,
+          "max": 3.7015
+        },
+        "curve.batch": {
+          "mean": 1.007995,
+          "p95": 0.9651,
+          "p99": 8.8518,
+          "max": 9.2881
+        },
+        "signals.update": {
+          "mean": 0.179853,
+          "p95": 0.7591,
+          "p99": 0.9375,
+          "max": 12.8041
+        },
+        "orders.execute": {
+          "mean": 0.005615,
+          "p95": 0.0073,
+          "p99": 0.0093,
+          "max": 0.018
+        },
+        "signals.render.update": {
+          "mean": 1.920568,
+          "p95": 2.1095,
+          "p99": 2.7441,
+          "max": 3.4325
+        },
+        "track.render.update": {
+          "mean": 1.453061,
+          "p95": 1.5937,
+          "p99": 1.9413,
+          "max": 2.0852
+        },
+        "instances.sync": {
+          "mean": 0.514051,
+          "p95": 0.5699,
+          "p99": 0.8238,
+          "max": 7.8689
+        },
+        "terrain": {
+          "mean": 1.149857,
+          "p95": 1.2227,
+          "p99": 2.4291,
+          "max": 8.84
+        },
+        "industries.update": {
+          "mean": 0.007467,
+          "p95": 0.0568,
+          "p99": 0.0842,
+          "max": 0.1336
+        },
+        "cargo.sync": {
+          "mean": 0.001459,
+          "p95": 0.0023,
+          "p99": 0.0039,
+          "max": 0.0047
+        },
+        "audio.update": {
+          "mean": 0.077899,
+          "p95": 0.0932,
+          "p99": 0.1198,
+          "max": 0.1891
+        },
+        "allocated.bytes": {
+          "mean": 548239.093333,
+          "p95": 681184,
+          "p99": 689392,
+          "max": 700544
+        },
+        "train.update.allocated.bytes": {
+          "mean": 408794.746667,
+          "p95": 536112,
+          "p99": 546032,
+          "max": 560528
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167492.106667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.384875,
+        "mean_frame_ms_without_collection": 17.751903819444443
+      }
+    },
+    "world-fixed-nobridges": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 18.671175,
+          "p95": 25.461,
+          "p99": 30.2667,
+          "max": 48.6402
+        },
+        "render.cpu": {
+          "mean": 5.08002,
+          "p95": 6.2,
+          "p99": 7.761,
+          "max": 9.625
+        },
+        "render.gpu": {
+          "mean": 9.749463,
+          "p95": 13.168,
+          "p99": 14.662,
+          "max": 15.076
+        },
+        "render.setup": {
+          "mean": 0.535173,
+          "p95": 0.729,
+          "p99": 1.147,
+          "max": 1.523
+        },
+        "render.draw_calls": {
+          "mean": 3306.37,
+          "p95": 3378,
+          "p99": 3378,
+          "max": 3386
+        },
+        "render.primitives": {
+          "mean": 10007381.2,
+          "p95": 10045032,
+          "p99": 10045054,
+          "max": 10050926
+        },
+        "scene.nodes": {
+          "mean": 22313.756667,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.538748,
+          "p95": 6.8763,
+          "p99": 14.1229,
+          "max": 19.698
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 2.259069,
+          "p95": 2.6491,
+          "p99": 3.5805,
+          "max": 3.9991
+        },
+        "curve.batch": {
+          "mean": 0.925299,
+          "p95": 1.0759,
+          "p99": 1.2511,
+          "max": 8.9396
+        },
+        "signals.update": {
+          "mean": 0.188408,
+          "p95": 0.7529,
+          "p99": 1.2414,
+          "max": 14.0721
+        },
+        "orders.execute": {
+          "mean": 0.006142,
+          "p95": 0.0088,
+          "p99": 0.0106,
+          "max": 0.0131
+        },
+        "signals.render.update": {
+          "mean": 2.007075,
+          "p95": 2.3102,
+          "p99": 2.7883,
+          "max": 4.1788
+        },
+        "track.render.update": {
+          "mean": 1.452758,
+          "p95": 1.6847,
+          "p99": 2.3073,
+          "max": 2.7226
+        },
+        "instances.sync": {
+          "mean": 0.591802,
+          "p95": 0.651,
+          "p99": 8.3314,
+          "max": 9.2633
+        },
+        "terrain": {
+          "mean": 1.176605,
+          "p95": 1.267,
+          "p99": 8.7332,
+          "max": 9.1861
+        },
+        "industries.update": {
+          "mean": 0.008108,
+          "p95": 0.0578,
+          "p99": 0.0936,
+          "max": 0.1153
+        },
+        "cargo.sync": {
+          "mean": 0.001683,
+          "p95": 0.003,
+          "p99": 0.006,
+          "max": 0.009
+        },
+        "audio.update": {
+          "mean": 0.080511,
+          "p95": 0.1047,
+          "p99": 0.1286,
+          "max": 0.1672
+        },
+        "allocated.bytes": {
+          "mean": 548461.253333,
+          "p95": 681072,
+          "p99": 687240,
+          "max": 700816
+        },
+        "train.update.allocated.bytes": {
+          "mean": 409480.186667,
+          "p95": 536448,
+          "p99": 543160,
+          "max": 561128
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167469.546667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 26.223191666666665,
+        "mean_frame_ms_without_collection": 18.35650798611111
+      }
+    },
+    "world-fixed-notrains": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.468817,
+          "p95": 22.9966,
+          "p99": 28.5532,
+          "max": 34.0776
+        },
+        "render.cpu": {
+          "mean": 4.325127,
+          "p95": 5.109,
+          "p99": 6.637,
+          "max": 7.794
+        },
+        "render.gpu": {
+          "mean": 10.024587,
+          "p95": 12.168,
+          "p99": 12.376,
+          "max": 12.6
+        },
+        "render.setup": {
+          "mean": 0.49958,
+          "p95": 0.654,
+          "p99": 0.856,
+          "max": 0.877
+        },
+        "render.draw_calls": {
+          "mean": 3190,
+          "p95": 3190,
+          "p99": 3190,
+          "max": 3190
+        },
+        "render.primitives": {
+          "mean": 9273680,
+          "p95": 9273680,
+          "p99": 9273680,
+          "max": 9273680
+        },
+        "scene.nodes": {
+          "mean": 22313.88,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.43908,
+          "p95": 6.4277,
+          "p99": 15.9232,
+          "max": 18.1556
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.932611,
+          "p95": 1.0265,
+          "p99": 8.8758,
+          "max": 9.0484
+        },
+        "signals.update": {
+          "mean": 0.181278,
+          "p95": 0.7544,
+          "p99": 1.1895,
+          "max": 12.8916
+        },
+        "orders.execute": {
+          "mean": 0.005823,
+          "p95": 0.008,
+          "p99": 0.0099,
+          "max": 0.0105
+        },
+        "track.render.update": {
+          "mean": 1.440075,
+          "p95": 1.5905,
+          "p99": 1.8309,
+          "max": 2.0434
+        },
+        "instances.sync": {
+          "mean": 0.572423,
+          "p95": 0.5925,
+          "p99": 8.3017,
+          "max": 8.4542
+        },
+        "terrain": {
+          "mean": 1.138666,
+          "p95": 1.2182,
+          "p99": 1.5314,
+          "max": 8.8589
+        },
+        "industries.update": {
+          "mean": 0.033377,
+          "p95": 0.0598,
+          "p99": 0.0957,
+          "max": 7.796
+        },
+        "cargo.sync": {
+          "mean": 0.001402,
+          "p95": 0.0021,
+          "p99": 0.003,
+          "max": 0.0044
+        },
+        "audio.update": {
+          "mean": 0.078917,
+          "p95": 0.0985,
+          "p99": 0.1294,
+          "max": 0.1356
+        },
+        "allocated.bytes": {
+          "mean": 543412.24,
+          "p95": 675528,
+          "p99": 686888,
+          "max": 696808
+        },
+        "train.update.allocated.bytes": {
+          "mean": 405090.96,
+          "p95": 532400,
+          "p99": 541504,
+          "max": 557968
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167513.866667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.911283333333333,
+        "mean_frame_ms_without_collection": 17.117047569444445
+      }
+    },
+    "world-fixed-noindustries": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.602691,
+          "p95": 23.2989,
+          "p99": 27.5725,
+          "max": 32.1082
+        },
+        "render.cpu": {
+          "mean": 4.54752,
+          "p95": 5.143,
+          "p99": 6.337,
+          "max": 6.388
+        },
+        "render.gpu": {
+          "mean": 11.345387,
+          "p95": 12.996,
+          "p99": 13.662,
+          "max": 14.757
+        },
+        "render.setup": {
+          "mean": 0.509653,
+          "p95": 0.63,
+          "p99": 0.774,
+          "max": 1.254
+        },
+        "render.draw_calls": {
+          "mean": 3404.37,
+          "p95": 3476,
+          "p99": 3476,
+          "max": 3484
+        },
+        "render.primitives": {
+          "mean": 10013739.28,
+          "p95": 10051388,
+          "p99": 10051408,
+          "max": 10057282
+        },
+        "scene.nodes": {
+          "mean": 22313.756667,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.350323,
+          "p95": 5.8066,
+          "p99": 15.7055,
+          "max": 17.5063
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.901511,
+          "p95": 0.9405,
+          "p99": 1.535,
+          "max": 9.3449
+        },
+        "signals.update": {
+          "mean": 0.177246,
+          "p95": 0.7558,
+          "p99": 0.8102,
+          "max": 12.3236
+        },
+        "orders.execute": {
+          "mean": 0.005882,
+          "p95": 0.0077,
+          "p99": 0.0108,
+          "max": 0.011
+        },
+        "track.render.update": {
+          "mean": 1.42355,
+          "p95": 1.541,
+          "p99": 2.0012,
+          "max": 2.1122
+        },
+        "instances.sync": {
+          "mean": 0.539185,
+          "p95": 0.5648,
+          "p99": 0.7472,
+          "max": 9.715
+        },
+        "terrain": {
+          "mean": 1.180962,
+          "p95": 1.1925,
+          "p99": 8.3478,
+          "max": 9.1398
+        },
+        "industries.update": {
+          "mean": 0.008205,
+          "p95": 0.059,
+          "p99": 0.1136,
+          "max": 0.2155
+        },
+        "cargo.sync": {
+          "mean": 0.00133,
+          "p95": 0.0019,
+          "p99": 0.0028,
+          "max": 0.0064
+        },
+        "audio.update": {
+          "mean": 0.077717,
+          "p95": 0.0947,
+          "p99": 0.123,
+          "max": 0.3045
+        },
+        "allocated.bytes": {
+          "mean": 544783.546667,
+          "p95": 676504,
+          "p99": 684960,
+          "max": 695640
+        },
+        "train.update.allocated.bytes": {
+          "mean": 406790.4,
+          "p95": 533512,
+          "p99": 540224,
+          "max": 558192
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167469.546667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.668666666666667,
+        "mean_frame_ms_without_collection": 17.266608333333334
+      }
+    },
+    "world-fixed-notrees": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.986816,
+          "p95": 24.7693,
+          "p99": 29.4224,
+          "max": 35.1994
+        },
+        "render.cpu": {
+          "mean": 4.7615,
+          "p95": 5.43,
+          "p99": 6.502,
+          "max": 8.503
+        },
+        "render.gpu": {
+          "mean": 7.71784,
+          "p95": 9.103,
+          "p99": 12.099,
+          "max": 13.718
+        },
+        "render.setup": {
+          "mean": 0.517283,
+          "p95": 0.66,
+          "p99": 0.939,
+          "max": 1.305
+        },
+        "render.draw_calls": {
+          "mean": 3248.653333,
+          "p95": 3319,
+          "p99": 3327,
+          "max": 3327
+        },
+        "render.primitives": {
+          "mean": 6103567,
+          "p95": 6139868,
+          "p99": 6145754,
+          "max": 6145756
+        },
+        "scene.nodes": {
+          "mean": 22313.783333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.434698,
+          "p95": 6.5968,
+          "p99": 14.7056,
+          "max": 17.6684
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.920189,
+          "p95": 0.9986,
+          "p99": 1.215,
+          "max": 9.6566
+        },
+        "signals.update": {
+          "mean": 0.207467,
+          "p95": 0.7632,
+          "p99": 9.763,
+          "max": 12.5999
+        },
+        "orders.execute": {
+          "mean": 0.005502,
+          "p95": 0.0072,
+          "p99": 0.0102,
+          "max": 0.0123
+        },
+        "track.render.update": {
+          "mean": 1.42703,
+          "p95": 1.6088,
+          "p99": 2.0481,
+          "max": 2.9073
+        },
+        "instances.sync": {
+          "mean": 0.567069,
+          "p95": 0.5894,
+          "p99": 7.7005,
+          "max": 8.5854
+        },
+        "terrain": {
+          "mean": 1.123472,
+          "p95": 1.2167,
+          "p99": 1.9663,
+          "max": 8.228
+        },
+        "industries.update": {
+          "mean": 0.007381,
+          "p95": 0.0561,
+          "p99": 0.1011,
+          "max": 0.1236
+        },
+        "cargo.sync": {
+          "mean": 0.001732,
+          "p95": 0.0026,
+          "p99": 0.0038,
+          "max": 0.0044
+        },
+        "audio.update": {
+          "mean": 0.078589,
+          "p95": 0.0997,
+          "p99": 0.1301,
+          "max": 0.1404
+        },
+        "allocated.bytes": {
+          "mean": 544421.146667,
+          "p95": 677344,
+          "p99": 685128,
+          "max": 696544
+        },
+        "train.update.allocated.bytes": {
+          "mean": 406219.36,
+          "p95": 533192,
+          "p99": 539496,
+          "max": 557952
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167478.32,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 11,
+        "mean_frame_ms_with_collection": 25.3772,
+        "mean_frame_ms_without_collection": 17.705521107266435
+      }
+    },
+    "world-fixed-noshadows": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 16.861601,
+          "p95": 23.5941,
+          "p99": 26.5371,
+          "max": 28.5355
+        },
+        "render.cpu": {
+          "mean": 3.753377,
+          "p95": 4.781,
+          "p99": 6.283,
+          "max": 7.073
+        },
+        "render.gpu": {
+          "mean": 7.1482,
+          "p95": 7.881,
+          "p99": 9.984,
+          "max": 10.915
+        },
+        "render.setup": {
+          "mean": 0.51521,
+          "p95": 0.648,
+          "p99": 0.896,
+          "max": 1.182
+        },
+        "render.draw_calls": {
+          "mean": 1846.006667,
+          "p95": 1902,
+          "p99": 1902,
+          "max": 1902
+        },
+        "render.primitives": {
+          "mean": 3273445.96,
+          "p95": 3290427,
+          "p99": 3290439,
+          "max": 3290439
+        },
+        "scene.nodes": {
+          "mean": 22312.803333,
+          "p95": 22318,
+          "p99": 22318,
+          "max": 22318
+        },
+        "train.update": {
+          "mean": 5.488747,
+          "p95": 7.1492,
+          "p99": 13.8991,
+          "max": 17.6938
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 1.022814,
+          "p95": 1.0794,
+          "p99": 8.5712,
+          "max": 9.0217
+        },
+        "signals.update": {
+          "mean": 0.182662,
+          "p95": 0.773,
+          "p99": 0.8403,
+          "max": 12.7754
+        },
+        "orders.execute": {
+          "mean": 0.005613,
+          "p95": 0.008,
+          "p99": 0.0103,
+          "max": 0.0114
+        },
+        "track.render.update": {
+          "mean": 1.447662,
+          "p95": 1.6361,
+          "p99": 2.0214,
+          "max": 2.2444
+        },
+        "instances.sync": {
+          "mean": 0.548484,
+          "p95": 0.5839,
+          "p99": 7.7281,
+          "max": 8.2522
+        },
+        "terrain": {
+          "mean": 1.108127,
+          "p95": 1.2025,
+          "p99": 1.5196,
+          "max": 9.2262
+        },
+        "industries.update": {
+          "mean": 0.007601,
+          "p95": 0.0587,
+          "p99": 0.0868,
+          "max": 0.1449
+        },
+        "cargo.sync": {
+          "mean": 0.001381,
+          "p95": 0.0021,
+          "p99": 0.0036,
+          "max": 0.0068
+        },
+        "audio.update": {
+          "mean": 0.077152,
+          "p95": 0.0989,
+          "p99": 0.1333,
+          "max": 0.1399
+        },
+        "allocated.bytes": {
+          "mean": 545946.933333,
+          "p95": 671976,
+          "p99": 678528,
+          "max": 692408
+        },
+        "train.update.allocated.bytes": {
+          "mean": 413976.16,
+          "p95": 538832,
+          "p99": 542304,
+          "max": 563128
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167044.56,
+          "p95": 170048,
+          "p99": 170312,
+          "max": 170736
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 24.804433333333336,
+        "mean_frame_ms_without_collection": 16.53064965277778
+      }
+    },
+    "world-fixed-noterrainshadows": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.799371,
+          "p95": 23.0628,
+          "p99": 26.2604,
+          "max": 29.3784
+        },
+        "render.cpu": {
+          "mean": 4.797847,
+          "p95": 5.374,
+          "p99": 6.193,
+          "max": 7.693
+        },
+        "render.gpu": {
+          "mean": 10.012623,
+          "p95": 11.583,
+          "p99": 12.421,
+          "max": 13.018
+        },
+        "render.setup": {
+          "mean": 0.505013,
+          "p95": 0.637,
+          "p99": 0.72,
+          "max": 0.746
+        },
+        "render.draw_calls": {
+          "mean": 3320.653333,
+          "p95": 3391,
+          "p99": 3399,
+          "max": 3399
+        },
+        "render.primitives": {
+          "mean": 7282196.606667,
+          "p95": 7318495,
+          "p99": 7324379,
+          "max": 7324383
+        },
+        "scene.nodes": {
+          "mean": 22313.783333,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.234296,
+          "p95": 5.8419,
+          "p99": 13.0243,
+          "max": 17.4395
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 2.144239,
+          "p95": 2.3589,
+          "p99": 2.7648,
+          "max": 4.0179
+        },
+        "curve.batch": {
+          "mean": 0.8686,
+          "p95": 0.9275,
+          "p99": 1.1095,
+          "max": 8.7603
+        },
+        "signals.update": {
+          "mean": 0.174993,
+          "p95": 0.7495,
+          "p99": 0.843,
+          "max": 12.4828
+        },
+        "orders.execute": {
+          "mean": 0.005526,
+          "p95": 0.0071,
+          "p99": 0.0088,
+          "max": 0.0166
+        },
+        "signals.render.update": {
+          "mean": 1.943673,
+          "p95": 2.0982,
+          "p99": 2.5815,
+          "max": 2.7401
+        },
+        "track.render.update": {
+          "mean": 1.443857,
+          "p95": 1.5462,
+          "p99": 1.6795,
+          "max": 2.0806
+        },
+        "instances.sync": {
+          "mean": 0.535793,
+          "p95": 0.5795,
+          "p99": 0.9419,
+          "max": 8.4413
+        },
+        "terrain": {
+          "mean": 1.24408,
+          "p95": 1.2121,
+          "p99": 9.1164,
+          "max": 9.3096
+        },
+        "industries.update": {
+          "mean": 0.007232,
+          "p95": 0.0576,
+          "p99": 0.0775,
+          "max": 0.0966
+        },
+        "cargo.sync": {
+          "mean": 0.001601,
+          "p95": 0.0026,
+          "p99": 0.0041,
+          "max": 0.0074
+        },
+        "audio.update": {
+          "mean": 0.075414,
+          "p95": 0.09,
+          "p99": 0.1604,
+          "max": 0.167
+        },
+        "allocated.bytes": {
+          "mean": 548070.666667,
+          "p95": 680944,
+          "p99": 687008,
+          "max": 700504
+        },
+        "train.update.allocated.bytes": {
+          "mean": 409173.226667,
+          "p95": 536280,
+          "p99": 542432,
+          "max": 560888
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167478.32,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.218725,
+        "mean_frame_ms_without_collection": 17.49023090277778
+      }
+    },
+    "world-fixed-notreeshadows": {
+      "frames": 300,
+      "summary": {
+        "elapsed": {
+          "mean": 17.808172,
+          "p95": 24.5034,
+          "p99": 29.8902,
+          "max": 32.1697
+        },
+        "render.cpu": {
+          "mean": 4.607823,
+          "p95": 5.373,
+          "p99": 6.385,
+          "max": 8.638
+        },
+        "render.gpu": {
+          "mean": 9.221287,
+          "p95": 10.618,
+          "p99": 10.831,
+          "max": 11.599
+        },
+        "render.setup": {
+          "mean": 0.493723,
+          "p95": 0.621,
+          "p99": 0.736,
+          "max": 0.82
+        },
+        "render.draw_calls": {
+          "mean": 3307.183333,
+          "p95": 3374,
+          "p99": 3382,
+          "max": 3382
+        },
+        "render.primitives": {
+          "mean": 7038671.646667,
+          "p95": 7071598,
+          "p99": 7077476,
+          "max": 7077482
+        },
+        "scene.nodes": {
+          "mean": 22313.88,
+          "p95": 22319,
+          "p99": 22319,
+          "max": 22319
+        },
+        "train.update": {
+          "mean": 5.464607,
+          "p95": 6.5662,
+          "p99": 13.7445,
+          "max": 18.2711
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 2.217956,
+          "p95": 2.4606,
+          "p99": 2.9063,
+          "max": 3.2819
+        },
+        "curve.batch": {
+          "mean": 0.989031,
+          "p95": 1.0096,
+          "p99": 8.7454,
+          "max": 9.2244
+        },
+        "signals.update": {
+          "mean": 0.183626,
+          "p95": 0.7673,
+          "p99": 0.8613,
+          "max": 13.2944
+        },
+        "orders.execute": {
+          "mean": 0.005708,
+          "p95": 0.0075,
+          "p99": 0.009,
+          "max": 0.0111
+        },
+        "signals.render.update": {
+          "mean": 1.932224,
+          "p95": 2.0791,
+          "p99": 2.6266,
+          "max": 3.392
+        },
+        "track.render.update": {
+          "mean": 1.466266,
+          "p95": 1.5808,
+          "p99": 2.2549,
+          "max": 3.0789
+        },
+        "instances.sync": {
+          "mean": 0.515199,
+          "p95": 0.611,
+          "p99": 0.7321,
+          "max": 7.6087
+        },
+        "terrain": {
+          "mean": 1.146074,
+          "p95": 1.2096,
+          "p99": 1.9761,
+          "max": 9.6688
+        },
+        "industries.update": {
+          "mean": 0.007656,
+          "p95": 0.0571,
+          "p99": 0.0878,
+          "max": 0.1408
+        },
+        "cargo.sync": {
+          "mean": 0.0014,
+          "p95": 0.0023,
+          "p99": 0.0034,
+          "max": 0.004
+        },
+        "audio.update": {
+          "mean": 0.079527,
+          "p95": 0.1005,
+          "p99": 0.135,
+          "max": 0.197
+        },
+        "allocated.bytes": {
+          "mean": 547295.52,
+          "p95": 680728,
+          "p99": 689416,
+          "max": 701936
+        },
+        "train.update.allocated.bytes": {
+          "mean": 407844.266667,
+          "p95": 535336,
+          "p99": 544440,
+          "max": 561384
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 167513.866667,
+          "p95": 170112,
+          "p99": 170264,
+          "max": 170720
+        }
+      },
+      "gc_observations": {
+        "frames_with_gen0_collection": 12,
+        "mean_frame_ms_with_collection": 25.683491666666665,
+        "mean_frame_ms_without_collection": 17.480033333333335
+      }
+    }
+  },
+  "reproduce": {
+    "build": "dotnet build \"godot/Transport Sandbox.csproj\" --no-restore",
+    "native": "Godot --path godot --resolution 1280x800 --disable-vsync tests/runner.tscn -- --suite=save-performance --phase=world --frames=300 --save=res://.godot/performance-2026-11-22/save --output=res://.godot/performance-2026-11-22/gpu",
+    "fixed_control": "Use --phase=world-fixed; suffixes -nosignals, -notracks, -nosleepers, -nobridges, -notrains, -noindustries, -notrees, -noshadows, -noterrainshadows, -notreeshadows isolate rendering. Add --probes=false to disable scopes.",
+    "warning": "Always copy the saved world first, including regions; the full-world harness can write region cache files in the directory passed through --save."
+  },
+  "validation": [
+    "Debug build: 0 warnings, 0 errors.",
+    "train: PASS",
+    "train-parallel: PASS",
+    "industries: PASS",
+    "signals: PASS"
+  ]
+}

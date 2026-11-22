@@ -10,15 +10,29 @@ public partial class TrainInstances : Node3D
 {
     public WorldSpace Space = new();
     private readonly Dictionary<string, ArrayMesh> _templates = new();
-    private readonly Dictionary<PosedVehicleVisual, Node3D[]> _parts = new();
+    private readonly record struct Part(Node3D Node, string Template, ArrayMesh Mesh);
+    private readonly record struct BatchKey(string Template, int X, int Z);
+    private sealed class Batch(ArrayMesh mesh, bool custom)
+    {
+        public readonly List<Transform3D> Transforms = new();
+        public readonly List<Color> Data = new();
+        public readonly MultiMesh Multi = new() { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = mesh, UseCustomData = custom };
+        public readonly MultiMeshInstance3D Node = new();
+    }
+    private readonly Dictionary<PosedVehicleVisual, Part[]> _parts = new();
+    private readonly HashSet<PosedVehicleVisual> _active = new();
+    private readonly List<PosedVehicleVisual> _removedParts = new();
+    private readonly List<BatchKey> _removedBatches = new();
     public override void _ExitTree()
     {
         foreach (var mesh in _templates.Values) mesh.Dispose();
         _templates.Clear();
         _parts.Clear();
+        foreach (var batch in _batches.Values) batch.Multi.Dispose();
+        _batches.Clear();
     }
     public int BatchCount { get; private set; }
-    private readonly Dictionary<string, MultiMeshInstance3D> _batches = new();
+    private readonly Dictionary<BatchKey, Batch> _batches = new();
     private sealed class Surface
     {
         public Material? Material;
@@ -78,59 +92,67 @@ public partial class TrainInstances : Node3D
     }
     public void Sync(IEnumerable<PosedVehicleVisual> vehicles)
     {
-        var active = vehicles.ToArray();
-        var activeSet = active.ToHashSet();
-        foreach (var obsolete in _parts.Keys.Where(v => !activeSet.Contains(v)).ToArray()) _parts.Remove(obsolete);
-        var batches = new Dictionary<string, (ArrayMesh Mesh, List<Transform3D> Transforms, List<Color>? Data)>();
-        foreach (var vehicle in active)
+        _active.Clear();
+        foreach (var batch in _batches.Values) { batch.Transforms.Clear(); batch.Data.Clear(); }
+        foreach (var vehicle in vehicles)
         {
+            _active.Add(vehicle);
             if (!_parts.TryGetValue(vehicle, out var parts))
             {
-                _parts[vehicle] = parts = Parts(vehicle.Vehicle.Model).ToArray();
+                var entries = new List<Part>();
+                foreach (var node in Parts(vehicle.Vehicle.Model))
+                {
+                    string template = $"{vehicle.Definition.Id}:{vehicle.Gauge}:{vehicle.Vehicle.Livery}:{node.Name}";
+                    if (!_templates.TryGetValue(template, out var mesh))
+                    {
+                        if (!Meshes(node).Any()) continue;
+                        _templates[template] = mesh = Template(node);
+                    }
+                    entries.Add(new(node, template, mesh));
+                }
+                _parts[vehicle] = parts = entries.ToArray();
                 foreach (var leaf in Meshes(vehicle.Vehicle.Model)) leaf.Visible = false;
             }
             foreach (var part in parts)
             {
-                string templateKey = $"{vehicle.Definition.Id}:{vehicle.Gauge}:{vehicle.Vehicle.Livery}:{part.Name}";
-                if (!_templates.TryGetValue(templateKey, out var mesh))
-                {
-                    if (!Meshes(part).Any()) continue;
-                    _templates[templateKey] = mesh = Template(part);
-                }
-                var world = Space.ToWorld(part.GlobalPosition);
-                string key = templateKey + $":{Math.Floor(world.X / 512)}:{Math.Floor(world.Z / 512)}";
-                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (mesh, new(), null);
-                batch.Transforms.Add(part.GlobalTransform);
+                var world = Space.ToWorld(part.Node.GlobalPosition);
+                var key = new BatchKey(part.Template, (int)Math.Floor(world.X / 512), (int)Math.Floor(world.Z / 512));
+                GetBatch(key, part.Mesh, false).Transforms.Add(part.Node.GlobalTransform);
             }
             if (vehicle.Vehicle.CargoFill is { Load: not null } cargo)
             {
                 cargo.Visible = false;
                 var world = Space.ToWorld(cargo.GlobalPosition);
-                string key = cargo.BatchKey + $":{Math.Floor(world.X / 512)}:{Math.Floor(world.Z / 512)}";
-                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = (cargo.Template, new(), new());
-                batch.Transforms.Add(cargo.GlobalTransform); batch.Data!.Add(cargo.InstanceData);
+                var key = new BatchKey(cargo.BatchKey, (int)Math.Floor(world.X / 512), (int)Math.Floor(world.Z / 512));
+                var batch = GetBatch(key, cargo.Template, true);
+                batch.Transforms.Add(cargo.GlobalTransform); batch.Data.Add(cargo.InstanceData);
             }
         }
-        BatchCount = batches.Count;
-        foreach (var key in _batches.Keys.Where(key => !batches.ContainsKey(key)).ToArray())
+        _removedParts.Clear();
+        foreach (var vehicle in _parts.Keys) if (!_active.Contains(vehicle)) _removedParts.Add(vehicle);
+        foreach (var vehicle in _removedParts) _parts.Remove(vehicle);
+        _removedBatches.Clear();
+        foreach (var (key, batch) in _batches) if (batch.Transforms.Count == 0) _removedBatches.Add(key);
+        foreach (var key in _removedBatches)
         {
-            var obsolete = _batches[key]; RemoveChild(obsolete); obsolete.QueueFree(); _batches.Remove(key);
+            var obsolete = _batches[key]; RemoveChild(obsolete.Node); obsolete.Node.QueueFree(); obsolete.Multi.Dispose(); _batches.Remove(key);
         }
-        foreach (var (key, batch) in batches)
+        BatchCount = _batches.Count;
+        foreach (var batch in _batches.Values)
         {
-            if (!_batches.TryGetValue(key, out var node))
-            {
-                node = new MultiMeshInstance3D(); _batches[key] = node; AddChild(node);
-                using var created = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, Mesh = batch.Mesh, UseCustomData = batch.Data != null };
-                node.Multimesh = created;
-            }
-            using var multi = node.Multimesh;
+            var multi = batch.Multi;
             if (multi.InstanceCount != batch.Transforms.Count) multi.InstanceCount = batch.Transforms.Count;
             for (int i = 0; i < batch.Transforms.Count; i++)
             {
                 multi.SetInstanceTransform(i, batch.Transforms[i]);
-                if (batch.Data != null) multi.SetInstanceCustomData(i, batch.Data[i]);
+                if (multi.UseCustomData) multi.SetInstanceCustomData(i, batch.Data[i]);
             }
         }
+    }
+    private Batch GetBatch(BatchKey key, ArrayMesh mesh, bool custom)
+    {
+        if (_batches.TryGetValue(key, out var batch)) return batch;
+        batch = new(mesh, custom); batch.Node.Multimesh = batch.Multi;
+        _batches.Add(key, batch); AddChild(batch.Node); return batch;
     }
 }

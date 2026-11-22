@@ -10,6 +10,7 @@ public static class TrainMovementChecks
     private static TrainPosition Position(JsonElement data) => new(data.GetProperty("edge").GetInt32(), data.GetProperty("u").GetDouble(), data.GetProperty("facing").GetInt32(), data.TryGetProperty("routeIndex", out var index) ? index.GetInt32() : 0);
     public static void Parity(Action<bool, string> check)
     {
+        SampleAllocations(check);
         HoBehavior(check);
         var data = JsonData.Read("res://tests/train-movement-fixtures.json");
         foreach (var scenario in data.GetProperty("routes").EnumerateArray())
@@ -54,6 +55,18 @@ public static class TrainMovementChecks
                     check(Math.Abs(speed - expected.GetProperty("speed").GetDouble()) < 1e-8 && Math.Abs(distance - expected.GetProperty("distance").GetDouble()) < 1e-7, "Realistic/HO acceleration, grade and braking trajectories match browser");
             }
         }
+    }
+    private static void SampleAllocations(Action<bool, string> check)
+    {
+        var network = new TrackNetwork(); var a = network.AddNode(new(0, 0, 0)); var b = network.AddNode(new(0, 0, 1000));
+        var edge = network.ConnectNodes(a, b)!;
+        using var placement = new TrainPlacement(network);
+        var position = new TrainPosition(edge.Id, .5); var route = new TrainRoute(placement, position, 1);
+        for (int i = 0; i < 100; i++) route.Sample(position, i);
+        long start = GC.GetAllocatedBytesForCurrentThread(); double sum = 0;
+        for (int i = 0; i < 10000; i++) sum += route.Sample(position, i % 100).Point.Z;
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - start;
+        check(allocated < 1024 && sum > 0, "Ten thousand cached route samples allocate less than 1 KB on the simulation thread");
     }
     private static void HoBehavior(Action<bool, string> check)
     {

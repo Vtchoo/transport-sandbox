@@ -9,7 +9,10 @@ public partial class TrackVisual : Node3D
     {
         get;
     }
-    private readonly List<(SleeperBatch Data, MultiMeshInstance3D Visual)> _sleepers = new();
+    private readonly List<(SleeperBatch Data, MultiMeshInstance3D Visual, MultiMesh Multi)> _sleepers = new();
+    private readonly List<int> _sleeperCounts = new();
+    private Vector3? _lodEye;
+    private Transform3D _lodTransform;
     public TrackVisual(TrackGeometry geometry, bool preview = false)
     {
         Geometry = geometry;
@@ -43,16 +46,22 @@ public partial class TrackVisual : Node3D
             var visual = new MultiMeshInstance3D { Name = "Sleepers", Multimesh = instances,
                 CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
             AddChild(visual);
-            _sleepers.Add((batch, visual));
+            _sleepers.Add((batch, visual, instances)); _sleeperCounts.Add(-1);
         }
     }
     public void UpdateSleeperLod(Vector3 eye)
     {
-        foreach (var (data, visual) in _sleepers)
+        var transform = GlobalTransform;
+        if (_lodEye == eye && _lodTransform == transform) return;
+        _lodEye = eye; _lodTransform = transform;
+        for (int i = 0; i < _sleepers.Count; i++)
         {
-            int count = data.Update(eye.DistanceTo(ToGlobal(data.Center)));
-            visual.Multimesh.VisibleInstanceCount = count;
-            visual.Visible = count > 0;
+            var (data, visual, multi) = _sleepers[i];
+            int count = data.Update(eye.DistanceTo(transform * data.Center));
+            if (_sleeperCounts[i] == count) continue;
+            _sleeperCounts[i] = count;
+            multi.VisibleInstanceCount = count; visual.Visible = count > 0;
         }
     }
+    public override void _ExitTree() { foreach (var (_, _, multi) in _sleepers) multi.Dispose(); }
 }

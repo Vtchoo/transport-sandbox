@@ -21,12 +21,21 @@ public sealed class TrainConsist
     public bool Stopped => !Running && double.IsFinite(Speed) && Math.Abs(Speed) <= .001;
     public TrainConsist Copy() => new() { Id = Id, Name = Name, Items = new(Items), Placed = Placed, Running = Running, Speed = Speed, TravelDirection = TravelDirection, Orders = Orders.Copy() };
     public double Length => Items.Sum(i => i.Definition.Length) + Math.Max(0, Items.Count - 1) * .12;
+    private double[] _offsetLengths = Array.Empty<double>(), _offsets = Array.Empty<double>();
     public double[] Offsets
     {
         get
         {
-            double front = Length / 2;
-            return Items.Select(item => { double offset = front - item.Definition.Length / 2; front -= item.Definition.Length + .12; return offset; }).ToArray();
+            bool changed = _offsetLengths.Length != Items.Count;
+            for (int i = 0; !changed && i < Items.Count; i++) changed = _offsetLengths[i] != Items[i].Definition.Length;
+            if (changed)
+            {
+                _offsetLengths = new double[Items.Count]; _offsets = new double[Items.Count];
+                double front = Length / 2;
+                for (int i = 0; i < Items.Count; i++)
+                { double length = Items[i].Definition.Length; _offsetLengths[i] = length; _offsets[i] = front - length / 2; front -= length + .12; }
+            }
+            return _offsets;
         }
     }
 }

@@ -45,7 +45,7 @@ public static class WorldLighting
         {
             sun.Basis = Basis.LookingAt(-new Vector3(-.7f, .8f, -.4f).Normalized(), Vector3.Up);
             sun.DirectionalShadowMode = DirectionalLight3D.ShadowMode.Parallel4Splits;
-            sun.DirectionalShadowMaxDistance = 2500;
+            sun.DirectionalShadowMaxDistance = 1000;
         }
         parent.AddChild(sun);
     }

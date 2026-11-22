@@ -88,14 +88,16 @@ public static class TrainParallelChecks
             bool same = true;
             for (int step = 0; step < 180; step++)
             {
-                a.AdvanceMovement(.05); b.AdvanceMovement(.05);
+                a.AdvanceMovement(.05);
+                // Same simulated time, different render cadence and worker scheduling.
+                b.AdvanceMovement(.01); b.AdvanceMovement(.02); b.AdvanceMovement(.02);
                 for (int i = 0; i < a.Parked.Count; i++)
                     same &= a.Parked[i].Position == b.Parked[i].Position
                         && a.Builder.Get(a.Parked[i].Id).Speed == b.Builder.Get(b.Parked[i].Id).Speed;
                 same &= a.Interlocking.SaveReservations().Select(l => (l.Train, l.Signal, l.Entered, Edges: string.Join(',', l.Edges.Order())))
                     .SequenceEqual(b.Interlocking.SaveReservations().Select(l => (l.Train, l.Signal, l.Entered, Edges: string.Join(',', l.Edges.Order()))));
             }
-            check(same, "Four opposing/following trains retain identical positions, speeds and reservations with parallel calculations over 540 substeps");
+            check(same, "Four opposing/following trains retain identical positions, speeds and reservations across serial/parallel workers and different render cadences over 540 ticks");
             check(a.Parked.Any(p => a.Builder.Get(p.Id).Speed == 0), "Traffic parity fixture exercises a train waiting for conflicting authority");
         }
         finally { a.Free(); b.Free(); layer.Free(); camera.Free(); }

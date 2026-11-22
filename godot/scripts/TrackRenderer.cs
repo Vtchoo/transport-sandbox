@@ -25,6 +25,8 @@ public partial class TrackRenderer : Node3D
     private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
     private readonly Dictionary<int, TrackCurve> _pickCurves = new();
     private readonly Dictionary<int, (MeshInstance3D Marker, MeshInstance3D Line)> _spacingHandles = new();
+    private bool _markersWereVisible;
+    private Vector3? _sleeperEye;
     public System.Collections.Generic.IEnumerable<int> SpacingNodes => _spacingHandles.Keys;
     public static StandardMaterial3D Material(Color color, float metal = 0) => new() { AlbedoColor = color, Metallic = metal, Roughness = 0.65f };
     private void MarkDirty()
@@ -49,6 +51,7 @@ public partial class TrackRenderer : Node3D
     public override void _ExitTree() { Network.Changed -= MarkDirty; Network.Space.Rebased -= Rebased; }
     private void Rebased(TrackVector worldShift)
     {
+        using var probe = FrameProbe.Measure("origin.tracks");
         var shift = worldShift.Float();
         _pickCurves.Clear();
         foreach (var (id, holder) in Holders) if (Network.Edges.TryGetValue(id, out var edge)) holder.Position = Network.Nodes[edge.A].Position;
@@ -59,6 +62,7 @@ public partial class TrackRenderer : Node3D
     public override void _Process(double delta)
     {
         using var probe = FrameProbe.Measure("track.render.update");
+        bool rebuilt = Dirty;
         if (Dirty)
         {
             Dirty = false;
@@ -76,8 +80,14 @@ public partial class TrackRenderer : Node3D
         }
         if (IsInstanceValid(Camera))
         {
-            foreach (var holder in Holders.Values)
-                holder.UpdateSleeperLod(Camera.GlobalPosition);
+            if (Markers.Visible && !_markersWereVisible) UpdateMarkers();
+            _markersWereVisible = Markers.Visible;
+            var eye = Camera.GlobalPosition;
+            if (rebuilt || _sleeperEye != eye)
+            {
+                _sleeperEye = eye;
+                foreach (var holder in Holders.Values) holder.UpdateSleeperLod(eye);
+            }
             UpdateSpacingHandles();
         }
     }
@@ -108,7 +118,7 @@ public partial class TrackRenderer : Node3D
             child.QueueFree();
         }
         _spacingHandles.Clear();
-        if (!Visible)
+        if (!Visible || !Markers.Visible)
             return;
         foreach (var node in Network.Nodes.Values)
         {

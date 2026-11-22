@@ -32,6 +32,7 @@ public partial class TrainEditor
     }
     public void Restore(GameSave save)
     {
+        _movementRemainder = 0;
         CancelPlacement();
         foreach (var p in Parked) RemoveVisuals(p.Visuals);
         Parked.Clear();
@@ -65,6 +66,8 @@ public partial class TrainEditor
             Parked.Add(parked);
         }
         Interlocking.RestoreReservations(save.Reservations, Parked.Select(p => new SignalTrain(p.Id, RouteFor(p), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)).ToArray());
+        // Imported poses already match the restored graph. Future edits still revalidate normally.
+        _trackDirty = false; _trackTimer = 0;
         SyncInstances(); Changed?.Invoke(null);
     }
 }

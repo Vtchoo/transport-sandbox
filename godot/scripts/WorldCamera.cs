@@ -57,6 +57,8 @@ public partial class WorldCamera : Camera3D
     private double Height(double x, double z) => Ground == null ? 0 : Math.Max(Ground.SeaLevel, GroundHeight?.Invoke(x, z) ?? Ground.HeightWorld(x, z));
     public override void _Ready()
     {
+        // Follow the final train visual pose, after simulation and scene updates.
+        ProcessPriority = 100;
         Space.Rebased += Rebased;
         Far = 14000;
         Near = .15f;
@@ -142,6 +144,7 @@ public partial class WorldCamera : Camera3D
     }
     public override void _Process(double delta)
     {
+        using var probe = FrameProbe.Measure("camera.update");
         if (!Enabled)
             return;
         ImportPose();

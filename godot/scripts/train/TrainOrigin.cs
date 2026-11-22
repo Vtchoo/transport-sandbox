@@ -21,10 +21,13 @@ public partial class TrainEditor
     }
     private void Rebased(TrackVector worldShift)
     {
+        using var probe = FrameProbe.Measure("origin.trains");
         var shift = worldShift.Float();
         var oldOrigin = Network.Space.Origin - worldShift;
         foreach (var parked in Parked)
         {
+            if (parked.PreviousPoses is { } previous)
+                parked.PreviousPoses = previous.Select(p => ShiftPose(p, oldOrigin, Network.Space)).ToArray();
             if (parked.Supported)
             {
                 try
@@ -47,7 +50,8 @@ public partial class TrainEditor
                 parked.Poses = saved.Poses.Select(p => ShiftPose(p, saved.Origin, Network.Space)).ToArray();
             }
             for (int i = 0; i < parked.Poses.Length; i++)
-                parked.Visuals[i].Apply(parked.Poses[i]);
+                parked.Visuals[i].Apply(_interpolatedRendering && parked.PreviousPoses is { } prior && prior.Length == parked.Poses.Length
+                    ? BlendPose(prior[i], parked.Poses[i], (float)(_movementRemainder * 60)) : parked.Poses[i]);
         }
         foreach (var ghost in Ghosts)
         if (ghost.Pose is { } pose)

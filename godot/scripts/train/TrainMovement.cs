@@ -11,6 +11,8 @@ public partial class TrainEditor
     public string WorldSeed = "railway";
     public event Action? MotionChanged;
     private double _motionHud;
+    private double _movementRemainder;
+    private bool _interpolatedRendering;
     private readonly TrainCollisionIndex _collisions = new();
     private RailInterlocking? _interlocking;
     public RailInterlocking Interlocking => _interlocking ??= new(Network, Placement);
@@ -37,21 +39,50 @@ public partial class TrainEditor
         train.Running = !train.Running;
         MotionChanged?.Invoke();
     }
-    /// <summary>Same bounded 1/60 s substeps as the browser; all distances and forces remain SI.</summary>
-    public void AdvanceMovement(double delta)
+    /// <summary>Accumulate fixed 60 Hz simulation ticks; publish only the final pose of each rendered frame.</summary>
+    public void AdvanceMovement(double delta, bool interpolate = false)
     {
         using var probe = FrameProbe.Measure("movement");
+        _interpolatedRendering = interpolate;
         _detourBudget = 2;
         foreach (var parked in Parked) parked.DetourCooldown = Math.Max(0, parked.DetourCooldown - Math.Clamp(delta, 0, .1));
         PrepareRouting();
-        bool moving = Parked.Any(p => !Builder.Get(p.Id).Stopped);
-        for (double remaining = Math.Clamp(delta, 0, .1); remaining > 1e-8;)
+        // Track edits are safety events, even on a render frame without a simulation tick.
+        foreach (var parked in Parked)
         {
-            double step = Math.Min(remaining, 1.0 / 60);
-            MoveTrains(step);
-            remaining -= step;
+            if (parked.SupportRevision == _revision) continue;
+            parked.SupportRevision = _revision;
+            var train = Builder.Get(parked.Id);
+            try { Placement.Poses(train, parked.Position, parked.Route == null ? null : parked.Route.Sample); }
+            catch (InvalidOperationException error)
+            {
+                bool moving = !train.Stopped;
+                parked.Supported = false; train.Running = false; train.Speed = 0; parked.PreviousPoses = null;
+                if (moving) { Warning?.Invoke("Train stopped: " + error.Message); MotionChanged?.Invoke(); }
+            }
         }
-        if (moving)
+        _movementRemainder += Math.Clamp(delta, 0, .1);
+        const double step = 1.0 / 60;
+        while (_movementRemainder + 1e-10 >= step)
+        {
+            MoveTrains(step);
+            _movementRemainder = Math.Max(0, _movementRemainder - step);
+        }
+        bool visualChanged = false;
+        using (FrameProbe.Measure("poses.apply"))
+            foreach (var parked in Parked)
+            {
+                bool blend = interpolate && parked.PreviousPoses is { } previous && previous.Length == parked.Poses.Length && !ReferenceEquals(previous, parked.Poses);
+                if (!parked.VisualDirty && !blend) continue;
+                var train = Builder.Get(parked.Id);
+                for (int i = 0; i < parked.Poses.Length; i++)
+                {
+                    parked.Visuals[i].Apply(blend ? BlendPose(parked.PreviousPoses![i], parked.Poses[i], (float)(_movementRemainder / step)) : parked.Poses[i]);
+                    parked.Visuals[i].AdvanceRunningGear(parked.RunningGearDistance * train.Items[i].Facing);
+                }
+                parked.VisualDirty = false; parked.RunningGearDistance = 0; visualChanged = true;
+            }
+        if (visualChanged)
         {
             using var instancesProbe = FrameProbe.Measure("instances.sync");
             SyncInstances();
@@ -66,14 +97,18 @@ public partial class TrainEditor
     private void MoveTrains(double dt)
     {
         using var probe = FrameProbe.Measure("substeps");
+        foreach (var parked in Parked) parked.PreviousPoses = parked.Poses;
         if (Network.Signals.Count > 0 || _interlocking != null)
         {
             Interlocking.Update(Parked.Select(p => new SignalTrain(p.Id, RouteFor(p), p.Position, Builder.Get(p.Id).Length, Builder.Get(p.Id).TravelDirection)));
             foreach (var p in Parked)
                 if (Builder.Get(p.Id).Stopped) Interlocking.ReleasePending(p.Id);
         }
-        _collisions.Begin();
-        foreach (var p in Parked) _collisions.Add(Builder.Get(p.Id), p.Poses);
+        using (FrameProbe.Measure("collision.index"))
+        {
+            _collisions.Begin();
+            foreach (var p in Parked) _collisions.Add(Builder.Get(p.Id), p.Poses);
+        }
         double catalogMax = Catalog.Definitions.Max(d => d.Physics.MaxSpeedMps);
         var workItems = new System.Collections.Generic.List<MovementWork>();
         foreach (var parked in Parked)
@@ -110,7 +145,8 @@ public partial class TrainEditor
             {
                 double braking = TrainPhysics.BrakingDeceleration(grade, HoPhysics);
                 double lookahead = Math.Max(100, train.Speed * train.Speed / (2 * braking) + 50);
-                var command = ExecuteOrders(parked, train, route, dt, lookahead);
+                (bool Hold, double StopDistance) command;
+                using (FrameProbe.Measure("orders.execute")) command = ExecuteOrders(parked, train, route, dt, lookahead);
                 double endClearance = route.Clearance(parked.Position, direction * (length / 2 + lookahead)) - length / 2;
                 // A platform at a physical dead end must still be reachable at its exact edge.
                 // Signal and collision stopping distances remain independent safety limits.
@@ -159,10 +195,9 @@ public partial class TrainEditor
             try
             {
                 if (work.Error != null) throw work.Error;
-                var others = Parked.Where(p => p != parked).ToArray();
                 using (FrameProbe.Measure("collision"))
                 {
-                    if (others.Length > 0)
+                    if (Parked.Count > 1)
                         for (double d = 0; d < free; d += 4)
                         {
                             var point = route.Sample(parked.Position, direction * (length / 2 + d)).Point;
@@ -190,22 +225,21 @@ public partial class TrainEditor
                 var position = route.Sample(parked.Position, direction * distance).Position;
                 VehiclePose[] poses;
                 using (FrameProbe.Measure("poses")) poses = Placement.Poses(train, position, route.Sample);
-                if (Occupied(train, poses, others))
+                bool overlaps;
+                using (FrameProbe.Measure("collision.validate")) overlaps = Occupied(train, poses, Parked);
+                if (overlaps)
                 {
                     train.Speed = 0;
                     parked.MotorState = TrainMotorState.Stopped;
                     continue;
                 }
-                for (int i = 0; i < poses.Length; i++)
-                {
-                    parked.Visuals[i].Apply(poses[i]);
-                    parked.Visuals[i].AdvanceRunningGear(direction * distance * train.Items[i].Facing);
-                }
+                parked.VisualDirty = true;
+                parked.RunningGearDistance += direction * distance;
                 parked.Position = position;
                 if (parked.Journey is { } journey) journey.Distance -= distance;
                 if (parked.Wandering is { Station: not 0, Servicing: false } wandering) wandering.Distance -= distance;
                 parked.Poses = poses;
-                _collisions.Update(train, poses);
+                using (FrameProbe.Measure("collision.update")) _collisions.Update(train, poses);
                 parked.Effort = next.Effort;
                 parked.MotorState = motorState;
                 parked.Supported = true;
@@ -230,5 +264,13 @@ public partial class TrainEditor
                 MotionChanged?.Invoke();
             }
         }
+    }
+    private static VehiclePose BlendPose(VehiclePose previous, VehiclePose current, float weight)
+    {
+        if (previous.Sections.Length != current.Sections.Length) return current;
+        var sections = current.Sections.Length == 0 ? Array.Empty<VehiclePose>() : new VehiclePose[current.Sections.Length];
+        for (int i = 0; i < sections.Length; i++) sections[i] = BlendPose(previous.Sections[i], current.Sections[i], weight);
+        return new(previous.Center.Lerp(current.Center, weight), previous.Front.Lerp(current.Front, weight), previous.Rear.Lerp(current.Rear, weight),
+            previous.FrontDirection.Lerp(current.FrontDirection, weight).Normalized(), previous.RearDirection.Lerp(current.RearDirection, weight).Normalized(), sections);
     }
 }

@@ -53,6 +53,8 @@ public sealed class TreeStreamer : IDisposable
     public int Pending => _jobs.Count + _retired.Count + _entries.Values.Count(e => e.Holder != null && (e.Dirty || e.Ready != null));
     public long CachedBytes => _entries.Values.Where(e => e.Holder == null).Sum(e => e.Bytes);
     public event Action<Vector2I, TreeData[]>? Committed;
+    public TreeChunk? ActiveVisual(Vector2I key) => _entries.TryGetValue(key, out var entry)
+        && entry.Holder != null && entry.Visual?.GetParent() == entry.Holder ? entry.Visual : null;
     public TreeStreamer(Node parent, TerrainSampler sampler)
     {
         _sampler = sampler;

@@ -168,6 +168,7 @@ public partial class IndustryWorld : Node3D
     }
     public override void _Process(double delta)
     {
+        using var updateProbe = FrameProbe.Measure("industries.update");
         if (_connectionsDirty) RefreshConnections();
         _tick += Math.Clamp(delta, 0, 1);
         while (_tick >= .25) { Simulation.Advance(.25); _tick -= .25; }

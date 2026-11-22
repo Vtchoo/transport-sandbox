@@ -10,6 +10,8 @@ public partial class SignalVisual : Node3D
     private readonly MeshInstance3D[] _lamps = new MeshInstance3D[3];
     private readonly StandardMaterial3D[] _lit = new StandardMaterial3D[3];
     private readonly StandardMaterial3D _dark;
+    private RailSignalAspect? _aspect;
+    private (Vector3 Position, Vector3 Axis, int Gauge, int Side)? _placement;
     public Node3D DirectionArrow { get; } = new();
     public SignalVisual(RailSignalKind kind, bool preview = false, bool remove = false)
     {
@@ -52,6 +54,9 @@ public partial class SignalVisual : Node3D
     }
     public void Place(TrackNode node, int side)
     {
+        var placement = (node.Position, node.Axis, node.Gauge, side);
+        if (_placement == placement) return;
+        _placement = placement;
         Position = node.Position + TrackNetwork.SignalRight(node.Axis) * (side * TrackNetwork.SignalOffset(node.Gauge));
         var axis = new Vector3(node.Axis.X, 0, node.Axis.Z);
         Basis = TrackRenderer.Frame((axis.LengthSquared() > .00001f ? axis.Normalized() : Vector3.Back) * side);
@@ -61,6 +66,8 @@ public partial class SignalVisual : Node3D
     }
     public void SetAspect(RailSignalAspect aspect)
     {
+        if (_aspect == aspect) return;
+        _aspect = aspect;
         int active = aspect == RailSignalAspect.Red ? 0 : aspect == RailSignalAspect.Green ? 1 : 2;
         for (int i = 0; i < 3; i++) _lamps[i].MaterialOverride = active == i ? _lit[i] : _dark;
     }
@@ -71,6 +78,7 @@ public partial class SignalRenderer : Node3D
     public TrackNetwork Network = null!;
     public Func<bool>? DirectionVisibility;
     private readonly Dictionary<SignalKey, (RailSignalKind Kind, SignalVisual Visual)> _visuals = new();
+    private readonly List<SignalKey> _removed = new();
     public SignalKey? Pick(Camera3D camera, Vector2 mouse)
     {
         var origin = camera.ProjectRayOrigin(mouse); var direction = camera.ProjectRayNormal(mouse);
@@ -93,8 +101,13 @@ public partial class SignalRenderer : Node3D
     }
     public override void _Process(double delta)
     {
-        foreach (var key in _visuals.Keys.Where(key => !Network.Signals.ContainsKey(key) || !Network.Nodes.ContainsKey(key.Node)).ToArray())
+        using var probe = FrameProbe.Measure("signals.render.update");
+        _removed.Clear();
+        foreach (var key in _visuals.Keys)
+            if (!Network.Signals.ContainsKey(key) || !Network.Nodes.ContainsKey(key.Node)) _removed.Add(key);
+        foreach (var key in _removed)
         { RemoveChild(_visuals[key].Visual); _visuals[key].Visual.QueueFree(); _visuals.Remove(key); }
+        bool arrows = DirectionVisibility?.Invoke() == true;
         foreach (var (key, signal) in Network.Signals)
         {
             if (!Network.Nodes.TryGetValue(key.Node, out var node)) continue;
@@ -104,7 +117,7 @@ public partial class SignalRenderer : Node3D
                 var visual = new SignalVisual(signal.Kind); AddChild(visual); _visuals[key] = view = (signal.Kind, visual);
             }
             view.Visual.Place(node, key.Side); view.Visual.SetAspect(signal.Aspect);
-            view.Visual.DirectionArrow.Visible = DirectionVisibility?.Invoke() == true;
+            if (view.Visual.DirectionArrow.Visible != arrows) view.Visual.DirectionArrow.Visible = arrows;
         }
     }
 }

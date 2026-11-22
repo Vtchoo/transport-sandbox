@@ -6,7 +6,7 @@ using System.Linq;
 namespace TransportSandbox;
 
 public sealed record WanderingStationStop(int Station, int EndRouteIndex, double Distance, int EndEdge);
-public sealed record RouteSpan(TrackEdge Edge, TrainPosition Position, int Direction, double Distance, double Length, bool ReachesNode)
+public readonly record struct RouteSpan(TrackEdge Edge, TrainPosition Position, int Direction, double Distance, double Length, bool ReachesNode)
 {
     public int Node => Direction > 0 ? Edge.B : Edge.A;
     public int Side => -TrackNetwork.SideAt(Edge, Node);
@@ -180,12 +180,7 @@ public sealed partial class TrainRoute
             }
             else
             {
-                var options = network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == edge.Gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).OrderBy(e => e.Id).ToArray();
-                if (options.Length == 0)
-                    throw new RouteEnd(travelled);
-                _random = unchecked(_random * 1664525 + 1013904223);
-                var chosen = options[(int)(_random / 4294967296.0 * options.Length)];
-                next = (chosen.Id, (chosen.A == node ? 1 : -1) * step);
+                next = ChooseLeg(edge, node, step, travelled);
             }
             _legs[index + step] = next;
             index += step;
@@ -193,6 +188,15 @@ public sealed partial class TrainRoute
             u = step * leg.Facing > 0 ? 0 : 1;
         }
         throw new InvalidOperationException("Train route exceeded the traversal limit.");
+    }
+    // Keep the junction-query closure out of the hot, same-edge sampling path.
+    private (int Edge, int Facing) ChooseLeg(TrackEdge edge, int node, int step, double travelled)
+    {
+        var options = _placement.Network.Incident(node).Where(e => e.Id != edge.Id && e.Gauge == edge.Gauge && TrackNetwork.SideAt(e, node) != TrackNetwork.SideAt(edge, node)).OrderBy(e => e.Id).ToArray();
+        if (options.Length == 0) throw new RouteEnd(travelled);
+        _random = unchecked(_random * 1664525 + 1013904223);
+        var chosen = options[(int)(_random / 4294967296.0 * options.Length)];
+        return (chosen.Id, (chosen.A == node ? 1 : -1) * step);
     }
     public double Clearance(TrainPosition position, double distance)
     {

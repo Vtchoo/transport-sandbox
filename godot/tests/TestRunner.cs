@@ -37,7 +37,7 @@ public partial class TestRunner : Node
             if (parts.Length == 2)
                 _args[parts[0]] = parts[1];
         }
-        GetTree().CreateTimer(_args.GetValueOrDefault("suite") == "earthwork-save-performance" ? 150 : 45).Timeout += () => { if (!_finished) { GD.PushError("C# test/capture timed out"); GetTree().Quit(1); } };
+        GetTree().CreateTimer(_args.GetValueOrDefault("suite") is "earthwork-save-performance" or "save-performance" or "follow-performance" ? 240 : 45).Timeout += () => { if (!_finished) { GD.PushError("C# test/capture timed out"); GetTree().Quit(1); } };
         try
         {
             string suite = _args.GetValueOrDefault("suite", "all");
@@ -83,6 +83,10 @@ public partial class TestRunner : Node
                 case "train-parallel":
                     TrainParallelChecks.Run(Check);
                     await TrainParallelChecks.Integration(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
+                case "follow-performance":
+                    await FollowTrainPerformance.Run(this, Frame, _args.GetValueOrDefault("save", "res://.godot/follow-profile/save"));
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
                     break;
                 case "save-performance":
