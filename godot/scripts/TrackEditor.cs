@@ -28,6 +28,9 @@ public partial class TrackEditor : Node
     private const float ActionDistance = 600;
     private (int Source, int Side, int Target, Vector3 Point, float Angle)? _parallelGhostKey;
     private bool _parallelGhostValid;
+    public SegmentEditor SegmentProperties = null!;
+    public OptionButton SupportPicker = null!;
+    public TrackSupport Support = TrackSupport.Fill;
     public Label Status = null!;
     private PointerMessage _previewLength = null!;
     public OptionButton GaugePicker = null!, StationAction = null!, GridPicker = null!;
@@ -114,6 +117,10 @@ public partial class TrackEditor : Node
             GaugePicker.AddItem($"{mm} mm", mm);
         GaugePicker.ItemSelected += index => { Gauge = GaugePicker.GetItemId((int)index); Cancel(); };
         _trackOptions.AddChild(GaugePicker);
+        Renderer.Generator ??= Generator;
+        UiSkin.Label(_trackOptions, "SUPPORT TYPE", 9, "c0cbbd");
+        SupportPicker = new(); FillSupportPicker(SupportPicker); _trackOptions.AddChild(SupportPicker);
+        SupportPicker.ItemSelected += index => { Support = (TrackSupport)index; _parallelGhostKey = null; };
         UiSkin.Label(_trackOptions, "WORLD GRID SNAP - G", 9, "c0cbbd");
         GridPicker = new();
         UiSkin.Selector(GridPicker);
@@ -181,6 +188,8 @@ public partial class TrackEditor : Node
         GridOverlay.Space = Network.Space;
         SegmentMenu = new();
         Interface.AddChild(SegmentMenu);
+        SegmentProperties = new() { Editor = this }; AddChild(SegmentProperties);
+        SegmentMenu.Edit.Pressed += () => { if (_segmentAction != null) SegmentProperties.Open(_segmentAction.Id); };
         SegmentMenu.Straighten.Pressed += () => ConfirmSegment("straight");
         SegmentMenu.Delete.Pressed += () => ConfirmSegment("edge");
         SegmentMenu.ConfirmSplit.Pressed += () =>
@@ -194,6 +203,12 @@ public partial class TrackEditor : Node
             }
             Cancel();
         };
+    }
+    public static void FillSupportPicker(OptionButton picker)
+    {
+        picker.AddItem("Fill", (int)TrackSupport.Fill);
+        picker.AddItem("Concrete bridge", (int)TrackSupport.ConcreteBridge);
+        UiSkin.Selector(picker);
     }
     public void SetEnabled(bool value)
     {
@@ -354,7 +369,7 @@ public partial class TrackEditor : Node
                     _parallelGhostKey = key;
                     try
                     {
-                        Renderer.ShowPreviews(Network.PreviewParallel(Network.Nodes[Source], SourceSide, end, snap, (end - Network.Nodes[Source].Position).Normalized().Rotated(Vector3.Up, EndAngle)).Select(p => p.Controls).ToArray(), Network.Nodes[Source].Gauge);
+                        Renderer.ShowPreviews(Network.PreviewParallel(Network.Nodes[Source], SourceSide, end, snap, (end - Network.Nodes[Source].Position).Normalized().Rotated(Vector3.Up, EndAngle)).Select(p => p.Controls).ToArray(), Network.Nodes[Source].Gauge, Support);
                         _parallelGhostValid = true;
                     }
                     catch (InvalidOperationException error) { _parallelGhostValid = false; Status.Text = error.Message; }
@@ -362,7 +377,7 @@ public partial class TrackEditor : Node
                 Renderer.Preview.Visible = _parallelGhostValid;
             }
             else
-                Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge);
+                Renderer.ShowPreview(PreviewControls(end, snap), Network.Nodes[Source].Gauge, Support);
             if (Renderer.Preview.Visible)
             {
                 var lengths = Renderer.Preview.GetChildren().OfType<TrackVisual>()
@@ -433,9 +448,9 @@ public partial class TrackEditor : Node
             HoverSide = (mouse - center).Dot(TrackNodeHoverMenu.ScreenAxis(Camera, node.Position, node.Axis)) >= 0 ? 1 : -1;
         }
         HoverSegment = PendingSplit ?? Renderer.Closest(Camera, mouse);
-        TrackEdge? action = null;
+        TrackEdge? action = SegmentMenu.ContainsActions(mouse) ? _segmentAction : null;
         float best = 60;
-        if (PendingSplit == null)
+        if (PendingSplit == null && action == null)
             foreach (var edge in Network.Edges.Values)
             {
                 var midpoint = Midpoint(edge);
@@ -557,7 +572,7 @@ public partial class TrackEditor : Node
             try
             {
                 Network.Nodes.TryGetValue(targetId, out var existing);
-                var result = Network.ExtendParallel(start, SourceSide, point, existing, (point - start.Position).Normalized().Rotated(Vector3.Up, EndAngle));
+                var result = Network.ExtendParallel(start, SourceSide, point, existing, (point - start.Position).Normalized().Rotated(Vector3.Up, EndAngle), Support);
                 Source = result.Node.Id;
                 SourceSide = result.Side;
                 Renderer.Selected = Source;
@@ -570,7 +585,7 @@ public partial class TrackEditor : Node
         bool created = targetId == 0;
         var target = created ? Network.AddNode(point, start.Gauge) : Network.Nodes[targetId];
         var endDirection = (point - start.Position).Normalized().Rotated(Vector3.Up, EndAngle);
-        var edge = Network.ConnectNodes(start, target, SourceSide, endDirection);
+        var edge = Network.ConnectNodes(start, target, SourceSide, endDirection, Support);
         if (edge == null)
         {
             if (created)
@@ -594,6 +609,8 @@ public partial class TrackEditor : Node
         Source = id;
         SourceSide = side;
         Gauge = node.Gauge;
+        if (Network.Incident(id).Count > 0)
+        { Support = Network.InheritedSupport(node, side); SupportPicker.Select((int)Support); }
         GaugePicker.Select(Array.IndexOf(TrackNetwork.Gauges, Gauge));
         Renderer.Selected = id;
         Renderer.UpdateMarkers();

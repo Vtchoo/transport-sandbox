@@ -11,6 +11,8 @@ public partial class TrackRenderer : Node3D
     public const float RailHeadHeight = 0;
     public TrackNetwork Network = null!;
     public Camera3D Camera = null!;
+    public TerrainGenerator? Generator;
+    public BridgeRenderer Bridges = null!;
     public readonly Dictionary<int, TrackVisual> Holders = new();
     public bool Dirty = true, Dragging;
     public bool SpacingDrag;
@@ -18,7 +20,7 @@ public partial class TrackRenderer : Node3D
     public int Selected;
     public Node3D Markers = new();
     public SignalRenderer Signals = null!;
-    private readonly record struct RenderKey(TrackVector A, TrackVector B, TrackVector C, TrackVector D, int Gauge, string Platforms, bool RailsOnly);
+    private readonly record struct RenderKey(TrackVector A, TrackVector B, TrackVector C, TrackVector D, int Gauge, string Platforms, bool RailsOnly, TrackSupport Support);
     private readonly Dictionary<int, RenderKey> _keys = new();
     private RenderKey[] _previewKeys = Array.Empty<RenderKey>();
     private readonly Dictionary<int, TrackCurve> _pickCurves = new();
@@ -33,6 +35,7 @@ public partial class TrackRenderer : Node3D
     public override void _Ready()
     {
         Network.Changed += MarkDirty;
+        Bridges = new() { Tracks = this }; AddChild(Bridges);
         Network.Space.Rebased += Rebased;
         AddChild(Markers);
         Signals = new() { Network = Network }; AddChild(Signals);
@@ -50,6 +53,7 @@ public partial class TrackRenderer : Node3D
         _pickCurves.Clear();
         foreach (var (id, holder) in Holders) if (Network.Edges.TryGetValue(id, out var edge)) holder.Position = Network.Nodes[edge.A].Position;
         foreach (var child in Preview.GetChildren()) if (child is Node3D node) node.Position -= shift;
+        Bridges.Rebase();
         UpdateMarkers();
     }
     public override void _Process(double delta)
@@ -67,6 +71,7 @@ public partial class TrackRenderer : Node3D
                 }
             foreach (var edge in Network.Edges.Values)
                 BuildEdge(edge);
+            Bridges.Sync();
             UpdateMarkers();
         }
         if (IsInstanceValid(Camera))
@@ -85,7 +90,7 @@ public partial class TrackRenderer : Node3D
             (edge.A == Selected || edge.B == Selected || !SpacingDrag && selected.Group != 0 &&
             (Network.Nodes[edge.A].Group == selected.Group || Network.Nodes[edge.B].Group == selected.Group));
         bool railsOnly = Dragging && affected;
-        var key = new RenderKey(world[0], world[1], world[2], world[3], edge.Gauge, string.Join(",", edge.Platforms), railsOnly);
+        var key = new RenderKey(world[0], world[1], world[2], world[3], edge.Gauge, string.Join(",", edge.Platforms), railsOnly, edge.Support);
         if (_keys.TryGetValue(edge.Id, out var previous) && previous == key)
             return;
         if (Holders.TryGetValue(edge.Id, out var old))
@@ -180,10 +185,10 @@ public partial class TrackRenderer : Node3D
         }
     }
     private void Marker(Vector3 point, float radius, Color color) => Markers.AddChild(new MeshInstance3D { Mesh = new SphereMesh { Radius = radius, Height = radius * 2 }, Position = point, MaterialOverride = Material(color) });
-    public void ShowPreview(Vector3[] points, int gauge = 1435) => ShowPreviews(new[] { points }, gauge);
-    public void ShowPreviews(Vector3[][] curves, int gauge = 1435)
+    public void ShowPreview(Vector3[] points, int gauge = 1435, TrackSupport support = TrackSupport.Fill) => ShowPreviews(new[] { points }, gauge, support);
+    public void ShowPreviews(Vector3[][] curves, int gauge = 1435, TrackSupport support = TrackSupport.Fill)
     {
-        var keys = curves.Select(p => new RenderKey(TrackVector.From(p[0]), TrackVector.From(p[1]), TrackVector.From(p[2]), TrackVector.From(p[3]), gauge, "", false)).ToArray();
+        var keys = curves.Select(p => new RenderKey(TrackVector.From(p[0]), TrackVector.From(p[1]), TrackVector.From(p[2]), TrackVector.From(p[3]), gauge, "", false, support)).ToArray();
         if (!_previewKeys.SequenceEqual(keys))
         {
             foreach (var child in Preview.GetChildren())
@@ -193,6 +198,20 @@ public partial class TrackRenderer : Node3D
             }
             foreach (var points in curves)
                 Preview.AddChild(new TrackVisual(new TrackGeometry(points, gauge, preview: true), preview: true));
+            if (support == TrackSupport.ConcreteBridge && curves.Length > 0)
+            {
+                var temporary = new TrackNetwork { Space = Network.Space };
+                foreach (var p in curves)
+                {
+                    var a = temporary.AddNode(p[0], gauge); var b = temporary.AddNode(p[3], gauge);
+                    a.Axis = (p[1] - p[0]).Normalized(); b.Axis = (p[3] - p[2]).Normalized();
+                    a.Group = 1; b.Group = 2;
+                    int id = temporary.Edges.Count + 1;
+                    temporary.Edges[id] = new() { Id = id, A = a.Id, B = b.Id, Gauge = gauge, SideA = 1, SideB = -1, LengthA = p[0].DistanceTo(p[1]), LengthB = p[3].DistanceTo(p[2]), Support = support };
+                }
+                var layout = new BridgeLayout(temporary, temporary.Edges[1]);
+                var bridge = layout.Create((x, z) => Generator?.Sampler.Height(x, z) ?? 0, true); bridge.Position = curves[0][0]; Preview.AddChild(bridge);
+            }
             _previewKeys = keys;
         }
         Preview.Visible = true;

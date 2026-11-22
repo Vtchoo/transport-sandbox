@@ -6,8 +6,8 @@ using System.Threading;
 namespace TransportSandbox.Terrain;
 
 public readonly record struct EarthPoint(double X, double Y, double Z, double Nx = 0, double Nz = 1,
-    double Left = double.PositiveInfinity, double Right = double.PositiveInfinity);
-public readonly record struct EarthHit(double Distance, double RailHeight, double Width);
+    double Left = double.PositiveInfinity, double Right = double.PositiveInfinity, bool CutOnly = false);
+public readonly record struct EarthHit(double Distance, double RailHeight, double Width, bool CutOnly = false);
 
 /// <summary>Immutable port of earthworks.ts: first-ground-intersection 2:1 shoulders and nearest-path BVH.</summary>
 public sealed class EarthworkField
@@ -57,7 +57,7 @@ public sealed class EarthworkField
             double width = reach;
             if (e.MaxX + width < ox - 34 || e.MinX - width > ox + 546 || e.MaxZ + width < oz - 34 || e.MinZ - width > oz + 546) continue;
             foreach (var p in new[] { e.A, e.B })
-            { writer.Write(p.X); writer.Write(p.Y); writer.Write(p.Z); writer.Write(p.Nx); writer.Write(p.Nz); writer.Write(p.Left); writer.Write(p.Right); }
+            { writer.Write(p.X); writer.Write(p.Y); writer.Write(p.Z); writer.Write(p.Nx); writer.Write(p.Nz); writer.Write(p.Left); writer.Write(p.Right); if (p.CutOnly) writer.Write(true); }
         }
         return bytes.Length == 0 ? "" : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes.ToArray()));
     }
@@ -93,7 +93,8 @@ public sealed class EarthworkField
             double Width(int side)
             {
                 double At(double d) => natural(point.X + nx * d * side, point.Z + nz * d * side);
-                bool fill = bed >= At(2);
+                if (point.CutOnly && bed >= At(2)) return 2;
+                bool fill = !point.CutOnly && bed >= At(2);
                 bool Inside(double d) => fill ? At(d) < bed - (d - 2) / 2 : At(d) > bed + (d - 2) / 2;
                 double limit = 2 + 2 * Math.Max(Math.Abs(bed + 700), Math.Abs(bed - mountainHeight - 600)), previous = 2;
                 for (double d = 3; d <= limit + 20; d += Math.Min(8, Math.Max(1, d * .02)))
@@ -126,9 +127,10 @@ public sealed class EarthworkField
         }
         return result;
     }
-    public EarthHit Nearest(double x, double z)
+    public EarthHit Nearest(double x, double z, double? natural = null)
     {
         double distanceSq = double.PositiveInfinity, railHeight = 0, width = double.PositiveInfinity;
+        bool cutOnly = false;
         void Visit(Branch branch)
         {
             if (branch.DistanceSquared(x, z) > distanceSq)
@@ -142,8 +144,11 @@ public sealed class EarthworkField
                     double px = x - e.A.X - t * dx, pz = z - e.A.Z - t * dz, d = px * px + pz * pz;
                     if (d >= distanceSq)
                         continue;
+                    double candidateHeight = e.A.Y + (e.B.Y - e.A.Y) * t;
+                    if (natural.HasValue && e.A.CutOnly && natural.Value <= candidateHeight - .65 + Math.Max(0, Math.Sqrt(d) - 2) / 2) continue;
                     distanceSq = d;
-                    railHeight = e.A.Y + (e.B.Y - e.A.Y) * t;
+                    railHeight = candidateHeight;
+                    cutOnly = e.A.CutOnly;
                     double nx = e.A.Nx + (e.B.Nx - e.A.Nx) * t, nz = e.A.Nz + (e.B.Nz - e.A.Nz) * t;
                     bool right = px * nx + pz * nz >= 0;
                     double a = right ? e.A.Right : e.A.Left, b = right ? e.B.Right : e.B.Left;
@@ -159,15 +164,15 @@ public sealed class EarthworkField
         }
         if (_root != null)
             Visit(_root);
-        return new(Math.Sqrt(distanceSq), railHeight, width);
+        return new(Math.Sqrt(distanceSq), railHeight, width, cutOnly);
     }
     public double Height(double x, double z, double natural)
     {
-        var hit = Nearest(x, z);
+        var hit = Nearest(x, z, natural);
         if (!double.IsFinite(hit.Distance) || hit.Distance > hit.Width)
             return natural;
         double bed = hit.RailHeight - .65, rise = Math.Max(0, hit.Distance - 2) / 2;
-        return Math.Max(bed - rise, Math.Min(natural, bed + rise));
+        return hit.CutOnly ? Math.Min(natural, bed + rise) : Math.Max(bed - rise, Math.Min(natural, bed + rise));
     }
     public bool ClearsTree(double x, double z, double natural)
     {

@@ -18,6 +18,8 @@ public sealed class TrackEdge
     public int Id, A, B, Gauge, SideA, SideB, Station;
     public float LengthA, LengthB;
     public List<int> Platforms = new();
+    public TrackSupport Support;
+    public List<BridgePier>? BridgePiers;
     public TrackEdge Clone() => new()
     {
         Id = Id,
@@ -29,6 +31,8 @@ public sealed class TrackEdge
         Station = Station,
         LengthA = LengthA,
         LengthB = LengthB,
+        Support = Support,
+        BridgePiers = BridgePiers == null ? null : new(BridgePiers),
         Platforms = new(Platforms)
     };
 }
@@ -71,7 +75,7 @@ public sealed partial class TrackNetwork
     public List<TrackEdge> Incident(int id) => Edges.Values.Where(e => e.A == id || e.B == id).ToList();
     public static int SideAt(TrackEdge edge, int node) => edge.A == node ? edge.SideA : edge.SideB;
     public bool CanExtend(TrackNode node, int side) => !Incident(node.Id).Any(e => e.Station != 0 && SideAt(e, node.Id) == side);
-    public TrackEdge? ConnectNodes(TrackNode a, TrackNode b, int side = 0, Vector3 endDirection = default)
+    public TrackEdge? ConnectNodes(TrackNode a, TrackNode b, int side = 0, Vector3 endDirection = default, TrackSupport? support = null)
     {
         if (a.Id == b.Id || a.Gauge != b.Gauge || a.Position.DistanceTo(b.Position) < 1)
             return null;
@@ -94,13 +98,14 @@ public sealed partial class TrackNetwork
             A = a.Id,
             B = b.Id,
             Gauge = a.Gauge,
+            Support = support ?? InheritedSupport(a, side),
             SideA = side,
             SideB = bSide,
             LengthA = chord.Length() / 3,
             LengthB = chord.Length() / 3
         };
         Edges[edge.Id] = edge;
-        NotifyChanged();
+        SetSupport(edge, edge.Support);
         return edge;
     }
     public TrackVector[] WorldControls(TrackEdge edge)
@@ -286,6 +291,12 @@ public sealed partial class TrackNetwork
         b.SideA = 1;
         b.LengthA = location.DistanceTo(r1);
         b.LengthB *= 1 - t;
+        if (edge.BridgePiers != null)
+        {
+            double ratio = new TrackCurve(new[] { p[0], q0, r0, location }).Length / new TrackCurve(p).Length;
+            a.BridgePiers = edge.BridgePiers.Where(pier => pier.Along < ratio).Select(pier => pier with { Along = pier.Along / ratio }).ToList();
+            b.BridgePiers = edge.BridgePiers.Where(pier => pier.Along > ratio).Select(pier => pier with { Along = (pier.Along - ratio) / (1 - ratio) }).ToList();
+        }
         Edges.Remove(edge.Id);
         Edges[a.Id] = a;
         Edges[b.Id] = b;
@@ -295,7 +306,7 @@ public sealed partial class TrackNetwork
     public bool CanMerge(int id)
     {
         var es = Incident(id);
-        if (es.Count != 2 || SideAt(es[0], id) == SideAt(es[1], id) || es[0].Station != es[1].Station)
+        if (es.Count != 2 || SideAt(es[0], id) == SideAt(es[1], id) || es[0].Station != es[1].Station || es[0].Support != es[1].Support)
             return false;
         int a = es[0].A == id ? es[0].B : es[0].A, b = es[1].A == id ? es[1].B : es[1].A;
         return a != b && Nodes[a].Position.DistanceTo(Nodes[b].Position) >= 1 && !Edges.Values.Any(e => e.A == a && e.B == b || e.A == b && e.B == a);
@@ -314,6 +325,16 @@ public sealed partial class TrackNetwork
         edge.SideB = SideAt(es[1], b);
         edge.LengthA = es[0].A == a ? es[0].LengthA : es[0].LengthB;
         edge.LengthB = es[1].A == b ? es[1].LengthA : es[1].LengthB;
+        if (edge.Support == TrackSupport.ConcreteBridge && es.Any(e => e.BridgePiers != null))
+        {
+            double lengthA = new TrackCurve(WorldControls(es[0])).Length, lengthB = new TrackCurve(WorldControls(es[1])).Length;
+            double ratio = lengthA / (lengthA + lengthB);
+            var first = es[0].BridgePiers?.ToArray() ?? AutomaticPiers(lengthA);
+            var second = es[1].BridgePiers?.ToArray() ?? AutomaticPiers(lengthB);
+            edge.BridgePiers = first.Select(p => new BridgePier((es[0].A == a ? p.Along : 1 - p.Along) * ratio))
+                .Concat(second.Select(p => new BridgePier(ratio + (es[1].B == b ? p.Along : 1 - p.Along) * (1 - ratio))))
+                .OrderBy(p => p.Along).ToList();
+        }
         edge.Platforms = es[0].Platforms.Select(s => s * (es[0].A == a ? 1 : -1)).Concat(es[1].Platforms.Select(s => s * (es[1].B == b ? 1 : -1))).Distinct().ToList();
         DeleteNode(id);
         Edges[edge.Id] = edge;

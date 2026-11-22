@@ -5,12 +5,14 @@ namespace TransportSandbox;
 /// <summary>Persistent segment actions anchored above the curve, matching the browser editor.</summary>
 public partial class TrackSegmentHoverMenu : Control
 {
-    public Button Straighten = null!, Delete = null!, ConfirmSplit = null!;
+    public Button Straighten = null!, Delete = null!, ConfirmSplit = null!, Edit = null!;
     private (bool Split, string Confirmation)? _state;
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
+        Edit = Action("Edit segment");
+        Edit.TooltipText = "Edit support type and bridge piers";
         Straighten = Action("Straighten");
         Delete = Action("Delete track");
         ConfirmSplit = Action("Confirm split");
@@ -37,7 +39,7 @@ public partial class TrackSegmentHoverMenu : Control
         if (_state == (split, confirmation))
             return;
         _state = (split, confirmation);
-        Straighten.Visible = Delete.Visible = !split;
+        Edit.Visible = Straighten.Visible = Delete.Visible = !split;
         ConfirmSplit.Visible = split;
         Straighten.Text = confirmation == "straight" ? "Confirm straightening" : "Straighten";
         Delete.Text = confirmation == "edge" ? "Confirm delete track" : "Delete track";
@@ -46,6 +48,7 @@ public partial class TrackSegmentHoverMenu : Control
         ConfirmSplit.TooltipText = "Divide the segment at the preview node. Esc cancels.";
         Style(Straighten, confirmation == "straight" ? "715332" : "284e3ef5", confirmation == "straight" ? "edc579" : "b9d6c3", "38654e");
         Style(Delete, confirmation == "edge" ? "873f32" : "593e36f5", confirmation == "edge" ? "ffc3a8" : "c58e80", "754b40");
+        Style(Edit, "284e3ef5", "b9d6c3", "38654e");
         Style(ConfirmSplit, "284e3ef5", "9ee4c5", "38654e");
     }
     public void PositionButtons(Vector2 point, bool split)
@@ -57,10 +60,13 @@ public partial class TrackSegmentHoverMenu : Control
         }
         else
         {
+            Place(Edit, point - new Vector2(0, 107));
             Place(Straighten, point - new Vector2(0, 35));
             Place(Delete, point - new Vector2(0, 71));
         }
     }
+    public bool ContainsActions(Vector2 point) => Visible && !ConfirmSplit.Visible &&
+        Edit.GetGlobalRect().Merge(Straighten.GetGlobalRect()).Merge(Delete.GetGlobalRect()).Grow(8).HasPoint(point);
     private void Place(Button button, Vector2 center)
     {
         button.Size = button.GetCombinedMinimumSize();

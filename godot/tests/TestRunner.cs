@@ -43,6 +43,15 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "bridges-render":
+                    await BridgeChecks.Run(Check, Frame, this);
+                    await BridgeChecks.Capture(this, Frame);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
+                case "bridges":
+                    await BridgeChecks.Run(Check, Frame, this);
+                    await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
+                    break;
                 case "industries":
                     await IndustryChecks.Run(Check, Frame, this);
                     await Frames(); GC.Collect(); GC.WaitForPendingFinalizers(); await Frames();
@@ -216,6 +225,7 @@ public partial class TestRunner : Node
         CameraOriginChecks.Parity(Check);
         TreeChecks.Run(Check);
         ClearanceChecks.Run(Check);
+        BridgeChecks.Core(Check);
         TrackGeometryChecks.Run(Check);
         NodeHoverChecks.ParallelSourceParity(Check);
         var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");

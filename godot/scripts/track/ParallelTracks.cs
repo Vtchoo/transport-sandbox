@@ -89,7 +89,7 @@ public sealed partial class TrackNetwork
         }
         return plan.ToArray();
     }
-    public (TrackNode Node, int Side, TrackEdge[] Edges) ExtendParallel(TrackNode source, int side, Vector3 point, TrackNode? target = null, Vector3 endDirection = default)
+    public (TrackNode Node, int Side, TrackEdge[] Edges) ExtendParallel(TrackNode source, int side, Vector3 point, TrackNode? target = null, Vector3 endDirection = default, TrackSupport? support = null)
     {
         var plan = PreviewParallel(source, side, point, target, endDirection);
         int nodeCounter = _nextNode, edgeCounter = _nextEdge, groupCounter = _nextGroup;
@@ -125,7 +125,7 @@ public sealed partial class TrackNetwork
             var edges = new TrackEdge[plan.Length];
             for (int i = 0; i < plan.Length; i++)
             {
-                var edge = ConnectNodes(plan[i].Source, targets[i], side) ?? throw new InvalidOperationException("Cannot connect every track in this group.");
+                var edge = ConnectNodes(plan[i].Source, targets[i], side, support: support ?? InheritedSupport(source, side)) ?? throw new InvalidOperationException("Cannot connect every track in this group.");
                 addedEdges.Add(edge.Id);
                 edge.SideB = targets[i].Axis.Dot(plan[i].Controls[3] - plan[i].Controls[2]) >= 0 ? -1 : 1;
                 edge.LengthA = plan[i].LengthA;

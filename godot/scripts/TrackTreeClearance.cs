@@ -14,7 +14,7 @@ public partial class TrackTreeClearance : Node
     public TrackNetwork Network = null!;
     public TerrainWorld World = null!;
     private readonly CancellationTokenSource _shutdown = new();
-    private sealed record Prepared(TrackVector[] Controls, EarthPoint[] Points);
+    private sealed record Prepared(TrackVector[] Controls, TrackSupport Support, EarthPoint[] Points);
     private sealed record Result(long Revision, EarthworkField? Field, EarthworkChanges? Changes, Dictionary<int, Prepared> Cache);
     private Dictionary<int, Prepared> _cache = new();
     private Dictionary<int, Prepared> _applied = new();
@@ -77,7 +77,7 @@ public partial class TrackTreeClearance : Node
         _dirty = false;
         long revision = _revision;
         using var captureProbe = FrameProbe.Measure("earthworks.capture");
-        var paths = Network.Edges.Values.Select(e => (e.Id, Controls: Network.WorldControls(e))).ToArray();
+        var paths = Network.Edges.Values.Select(e => (e.Id, Controls: Network.WorldControls(e), e.Support)).ToArray();
         var previous = _cache;
         var applied = _applied; var appliedField = _appliedField;
         var candidates = World.EarthworkCandidates().ToArray();
@@ -87,18 +87,18 @@ public partial class TrackTreeClearance : Node
         {
             using var jobProbe = EarthworkProbe.Measure("preparation.total");
             var cache = new Dictionary<int, Prepared>();
-            foreach (var (id, controls) in paths)
+            foreach (var (id, controls, support) in paths)
             {
                 token.ThrowIfCancellationRequested();
-                if (previous.TryGetValue(id, out var old) && old.Controls.SequenceEqual(controls)) cache[id] = old;
+                if (previous.TryGetValue(id, out var old) && old.Support == support && old.Controls.SequenceEqual(controls)) cache[id] = old;
                 else
                 {
                     using var segmentProbe = EarthworkProbe.Measure("preparation.segment", id);
-                    cache[id] = new(controls, EarthworkField.Prepare(SamplePath(controls), sampler.Height, sampler.MountainHeight, token));
+                    cache[id] = new(controls, support, EarthworkField.Prepare(SamplePath(controls).Select(p => p with { CutOnly = support == TrackSupport.ConcreteBridge }).ToArray(), sampler.Height, sampler.MountainHeight, token));
                 }
             }
             // Compare against the last APPLIED snapshot, not a discarded worker result.
-            var changed = cache.Where(p => !applied.TryGetValue(p.Key, out var old) || !old.Controls.SequenceEqual(p.Value.Controls)).Select(p => p.Key).ToHashSet();
+            var changed = cache.Where(p => !applied.TryGetValue(p.Key, out var old) || old.Support != p.Value.Support || !old.Controls.SequenceEqual(p.Value.Controls)).Select(p => p.Key).ToHashSet();
             changed.UnionWith(applied.Keys.Where(id => !cache.ContainsKey(id)));
             if (changed.Count == 0) return new Result(revision, null, null, cache);
             EarthworkField field;
