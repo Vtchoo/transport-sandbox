@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -68,6 +69,9 @@ def main():
     parser.add_argument('--automatic', action='store_true', help='Use the old automatic pack instead of the painting layout')
     parser.add_argument('--paint-only', action='store_true', help='Map only large livery panels; keep hardware solid-colored')
     parser.add_argument('--paint-material', default='paint', help='Unwrap exactly the faces assigned to this material')
+    parser.add_argument('--material-groups', action='store_true', help='Use named paint roles and arbitrary bracketed UV groups')
+    parser.add_argument('--group-layout', type=Path, help='Explicit material-to-view assignments for a simple F7A painting sheet')
+    parser.add_argument('--unfolded', action='store_true', help='Aligned vehicle sides and roof at one physical scale, with grouped small parts')
     parser.add_argument('--name', default='dash9-v5', help='Output filename prefix')
     parser.add_argument('--layout', choices=('dash9', 'f7a'), default='dash9', help='Vehicle-specific painting panel layout')
     args = parser.parse_args()
@@ -142,8 +146,11 @@ def main():
                 valid = areas > 1e-9
                 if not np.any(valid):
                     raise ValueError('An entire exported mesh has zero area')
-                selected = np.concatenate([np.full(p['count'], material_names.get(p['material']) == args.paint_material) for p in primitives])
+                face_materials = np.concatenate([np.full(p['count'], material_names.get(p['material'], ''), dtype=object) for p in primitives])
+                selected = np.array([bool(re.fullmatch(r'paint(?:-[a-zA-Z0-9_-]+)?(?:-\[[^\[\]]+\]|-_[^\[\]]+_)?', name))
+                                     if args.material_groups else name == args.paint_material for name in face_materials])
                 meshes.append({'geometry': geometry, 'instance': child, 'part': part, 'points': unique, 'faces': welded[valid].astype(np.uint32), 'selected': selected[valid],
+                               'face_materials': face_materials[valid], 'orientation': float(np.sign(np.linalg.det(world[:3, :3]))),
                                'valid': valid, 'primitives': primitives, 'all_points': points, 'original_faces': faces})
 
     scene_id = root.find(f"{Q('scene')}/{Q('instance_visual_scene')}").get('url')[1:]
@@ -156,6 +163,12 @@ def main():
             geometries.remove(geometry)
 
     if args.inspect:
+        if args.material_groups:
+            for name in sorted(set(n for item in meshes for n in item['face_materials'][item['selected']])):
+                triangles = np.concatenate([item['points'][item['faces'][item['face_materials'] == name]] for item in meshes])[:, :, [0, 2, 1]] * [1, 1, -1]
+                normals = np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0])
+                print(name, len(triangles), 'bounds', triangles.min(axis=(0, 1)).round(2), triangles.max(axis=(0, 1)).round(2), 'normal area', np.abs(normals).sum(axis=0).round(2))
+            return
         for item in meshes:
             points = item['all_points'][:, [0, 2, 1]] * np.array([1, 1, -1])
             bounds = [points.min(axis=0).round(3).tolist(), points.max(axis=0).round(3).tolist()]
@@ -176,7 +189,13 @@ def main():
                     groups[key] = groups.get(key, 0) + area / 2
                 print('PLANES', sorted(groups.items(), key=lambda entry: -entry[1])[:25])
         return
-    if args.paint_material:
+    if args.material_groups and args.group_layout:
+        from f7a_material_uv import F7AAtlas
+        atlas = F7AAtlas(meshes, args.size, group_rules=json.loads(args.group_layout.read_text()), unfolded=args.unfolded)
+    elif args.material_groups:
+        from grouped_material_uv import GroupedMaterialAtlas
+        atlas = GroupedMaterialAtlas(meshes, args.size)
+    elif args.paint_material:
         if args.layout == 'f7a':
             from f7a_material_uv import F7AAtlas
             atlas = F7AAtlas(meshes, args.size)
@@ -229,7 +248,7 @@ def main():
             original = root.find(f"{Q('library_materials')}/{Q('material')}[@id='{material_id}']")
             material = copy.deepcopy(original)
             material.set('id', 'paint-' + material_id)
-            material.set('name', 'Livery panels')
+            material.set('name', 'Livery panels - ' + original.get('name', '') if args.material_groups else 'Livery panels')
             instance_effect = material.find(Q('instance_effect'))
             effect = copy.deepcopy(effects[instance_effect.get('url')[1:]])
             effect.set('id', 'paint-' + effect.get('id'))
@@ -303,7 +322,7 @@ def main():
                 xy = [(float(u * (size - 1)), float((1 - v) * (size - 1))) for u, v in uv]
                 draw_paint.polygon(xy, fill=color)
                 draw_mask.polygon(xy, fill=255)
-                draw_guide.polygon(xy, fill=part_color)
+                draw_guide.polygon(xy, fill=color if args.material_groups else part_color)
                 if args.paint_only:
                     for a, b in zip(xy, xy[1:] + xy[:1]):
                         edge = tuple(sorted((tuple(round(v, 2) for v in a), tuple(round(v, 2) for v in b))))
@@ -330,9 +349,24 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     if hasattr(atlas, 'labels'):
         font = ImageFont.truetype('C:/Windows/Fonts/segoeui.ttf', max(12, round(26 * size / 4096)))
-        for x, y, label in atlas.labels:
-            draw_guide.text((x, y), label, fill=(240, 240, 220), font=font)
-            draw_wire.text((x, y), label, fill=(45, 45, 45, 255), font=font)
+        for li, (x, y, label) in enumerate(atlas.labels):
+            label_font = font
+            if args.material_groups and not args.group_layout:
+                width = atlas.panels[li]['rectanglePixels'][2]
+                label = label.replace(' / ', '\n', 1)
+                font_size = max(10, round(16 * size / 4096))
+                while font_size > 8 and max(ImageFont.truetype('C:/Windows/Fonts/segoeui.ttf', font_size).getlength(line) for line in label.splitlines()) > width:
+                    font_size -= 1
+                label_font = ImageFont.truetype('C:/Windows/Fonts/segoeui.ttf', font_size)
+            draw_guide.multiline_text((x, y), label, fill=(240, 240, 220), font=label_font, spacing=0)
+            draw_wire.multiline_text((x, y), label, fill=(45, 45, 45, 255), font=label_font, spacing=0)
+    for mark in getattr(atlas, 'station_marks', []):
+        x, y, bottom = mark['linePixels']
+        emphasized = mark['distanceFromFrontMetres'] == 5
+        color = (255, 85, 210) if emphasized else (140, 155, 166)
+        for top in np.arange(y, bottom, max(1, 32 * size / 4096)):
+            draw_guide.line((x, top, x, min(bottom, top + 16 * size / 4096)), fill=color, width=2 if emphasized else 1)
+        draw_guide.text((x+6, y+8), f"{mark['distanceFromFrontMetres']}m FROM FRONT" + (' / A' if emphasized else ''), fill=color, font=font)
     stem = 'dash9-v2-uv'
     ET.indent(root, space='  ')
     ET.ElementTree(root).write(args.output / (stem + '.dae'), encoding='utf-8', xml_declaration=True)
@@ -342,6 +376,9 @@ def main():
     if hasattr(atlas, 'preview_faces'):
         from dash9_uv_preview import create_preview
         create_preview(atlas, args.output, size)
+        if args.material_groups:
+            create_preview(atlas, args.output, size, texture_path=args.output / (stem + '-basecolor.png'))
+            (args.output / 'dash9-textured-preview.png').replace(args.output / (args.name + '-uv-colors-preview.png'))
     # Keep a UV-only copy for exact geometry/material round-tripping, and provide
     # a separate ready-to-preview version with the paint image actually bound.
     textured = copy.deepcopy(root)
@@ -386,6 +423,15 @@ def main():
         summary['selectionMaterial'] = args.paint_material
         summary['selectionRule'] = 'Exact exported face-material name; no geometry-ID or position-based selection'
         summary['intentionalSideProjectionOverlaps'] = atlas.intentional_side_overlap_count
+    if args.material_groups:
+        summary.update(selectionRule='Authored paint roles and UV groups; group labels never inferred from location',
+                       selectionMaterial=sorted(set(n for item in meshes for n in item['face_materials'][item['selected']])),
+                       degenerateTriangles=sum(int((~item['valid']).sum()) for item in meshes),
+                       layout='authored-material-groups', panels=atlas.panels)
+        if args.group_layout:
+            summary.update(layout='authored-groups-simple-views', groupViewAssignments=json.loads(args.group_layout.read_text()))
+            if args.unfolded:
+                summary.update(unfolded=True, secondaryGroups=atlas.secondary_panels, stationMarks=atlas.station_marks, frontDirection='left-view-right;roof-and-right-view-left')
     (args.output / 'uv-report.json').write_text(json.dumps(summary, indent=2) + '\n')
     (args.output / 'README.txt').write_text(
         'Dash 9 v2: shared 4096 x 4096 UV atlas\n\n'
@@ -438,6 +484,7 @@ def main():
     names = [stem + '.dae', 'dash9-v2-textured.dae', stem + '-layout.png', stem + '-guide.png', stem + '-basecolor.png', 'uv-report.json', 'README.txt']
     if hasattr(atlas, 'preview_faces'):
         names += ['dash9-v2-checker.dae', stem + '-checker.png', stem + '-preview.png']
+    if args.material_groups: names += [args.name + '-uv-colors-preview.png']
     if args.name != 'dash9-v2':
         for name in names.copy():
             path = args.output / name

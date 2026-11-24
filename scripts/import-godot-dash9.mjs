@@ -1,6 +1,7 @@
 /** Godot-only Dash 9 import with authored bogies and wheelset hierarchy. */
 import { readFile, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { materialRole } from './lib/material-role.mjs';
 import { DOMParser } from 'linkedom';
 import * as THREE from 'three';
 import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
@@ -110,7 +111,7 @@ for (const [part, nativeName] of [['body', 'body'], ['bogie-front', 'bogie_0'], 
       if (!positions.length) continue;
       if (!materialIds.has(material)) {
         materialIds.set(material, gltf.materials.length);
-        gltf.materials.push({ name: painted ? 'Santa Fe paintable panels' : material.name, pbrMetallicRoughness: {
+        gltf.materials.push({ name: painted ? 'Santa Fe paintable panels' : materialRole(material.name), pbrMetallicRoughness: {
           baseColorFactor: [...(painted ? [1, 1, 1] : material.color.toArray()), material.opacity], metallicFactor: .1, roughnessFactor: .65,
           ...(painted ? { baseColorTexture: { index: 0 } } : {}),
         }, ...(material.side === THREE.DoubleSide ? { doubleSided: true } : {}) });

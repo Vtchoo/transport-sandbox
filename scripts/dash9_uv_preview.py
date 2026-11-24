@@ -12,6 +12,7 @@ def create_preview(atlas, output, size, texture_path=None):
             draw.rectangle((x, y, x + step - 1, y + step - 1), fill='#b5bdc8' if (x // step + y // step) % 2 else '#53617a')
     # Same-height stripe and front marker on both sides expose alignment/mirroring errors.
     for name in ('left', 'right'):
+        if name not in atlas.regions: continue
         x, y, _, _, _, scale = atlas.regions[name]
         f = size / 4096
         draw.rectangle(tuple(v * f for v in (x, y + (4.7 - 2.9) * scale, x + 3900, y + (4.7 - 2.5) * scale)), fill='#f4bb46')

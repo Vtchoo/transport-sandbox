@@ -81,6 +81,31 @@ public static class F7AImportChecks
                 string output = ProjectSettings.GlobalizePath("res://.godot/f7a-import-preview.png");
                 using var image = parent.GetViewport().GetTexture().GetImage(); image.SavePng(output);
                 GD.Print("F7A preview: " + output);
+                string? review = OS.GetCmdlineUserArgs().FirstOrDefault(a => a.StartsWith("--f7a-review="))?.Split('=', 2)[1];
+                if (!string.IsNullOrEmpty(review))
+                {
+                    string directory = ProjectSettings.GlobalizePath("res://.godot/" + review);
+                    Directory.CreateDirectory(directory);
+                    camera.Projection = Camera3D.ProjectionType.Orthogonal;
+                    var target = new Vector3(0, 2.2f, 0);
+                    foreach (var shot in new[] {
+                        ("left-front", new Vector3(-22, 8, 25), 11f, Vector3.Up),
+                        ("right-front", new Vector3(22, 8, 25), 11f, Vector3.Up),
+                        ("left", new Vector3(-25, 2.2f, 0), 11f, Vector3.Up),
+                        ("right", new Vector3(25, 2.2f, 0), 11f, Vector3.Up),
+                        ("front", new Vector3(0, 2.4f, 30), 6f, Vector3.Up),
+                        ("rear", new Vector3(0, 2.4f, -30), 6f, Vector3.Up),
+                        ("roof", new Vector3(0, 30, 0), 11f, Vector3.Right) })
+                    {
+                        camera.Position = shot.Item2; camera.Size = shot.Item3;
+                        camera.LookAt(target, shot.Item4);
+                        for (int i = 0; i < 3; i++) await frame();
+                        await parent.ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+                        using var capture = parent.GetViewport().GetTexture().GetImage();
+                        capture.SavePng(Path.Combine(directory, shot.Item1 + ".png"));
+                    }
+                    GD.Print("F7A review views: " + directory);
+                }
             }
         }
         finally { stage.Free(); await frame(); }

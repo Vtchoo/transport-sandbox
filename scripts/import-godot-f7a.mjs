@@ -5,14 +5,18 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { updateArrayEntry } from './lib/update-json-entry.mjs';
+import { materialRole } from './lib/material-role.mjs';
 
 const root = new URL('../', import.meta.url);
 const require = createRequire(new URL('web/package.json', root));
 const THREE = await import(pathToFileURL(require.resolve('three')).href);
 const { DOMParser } = require('linkedom');
 const { ColladaLoader } = await import(pathToFileURL(require.resolve('three/addons/loaders/ColladaLoader.js')).href);
-const source = new URL('.files/f7a/uv-paint-only/v1/f7a-v1-uv.dae', root);
-const texture = new URL('.files/f7a/f7a v1 santa fe.png', root);
+const version = process.argv.find(a => a.startsWith('--version='))?.slice(10) ?? 'v5';
+assert.match(version, /^v\d+$/, 'Version must be v followed by digits');
+const kit = new URL(`.files/f7a/uv-paint-only/${version}/`, root);
+const source = new URL(`f7a-${version}-uv.dae`, kit);
+const texture = new URL(`.files/f7a/f7a ${version} santa fe.png`, root);
 const target = new URL('godot/assets/vehicles/emd-f7a-1435.glb', root);
 const bytes = await readFile(source), png = await readFile(texture);
 assert.equal(png.subarray(1, 4).toString(), 'PNG');
@@ -111,27 +115,31 @@ for (const [part, nativeName, station] of [['body', 'body', 0], ['bogie-front', 
         }
       }
       if (!positions.length) continue;
-      if (!materials.has(material)) {
-        materials.set(material, gltf.materials.length);
-        gltf.materials.push({ name: painted ? 'F7A paintable panels' : material.name,
+      const nativeMaterial = { name: painted ? 'F7A paintable panels' : materialRole(material.name),
           pbrMetallicRoughness: { baseColorFactor: [...(painted ? [1, 1, 1] : material.color.toArray()), material.opacity],
             metallicFactor: /stainless/i.test(material.name) ? .5 : .1, roughnessFactor: .65,
             ...(painted ? { baseColorTexture: { index: 0 } } : {}) },
           ...(material.opacity < .999 ? { alphaMode: 'BLEND' } : {}),
-          ...(material.side === THREE.DoubleSide ? { doubleSided: true } : {}) });
+          ...(material.side === THREE.DoubleSide ? { doubleSided: true } : {}) };
+      // Authoring groups have served their purpose once UVs are attached. Share
+      // identical runtime materials instead of retaining one per UV group.
+      const materialKey = JSON.stringify(nativeMaterial);
+      if (!materials.has(materialKey)) {
+        materials.set(materialKey, gltf.materials.length);
+        gltf.materials.push(nativeMaterial);
       }
       const attributes = { POSITION: attribute(positions, 3), NORMAL: attribute(normals, 3) };
       if (painted) { attributes.TEXCOORD_0 = attribute(uv, 2); paintedTriangles += positions.length / 9; }
       else solidTriangles += positions.length / 9;
       (wheel?.native ?? native).children.push(gltf.nodes.length);
       gltf.nodes.push({ name: `${part}-${painted ? 'paint' : 'solid'}-${gltf.meshes.length}`, mesh: gltf.meshes.length });
-      gltf.meshes.push({ primitives: [{ attributes, material: materials.get(material), mode: 4 }] });
+      gltf.meshes.push({ primitives: [{ attributes, material: materials.get(materialKey), mode: 4 }] });
     }
     geometry.dispose();
   });
 }
 assert.equal(wheelsetCount, 4);
-const uvReport = JSON.parse(await readFile(new URL('.files/f7a/uv-paint-only/v1/uv-report.json', root)));
+const uvReport = JSON.parse(await readFile(new URL('uv-report.json', kit)));
 assert.equal(paintedTriangles, uvReport.paintedTriangles, 'All marked paint faces must survive import');
 assert.equal(paintedTriangles + solidTriangles + degenerateTriangles, uvReport.triangles, 'Every source triangle must be accounted for');
 const padding = (4 - length % 4) % 4;
@@ -171,5 +179,5 @@ const report = { id: definition.id, name: definition.name, source: source.pathna
   textureSha256: createHash('sha256').update(png).digest('hex'), paintedTriangles, solidTriangles, degenerateTriangles, wheelsetCount,
   bounds: { minimum: bounds.min.toArray(), maximum: bounds.max.toArray(), size: size.toArray() }, pivots,
   placementLength: definition.length, bogieCenters: definition.bogieCenters, textureSize: [png.readUInt32BE(16), png.readUInt32BE(20)] };
-await writeFile(new URL('.files/f7a/uv-paint-only/v1/godot-import-report.json', root), JSON.stringify(report, null, 2) + '\n');
+await writeFile(new URL('godot-import-report.json', kit), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

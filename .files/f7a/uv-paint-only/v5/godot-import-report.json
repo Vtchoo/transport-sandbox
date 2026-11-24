@@ -1,0 +1,51 @@
+{
+  "id": "emd-f7a",
+  "name": "F7A",
+  "source": "/D:/Documentos/DEV/projetos/transport-sandbox/.files/f7a/uv-paint-only/v5/f7a-v5-uv.dae",
+  "sourceSha256": "cc049ca58ee59f2dde054eabbf78370c93f2b594fd254ab749eca5ffeb384f47",
+  "textureSha256": "fb54223a1f05bb945d5ac0fc43cd4c02392dbc6eb4a4b5905ded434726025448",
+  "paintedTriangles": 948,
+  "solidTriangles": 5859,
+  "degenerateTriangles": 177,
+  "wheelsetCount": 4,
+  "bounds": {
+    "minimum": [
+      -1.5986000299453735,
+      -0.07062317562103337,
+      -7.171600818634033
+    ],
+    "maximum": [
+      1.5986000299453735,
+      4.482706069946289,
+      7.702277660369873
+    ],
+    "size": [
+      3.197200059890747,
+      4.553329245567323,
+      14.873878479003906
+    ]
+  },
+  "pivots": {
+    "body": [
+      0,
+      0,
+      0
+    ],
+    "bogie-front": [
+      0,
+      -1.0151879337172432e-15,
+      4.572
+    ],
+    "bogie-rear": [
+      0,
+      1.0151879337172432e-15,
+      -4.572
+    ]
+  },
+  "placementLength": 15.4432,
+  "bogieCenters": 9.144,
+  "textureSize": [
+    1254,
+    1254
+  ]
+}
