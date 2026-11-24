@@ -29,5 +29,17 @@
 	  { "id": "atsf-pleasure-dome" },
 	  { "id": "atsf-coach" }
 	]
+  },
+  {
+    "id": "brightline-florida",
+    "gauge": 1435,
+    "vehicles": [
+      { "id": "brightline-scb40" },
+      { "id": "brightline-venture-premium" },
+      { "id": "brightline-venture-smart" },
+      { "id": "brightline-venture-smart" },
+      { "id": "brightline-venture-smart" },
+      { "id": "brightline-scb40", "reversed": true }
+    ]
   }
 ]

@@ -43,6 +43,12 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "brightline-author":
+                    BrightlineModels.Export();
+                    break;
+                case "brightline":
+                    await BrightlineChecks.Run(Check, this, Frame);
+                    break;
                 case "f7a-import":
                     await F7AImportChecks.Run(Check, Frame, this);
                     break;
@@ -524,7 +530,8 @@ public partial class TestRunner : Node
         main.MenuSettingsFile = "res://.godot/startup-test-preferences.cfg";
         AddChild(main);
         await Frame();
-        Check(main.Catalog.GetArrayLength() == 11 && main.Vehicles.Get("open-hopper").Cargo != null, "All catalog definitions, including the cargo hopper, are present");
+        Check(main.Catalog.GetArrayLength() == main.Vehicles.Definitions.Count() && main.Vehicles.Get("open-hopper").Cargo != null
+            && BrightlineModels.Ids.All(id => main.Vehicles.Get(id).Models.ContainsKey(1435)), "Catalog definitions include the cargo hopper and separate Brightline vehicles");
         foreach (var definition in main.Catalog.EnumerateArray())
             foreach (var model in definition.GetProperty("models").EnumerateObject())
             {

@@ -475,5 +475,87 @@
 	  }
 	},
 	"thumbnail": "res://assets/vehicles/thumbnails/open-hopper.svg"
+  },
+  {
+    "id": "brightline-scb40",
+    "name": "Siemens SCB-40 - Brightline Florida",
+    "kind": "locomotive",
+    "length": 21.7932,
+    "bodyLength": 21.3532,
+    "width": 3.048,
+    "height": 4.2672,
+    "bogieCenters": 12.8,
+    "physics": {
+      "massKg": 120000,
+      "powerW": 2982800,
+      "tractiveEffortN": 290000,
+      "maxSpeedMps": 55.88
+    },
+    "gauges": [
+      1435
+    ],
+    "models": {
+      "1435": "res://assets/vehicles/brightline-scb40-1435.tscn"
+    },
+    "thumbnail": "res://assets/vehicles/thumbnails/brightline-scb40.svg",
+    "exhausts": [
+      {
+        "position": [
+          0,
+          4.275,
+          -2.8
+        ],
+        "kind": "diesel",
+        "idleRate": 0.8
+      }
+    ]
+  },
+  {
+    "id": "brightline-venture-smart",
+    "name": "Brightline Venture - SMART",
+    "kind": "coach",
+    "length": 25.908,
+    "bodyLength": 25.468,
+    "width": 3.2004,
+    "height": 4.2672,
+    "bogieCenters": 18.1356,
+    "physics": {
+      "massKg": 50802,
+      "powerW": 0,
+      "tractiveEffortN": 0,
+      "maxSpeedMps": 55.88
+    },
+    "gauges": [
+      1435
+    ],
+    "models": {
+      "1435": "res://assets/vehicles/brightline-venture-smart-1435.tscn"
+    },
+    "thumbnail": "res://assets/vehicles/thumbnails/brightline-venture-smart.svg",
+    "exhausts": []
+  },
+  {
+    "id": "brightline-venture-premium",
+    "name": "Brightline Venture - PREMIUM",
+    "kind": "coach",
+    "length": 25.908,
+    "bodyLength": 25.468,
+    "width": 3.2004,
+    "height": 4.2672,
+    "bogieCenters": 18.1356,
+    "physics": {
+      "massKg": 50802,
+      "powerW": 0,
+      "tractiveEffortN": 0,
+      "maxSpeedMps": 55.88
+    },
+    "gauges": [
+      1435
+    ],
+    "models": {
+      "1435": "res://assets/vehicles/brightline-venture-premium-1435.tscn"
+    },
+    "thumbnail": "res://assets/vehicles/thumbnails/brightline-venture-premium.svg",
+    "exhausts": []
   }
 ]
