@@ -69,6 +69,7 @@ def main():
     parser.add_argument('--paint-only', action='store_true', help='Map only large livery panels; keep hardware solid-colored')
     parser.add_argument('--paint-material', default='paint', help='Unwrap exactly the faces assigned to this material')
     parser.add_argument('--name', default='dash9-v5', help='Output filename prefix')
+    parser.add_argument('--layout', choices=('dash9', 'f7a'), default='dash9', help='Vehicle-specific painting panel layout')
     args = parser.parse_args()
     if args.paint_material: args.paint_only = True
     material_names = {}
@@ -176,8 +177,12 @@ def main():
                 print('PLANES', sorted(groups.items(), key=lambda entry: -entry[1])[:25])
         return
     if args.paint_material:
-        from dash9_material_uv import MaterialAtlas
-        atlas = MaterialAtlas(meshes, args.size)
+        if args.layout == 'f7a':
+            from f7a_material_uv import F7AAtlas
+            atlas = F7AAtlas(meshes, args.size)
+        else:
+            from dash9_material_uv import MaterialAtlas
+            atlas = MaterialAtlas(meshes, args.size)
     elif not args.automatic:
         from dash9_livery_uv import LiveryAtlas
         atlas = LiveryAtlas(meshes, args.size, paint_only=args.paint_only)

@@ -18,7 +18,7 @@ def create_preview(atlas, output, size, texture_path=None):
         marker = 3500 if name == 'left' and 'front at right' in atlas.regions[name][4] else 350
         draw.rectangle(tuple(v * f for v in (x + marker, y, x + marker + 60, y + 810)), fill='#dc554e')
         font = ImageFont.truetype('C:/Windows/Fonts/segoeui.ttf', max(12, round(130 * f)))
-        draw.text(((x + 1500) * f, (y + 230) * f), 'DASH 9 4472', fill='#fff3cd', font=font)
+        draw.text(((x + 1500) * f, (y + 230) * f), getattr(atlas, 'preview_label', 'DASH 9 4472'), fill='#fff3cd', font=font)
     if texture_path:
         texture = Image.open(texture_path).convert('RGB').resize((size, size))
     else:

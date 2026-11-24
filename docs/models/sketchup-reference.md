@@ -9,7 +9,8 @@ Start here, then use the guide for your equipment:
 - [Freight cars](freight-car-sketchup-reference.md)
 - [Bogies and wheelsets](bogie-sketchup-reference.md)
 - [Headlights, ditch lights and markers](headlight-sketchup-reference.md)
-- [F7A prototype dimensions](references/f7a-sketchup-reference.md)
+- [F7A cab locomotive dimensions and schematics](references/f7a/f7a-sketchup-reference.md)
+- [F7B powered booster dimensions and schematics](references/f7b/f7b-sketchup-reference.md)
 - [Dash 9 dimensions and drawing sources](references/dash-9-sketchup-reference.md)
 - [Current Rio Grande model references](rio-grande-reference.md)
 

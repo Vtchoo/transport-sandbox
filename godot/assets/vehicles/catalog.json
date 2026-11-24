@@ -43,6 +43,66 @@
 	"thumbnail": "res://assets/vehicles/thumbnails/atsf-f7a.svg"
   },
   {
+    "id": "emd-f7a",
+    "name": "F7A",
+    "kind": "locomotive",
+    "length": 15.4432,
+    "bodyLength": 14.872527122497559,
+    "width": 3.197200059890747,
+    "height": 4.482706069946289,
+    "bogieCenters": 9.144,
+    "exhaust": {
+      "position": [
+        0,
+        4.49,
+        -0.702
+      ],
+      "kind": "diesel",
+      "idleRate": 1.2
+    },
+    "physics": {
+      "massKg": 104326,
+      "powerW": 1118550,
+      "tractiveEffortN": 251326,
+      "maxSpeedMps": 45.599
+    },
+    "gauges": [
+      1435
+    ],
+    "models": {
+      "1435": "res://assets/vehicles/emd-f7a-1435.glb"
+    },
+    "exhausts": [
+      {
+        "position": [
+          0,
+          4.49,
+          -0.702
+        ],
+        "kind": "diesel",
+        "idleRate": 1.2
+      },
+      {
+        "position": [
+          0,
+          4.49,
+          -2.922
+        ],
+        "kind": "diesel",
+        "idleRate": 1.2
+      }
+    ],
+    "thumbnail": "res://assets/vehicles/thumbnails/emd-f7a.svg",
+    "liveryMaterial": "F7A paintable panels",
+    "liveries": [
+      {
+        "id": "santa-fe",
+        "name": "Santa Fe",
+        "texture": "res://assets/vehicles/liveries/f7a/santa-fe.png"
+      }
+    ]
+  },
+  {
 	"id": "atsf-coach",
 	"name": "Santa Fe · Streamlined coach",
 	"kind": "coach",

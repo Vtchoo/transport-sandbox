@@ -4,6 +4,7 @@
   "departureHornChance": 0.5,
   "vehicles": {
     "atsf-f7a": { "engine": "testing/f7.wav", "engineProfile": "f7", "horn": "testing/horn-f7.wav" },
+    "emd-f7a": {"engine":"testing/f7.wav","engineProfile":"f7","horn":"testing/horn-f7.wav"},
     "ge-dash9": { "engine": "testing/dash9.wav", "engineProfile": "ge", "horn": "testing/horn-ge.wav" },
     "ge-809": { "engine": "testing/dash9.wav", "engineProfile": "ge", "horn": "testing/horn-ge.wav" },
     "tgv-sud-est-power": { "engine": "testing/electric.wav", "engineProfile": "electric", "horn": "testing/horn-electric.wav" },

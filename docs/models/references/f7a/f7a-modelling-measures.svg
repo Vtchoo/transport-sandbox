@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1280" viewBox="0 0 1200 1280" role="img" aria-labelledby="title desc">
+  <title id="title">EMD F7A modelling dimensions</title>
+  <desc id="desc">Original schematic side and end views and enlarged Blomberg B side view. Principal dimensions follow EMD's 1948 specifications. Bogie outline length and visible height are drawing estimates. Shapes are schematic.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#244354" />
+    </marker>
+    <style>
+text{font-family:Arial,sans-serif;font-size:16px;fill:#203e50}
+.title{font-size:30px;font-weight:bold}.section{font-size:21px;font-weight:bold}.small{font-size:14px}.bold{font-weight:bold}
+.body{fill:#e2eaf0;stroke:#456578;stroke-width:1.8;stroke-linejoin:round}
+.detail{fill:none;stroke:#78909f;stroke-width:1.4}.window{fill:#9bbbc9;stroke:#456578;stroke-width:1.3}
+.rail{stroke:#244354;stroke-width:2}.guide{stroke:#4698a2;stroke-width:1;stroke-dasharray:6 5;fill:none}
+.ext{stroke:#9fb4bd;stroke-width:1;fill:none}.dim{stroke:#244354;stroke-width:1.2;fill:none;marker-start:url(#arrow);marker-end:url(#arrow)}
+.estimate{stroke:#b9791f;stroke-width:1.7;stroke-dasharray:7 4;fill:none}.amber{fill:#956017}
+</style>
+  </defs>
+  <rect width="1200" height="1280" fill="#f8fbfd" />
+  <text x="40.000" y="48.000" class="title" text-anchor="start" font-family="Arial,sans-serif" font-size="30px" fill="#203e50" font-weight="bold">EMD F7A · Dimensions for modelling</text>
+  <text x="40.000" y="78.000" class="" text-anchor="start" font-family="Arial,sans-serif" font-size="16px" fill="#203e50">Metres · 1:1 · EMD 1948 specification · cab locomotive</text>
+  <text x="40.000" y="104.000" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Read dimensions, not contours. Bogie outline estimates are amber; complete mechanical truck height/width are unverified.</text>
+  <text x="40.000" y="139.000" class="section" text-anchor="start" font-family="Arial,sans-serif" font-size="21px" fill="#203e50" font-weight="bold">SIDE VIEW · +green Y toward the designated front →</text>
+  <path d="M219.000 154.000L219.000 585.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M991.160 154.000L991.160 585.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M219.000 172.000L991.160 172.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="464.330" y="158.000" width="281.500" height="25" fill="#f8fbfd" />
+  <text x="605.080" y="177.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">15.4432 · coupler pulling faces</text>
+  <path d="M239.0 382.5V245.0Q239.0 216.00500000000002 264.0 216.00500000000002H861.16Q903.16 216.00500000000002 923.16 252.5L956.16 270.0Q976.16 310.0 971.16 375.0Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <path d="M874.16 235.0L909.16 240.0L923.16 267.5H883.16Z" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <path d="M856.160 232.500L856.160 377.500" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <circle cx="465.000" cy="297.500" r="9.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <circle cx="600.000" cy="297.500" r="9.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <circle cx="735.000" cy="297.500" r="9.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <path d="M545.0 216.00500000000002Q560.0 192.5 575.0 216.00500000000002Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <path d="M592.5 216.00500000000002Q607.5 192.5 622.5 216.00500000000002Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <path d="M640.0 216.00500000000002Q655.0 192.5 670.0 216.00500000000002Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <path d="M687.5 216.00500000000002Q702.5 192.5 717.5 216.00500000000002Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <path d="M239.000 252.500L846.160 252.500" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M239.000 275.000L846.160 275.000" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <rect x="510.0" y="387.5" width="180" height="20" rx="6" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="302.820" cy="404.600" r="25.400" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="302.820" cy="404.600" r="6.350" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M292.660 404.600L312.980 404.600" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M302.820 394.440L302.820 414.760" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <circle cx="439.980" cy="404.600" r="25.400" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="439.980" cy="404.600" r="6.350" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M429.820 404.600L450.140 404.600" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M439.980 394.440L439.980 414.760" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <rect x="258.9" y="370.0" width="225" height="43" rx="13" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M371.400 190.000L371.400 512.000" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <circle cx="371.400" cy="430.000" r="3.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <circle cx="760.020" cy="404.600" r="25.400" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="760.020" cy="404.600" r="6.350" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M749.860 404.600L770.180 404.600" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M760.020 394.440L760.020 414.760" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <circle cx="897.180" cy="404.600" r="25.400" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="897.180" cy="404.600" r="6.350" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M887.020 404.600L907.340 404.600" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M897.180 394.440L897.180 414.760" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <rect x="716.1" y="370.0" width="225" height="43" rx="13" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M828.600 190.000L828.600 512.000" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <circle cx="828.600" cy="430.000" r="3.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <path d="M219.000 386.000L239.000 386.000" class="rail" stroke="#244354" stroke-width="2" />
+  <path d="M971.160 386.000L991.160 386.000" class="rail" stroke="#244354" stroke-width="2" />
+  <path d="M140.000 430.000L1060.000 430.000" class="rail" stroke="#244354" stroke-width="2" />
+  <path d="M600.000 205.000L600.000 453.000" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <text x="600.000" y="455.000" class="small" text-anchor="middle" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Origin: bogie midpoint at railhead</text>
+  <path d="M371.400 484.000L828.600 484.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="497.500" y="470.000" width="205.000" height="25" fill="#f8fbfd" />
+  <text x="600.000" y="489.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">9.1440 · bogie centres</text>
+  <path d="M302.820 523.000L439.980 523.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="302.900" y="509.000" width="137.000" height="25" fill="#f8fbfd" />
+  <text x="371.400" y="528.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">2.7432 · axles</text>
+  <path d="M302.820 430.000L302.820 535.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M439.980 430.000L439.980 535.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M371.400 512.000L371.400 583.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M828.600 512.000L828.600 583.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M219.000 570.000L371.400 570.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="260.700" y="556.000" width="69.000" height="25" fill="#f8fbfd" />
+  <text x="295.200" y="575.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">3.0480</text>
+  <path d="M828.600 570.000L991.160 570.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="875.380" y="556.000" width="69.000" height="25" fill="#f8fbfd" />
+  <text x="909.880" y="575.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">3.2512</text>
+  <text x="600.000" y="571.000" class="small" text-anchor="middle" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Pivot-to-coupling-face overhangs</text>
+  <text x="40.000" y="611.000" class="bold" text-anchor="start" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">F7A: rear Y = −7.6200; front Y = +7.8232. Coupler envelope centre = +0.1016, not zero.</text>
+  <text x="40.000" y="655.000" class="section" text-anchor="start" font-family="Arial,sans-serif" font-size="21px" fill="#203e50" font-weight="bold">END DATUMS · schematic</text>
+  <text x="570.000" y="655.000" class="section" text-anchor="start" font-family="Arial,sans-serif" font-size="21px" fill="#203e50" font-weight="bold">BLOMBERG B · ENLARGED SIDE VIEW</text>
+  <path d="M175.084 873.0V753.0Q175.084 688.206 265 688.206Q354.916 688.206 354.916 753.0V873.0Z" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <rect x="218" y="726.0" width="41" height="30" rx="4" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <rect x="271" y="726.0" width="41" height="30" rx="4" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <circle cx="265.000" cy="777.000" r="12.000" class="window" fill="#9bbbc9" stroke="#456578" stroke-width="1.3" />
+  <path d="M140.000 945.000L410.000 945.000" class="rail" stroke="#244354" stroke-width="2" />
+  <path d="M265.000 668.000L265.000 960.000" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <path d="M167.464 888.000L167.464 670.680" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <path d="M221.950 945.000L221.950 970.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M362.536 888.000L362.536 670.680" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <path d="M308.050 945.000L308.050 970.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M110.000 670.680L110.000 945.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <text transform="translate(91 807.84) rotate(-90)" text-anchor="middle" class="bold" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">4.5720 · overall envelope</text>
+  <path d="M110.000 670.680L375.000 670.680" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <path d="M155.000 688.206L425.000 688.206" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <text x="435.000" y="692.206" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">4.2799</text>
+  <text x="435.000" y="711.206" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">carlines</text>
+  <path d="M221.950 973.000L308.050 973.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="205.000" y="959.000" width="120.000" height="25" fill="#f8fbfd" />
+  <text x="265.000" y="978.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">1.4350 gauge</text>
+  <path d="M175.084 765.000L175.084 1010.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M354.916 765.000L354.916 1010.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M175.084 1010.000L354.916 1010.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="183.750" y="996.000" width="162.500" height="25" fill="#f8fbfd" />
+  <text x="265.000" y="1015.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">2.9972 body posts</text>
+  <path d="M167.464 1054.000L362.536 1054.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="188.000" y="1040.000" width="154.000" height="25" fill="#f8fbfd" />
+  <text x="265.000" y="1059.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">3.2512 handholds</text>
+  <circle cx="699.124" cy="889.120" r="55.880" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="699.124" cy="889.120" r="13.970" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M676.772 889.120L721.476 889.120" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M699.124 866.768L699.124 911.472" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <circle cx="1000.876" cy="889.120" r="55.880" class="body" fill="#e2eaf0" stroke="#456578" stroke-width="1.8" stroke-linejoin="round" />
+  <circle cx="1000.876" cy="889.120" r="13.970" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M978.524 889.120L1023.228 889.120" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M1000.876 866.768L1000.876 911.472" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <path d="M602.5 919.7L624.5 839.4Q685.0 813.0 751.0 838.3H949.0Q1015.0 813.0 1075.5 839.4L1097.5 919.7" class="detail" fill="none" stroke="#78909f" stroke-width="1.4" />
+  <rect x="602.5" y="813.0" width="495" height="132" class="estimate" stroke="#b9791f" stroke-width="1.7" stroke-dasharray="7 4" fill="none" />
+  <path d="M575.000 945.000L1125.000 945.000" class="rail" stroke="#244354" stroke-width="2" />
+  <path d="M850.000 785.000L850.000 971.000" class="guide" stroke="#4698a2" stroke-width="1" stroke-dasharray="6 5" fill="none" />
+  <path d="M699.124 889.120L699.124 1010.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M1000.876 889.120L1000.876 1010.000" class="ext" stroke="#9fb4bd" stroke-width="1" fill="none" />
+  <path d="M699.124 1009.000L1000.876 1009.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="730.500" y="995.000" width="239.000" height="25" fill="#f8fbfd" />
+  <text x="850.000" y="1014.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">2.7432 · factory wheelbase</text>
+  <path d="M602.500 1054.000L1097.500 1054.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <rect x="709.250" y="1040.000" width="281.500" height="25" fill="#f8fbfd" />
+  <text x="850.000" y="1059.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">≈4.5 · visible outline estimate</text>
+  <path d="M1135.000 813.000L1135.000 945.000" class="dim" stroke="#244354" stroke-width="1.2" fill="none" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+  <text x="850.000" y="760.000" class="amber" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#956017">≈1.2 above rail · visible outline estimate</text>
+  <text x="850.000" y="786.000" class="bold" text-anchor="middle" font-family="Arial,sans-serif" font-size="16px" fill="#203e50" font-weight="bold">Wheel tread Ø1.0160; axle Z = 0.5080</text>
+  <text x="850.000" y="969.000" class="small" text-anchor="middle" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Railhead Z = 0; component pivot at the centreline</text>
+  <text x="40.000" y="1110.000" class="section" text-anchor="start" font-family="Arial,sans-serif" font-size="21px" fill="#203e50" font-weight="bold">FACTORY DATUMS AND WORKING ESTIMATES</text>
+  <text x="40.000" y="1141.000" class="" text-anchor="start" font-family="Arial,sans-serif" font-size="16px" fill="#203e50">Main dimensions: EMD specification 8013, August 3, 1948. Full references and coordinates are in the adjacent guide.</text>
+  <text x="40.000" y="1168.000" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Truck outline ≈4.5 m × 1.2 m is estimated from the EMD B-unit elevation, calibrated to the 2.7432 m wheelbase.</text>
+  <text x="40.000" y="1194.000" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">The 1.2 m value is the visible top above rail, not full mechanical height including hidden bolster and flanges.</text>
+  <text x="40.000" y="1220.000" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">Overall truck width and prototype coupler height need separate verification. Gauge is not truck width.</text>
+  <text x="40.000" y="1246.000" class="small" text-anchor="start" font-family="Arial,sans-serif" font-size="14px" fill="#203e50">SketchUp: red X across, green +Y forward, blue +Z up. Separate body, bogies and wheelsets; mark livery faces with paint.</text>
+</svg>

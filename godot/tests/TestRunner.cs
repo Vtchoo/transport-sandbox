@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "f7a-import":
+                    await F7AImportChecks.Run(Check, Frame, this);
+                    break;
                 case "signal-visuals":
                     SignalVisualChecks.Run(Check, this);
                     break;
