@@ -96,8 +96,30 @@ public static class BrightlineModels
                 Box(body, "ditch-light", new(.21f, .13f, .08f), new(side * .55f, 1.52f, half - .015f), lamp);
                 Box(body, "headlight", new(.16f, .16f, .065f), new(side * .11f, 2.35f, 9.62f), lamp);
             }
-            // Small yellow sweep at the foot of the windscreen and grey pilot below.
-            Box(body, "nose-yellow-stripe", new(1.62f, .055f, .035f), new(0, 2.18f, 9.63f), yellow);
+            // Surface-following Brightline barcode rays, clear of the windshield.
+            NoseGraphic(body, "nose-black-face", -.97f, .97f, -.94f, .94f, 9.02f, half - .10f, half, canopy, .012f);
+            NoseGraphic(body, "nose-yellow-field", -.47f, .47f, -.31f, .31f, 9.28f, half - .18f, half, yellow, .022f);
+            for (int i = 0; i < 23; i++)
+            {
+                float u = -.91f + i * .079f;
+                float reach = .17f + ((i * 7) % 11) * .052f;
+                NoseGraphic(body, "nose-yellow-ray", u, u + .034f, u - .12f, u - .105f,
+                    9.23f, 9.23f + reach, half, yellow, .026f);
+            }
+            for (int i = 0; i < 9; i++)
+            {
+                float u = -.35f + i * .085f;
+                NoseGraphic(body, "nose-barcode-cut", u, u + .025f, u - .16f, u - .145f,
+                    9.72f + (i % 3) * .10f, half - .15f, half, canopy, .036f);
+                NoseGraphic(body, "nose-yellow-tail", u - .16f, u - .13f, u - .21f, u - .205f,
+                    half - .19f, half - .025f, half, yellow, .028f);
+            }
+            for (int i = 0; i < 25; i++)
+            {
+                float u = -.90f + i * .071f;
+                NoseGraphic(body, "forehead-yellow-ray", u, u + .035f, u - .065f, u - .043f,
+                    6.94f + (i % 3) * .035f, 7.32f, half, yellow, .024f);
+            }
             Letter(body, "brightline", 1.08f, .18f, new(0, 1.66f, half + .008f), 0, white);
             Box(body, "rear-radiator-roof", new(2.18f, .045f, 3.6f), new(0, 4.21f, -7), black);
             for (int i = 0; i < 12; i++) Box(body, "roof-radiator-slat", new(2.1f, .035f, .045f), new(0, 4.242f, -8.58f + i * .28f), gray);
@@ -162,6 +184,43 @@ public static class BrightlineModels
         { int a = i * 7 + j, b = i * 7 + (j + 1) % 7, c = a + 7, d = b + 7; index.AddRange(new[] { a, b, c, b, d, c }); }
         for (int j = 1; j < 6; j++) { index.AddRange(new[] { 0, j + 1, j }); int n = v.Count - 7; index.AddRange(new[] { n, n + j, n + j + 1 }); }
         Triangles(p, name, v, index, mat);
+    }
+    // Coordinates are fractions of the local half-width and longitudinal metres.
+    // Subdivide each ribbon so it hugs the faceted nose instead of floating across it.
+    private static void NoseGraphic(Node3D body, string name, float left0, float right0,
+        float left1, float right1, float start, float end, float tip, Material material, float offset)
+    {
+        var sections = new[] { new Section(6.3f, 1.532f, 0, 3.78f, 4.195f),
+            new Section(7.4f, 1.472f, 0, 3.49f, 3.818f),
+            new Section(9.4f, 1.222f, 0, 2.15f, 2.468f),
+            new Section(tip, .72f, 0, 1.47f, 1.65f) };
+        Vector3 Point(float u, float z)
+        {
+            int k = 0;
+            while (k < sections.Length - 2 && z > sections[k + 1].Z) k++;
+            var a = sections[k]; var b = sections[k + 1];
+            float t = (z - a.Z) / (b.Z - a.Z);
+            float width = Mathf.Lerp(a.W, b.W, t), top = Mathf.Lerp(a.Top, b.Top, t);
+            float shoulder = Mathf.Lerp(a.Shoulder, b.Shoulder, t), q = Mathf.Abs(u);
+            float y = q <= .87f ? top - .07f * q / .87f
+                : Mathf.Lerp(top - .07f, shoulder, (q - .87f) / .13f);
+            return new(u * width, y + offset, z);
+        }
+        var vertices = new List<Vector3>(); var indices = new List<int>();
+        const int steps = 12;
+        int across = name is "nose-black-face" or "nose-yellow-field" ? 12 : 1;
+        for (int row = 0; row <= steps; row++)
+        {
+            float t = (float)row / steps;
+            for (int col = 0; col <= across; col++)
+                vertices.Add(Point(Mathf.Lerp(Mathf.Lerp(left0, left1, t), Mathf.Lerp(right0, right1, t), (float)col / across), Mathf.Lerp(start, end, t)));
+        }
+        for (int row = 0; row < steps; row++) for (int col = 0; col < across; col++)
+        {
+            int a = row * (across + 1) + col, b = a + across + 1;
+            indices.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 });
+        }
+        Triangles(body, name, vertices, indices, material);
     }
     private static void SidePanel(Node3D p, string name, int side, float x, Vector2[] points, Material mat)
         => Quad(p, name, new(side * x, points[0].Y, points[0].X), new(side * x, points[1].Y, points[1].X), new(side * x, points[2].Y, points[2].X), new(side * x, points[3].Y, points[3].X), mat);
