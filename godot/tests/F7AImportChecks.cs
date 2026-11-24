@@ -36,6 +36,39 @@ public static class F7AImportChecks
             var paint = materials.Where(m => m.ResourceName == definition.LiveryMaterial).ToArray();
             check(paint.Length > 0 && paint.All(m => m.AlbedoTexture == GD.Load<Texture2D>(definition.Liveries[0].Texture)), "F7A paint surfaces use the authored Santa Fe texture");
             check(materials.Where(m => m.ResourceName != definition.LiveryMaterial).All(m => m.AlbedoTexture == null), "Hardware retains solid materials outside the paint atlas");
+            var steel = materials.First(m => m.ResourceName == "metal-stainless");
+            var glass = materials.First(m => m.ResourceName == "glass-tinted");
+            check(steel.Metallic == .75f && Math.Abs(steel.Roughness - .32f) < .001 && glass.Metallic == 0 && Math.Abs(glass.Roughness - .15f) < .001,
+                "Named steel and glass use the game's PBR settings");
+            check(glass.AlbedoColor == new Color("263e49") && glass.Transparency == BaseMaterial3D.TransparencyEnum.Disabled,
+                "Glass uses the shared dark opaque tint instead of exported gray");
+            check(paint.All(m => m.Metallic == 0 && Math.Abs(m.Roughness - .45f) < .001), "Livery textures use the game paint surface response");
+            var duplicate = new VehicleVisual(definition, 1435);
+            var ghost = new PosedVehicleVisual(definition, 1435, preview: true);
+            var imported = GD.Load<PackedScene>(definition.Models[1435]).Instantiate<Node3D>();
+            StandardMaterial3D FindMaterial(Node root, string name) => root.FindChildren("*", "MeshInstance3D", true, false).Cast<MeshInstance3D>()
+                .SelectMany(m => Enumerable.Range(0, m.Mesh.GetSurfaceCount()).Select(m.GetActiveMaterial)).OfType<StandardMaterial3D>().First(m => m.ResourceName == name);
+            try
+            {
+                var coach = new VehicleVisual(catalog.Get("atsf-coach"), 1435);
+                try
+                {
+                    var coachSilver = coach.Model.FindChildren("*", "MeshInstance3D", true, false).Cast<MeshInstance3D>()
+                        .SelectMany(m => Enumerable.Range(0, m.Mesh.GetSurfaceCount()).Select(m.GetActiveMaterial))
+                        .OfType<StandardMaterial3D>().First(m => Math.Abs(m.Metallic - .75f) < .001);
+                    check(Math.Abs(steel.Roughness - coachSilver.Roughness) < .001 &&
+                        steel.AlbedoColor.IsEqualApprox(coachSilver.AlbedoColor),
+                        "Custom stainless matches the streamlined passenger car silver finish");
+                }
+                finally { coach.Free(); }
+                check(FindMaterial(duplicate.Model, "metal-stainless") == steel, "Identical vehicles share runtime materials for batching");
+                check(FindMaterial(imported, "metal-stainless") != steel && FindMaterial(imported, "glass-tinted").AlbedoColor != glass.AlbedoColor,
+                    "Runtime replacements leave the imported resources untouched");
+                var ghostSteel = FindMaterial(ghost.Vehicle.Model, "metal-stainless");
+                check(ghostSteel != steel && ghostSteel.Metallic == steel.Metallic && ghostSteel.AlbedoColor.A <= .42f && steel.AlbedoColor.A == 1,
+                    "Placement previews inherit steel settings without changing solid vehicles");
+            }
+            finally { duplicate.Free(); ghost.Free(); imported.Free(); }
             var audio = new TrainAudio(); stage.AddChild(audio);
             check(audio.PlayHorn(new(9999, definition.Id, Vector3.Zero, 0, 0, double.PositiveInfinity), camera), "New F7A uses the working F7 horn profile");
             audio.Settings.Muted = true;

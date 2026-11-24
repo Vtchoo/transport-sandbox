@@ -52,6 +52,7 @@ public partial class VehicleVisual : Node3D
         Name = definition.Id;
         // Imported geometry is already in metres. Never normalize or resize catalog models.
         Model = GD.Load<PackedScene>(model).Instantiate<Node3D>();
+        VehicleMaterials.Apply(Model, definition.LiveryMaterial);
         Livery = definition.ResolveLivery(livery);
         if (Livery != null)
             ApplyLivery(Model, definition, definition.Liveries.First(l => l.Id == Livery));

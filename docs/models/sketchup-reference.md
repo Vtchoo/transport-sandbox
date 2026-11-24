@@ -85,7 +85,7 @@ Preserve material names and face assignments in the exported model. Check that `
 
 For this workflow, use `paint` for the shared livery atlas. The `paint-primary`, `paint-secondary` and `paint-accent` names below describe a separate, proposed color-customization workflow; they are not substitutes for the `paint` selection marker.
 
-The following are semantic material slots. Apart from the `paint` authoring marker, these are **proposed roles**, not existing automatic replacements:
+The following are semantic material slots. Godot replaces these named imported surfaces with shared in-game material settings in every vehicle view, including placement previews and instanced trains. Use these exact names. Unrecognized materials keep their imported appearance. Livery atlas surfaces registered in the vehicle catalog use the `paint` settings regardless of their exported name.
 
 | Material name | Intended use | Suggested metalness / roughness |
 | --- | --- | --- |
@@ -95,7 +95,7 @@ The following are semantic material slots. Apart from the `paint` authoring mark
 | `paint-accent` | Selectable stripe or trim color | 0.0 / 0.45 |
 | `paint-fixed-yellow` | Historical color which stays fixed | 0.0 / 0.45 |
 | `metal-steel` | Bare steel, rods, wheel treads | 1.0 / 0.35 |
-| `metal-stainless` | Unpainted passenger body | 1.0 / 0.30 |
+| `metal-stainless` | Unpainted passenger body; matches streamlined passenger cars | 0.75 / 0.32 |
 | `metal-dark` | Dark exposed metal | 1.0 / 0.65 |
 | `rubber` | Hoses and diaphragms | 0.0 / 0.90 |
 | `glass-tinted` | Prefer opaque tinted windows initially | 0.0 / 0.15 |
@@ -103,7 +103,7 @@ The following are semantic material slots. Apart from the `paint` authoring mark
 | `decal-fixed` | Logos and lettering retaining their colors | 0.0 / 0.60 |
 | `lamp-white`, `lamp-red` | Separate lamp lenses | 0.0 / 0.25 |
 
-Values are starting points for runtime PBR setup, not mandatory SketchUp sliders. Painted metal uses a dielectric surface response; exposed metal uses metallic response. Use additional descriptive fixed materials when necessary, and list them in the sheet.
+These metalness/roughness values are applied at runtime; SketchUp sliders are not required. Bare metals, rubber, glass and lamp lenses use game-owned colors, replacing their exported colors/textures. Glass is opaque dark tinted glass for now. Paint, interiors and decals retain authored colors/textures. Painted metal uses a dielectric surface response; exposed metal uses metallic response. A silver region painted into a livery atlas remains paint; model bare stainless surfaces with `metal-stainless` when metallic response is needed. Use additional descriptive fixed materials when necessary, and list them in the sheet.
 
 Assign distinct materials to recolorable regions **now**. Do not bake a multicolor livery into a single texture if its regions must be recolored separately. For textured selectable paint, use a neutral white/grayscale base-color texture so later tinting works. Put fixed logos/numbers in separate materials or decal meshes; tinted body paint must not tint them. Supply default colors as hex values in the sheet. If customization is undesired, use `paint-fixed-*` names instead.
 
