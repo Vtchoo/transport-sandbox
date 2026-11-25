@@ -8,10 +8,12 @@ namespace TransportSandbox;
 public partial class PauseMenu : Control
 {
     public Func<Task<bool>> SaveGame = () => Task.FromResult(false);
-    public event Action? QuitToMenuRequested, QuitGameRequested;
+    public event Action? QuitToMenuRequested, QuitGameRequested, SettingsRequested;
+    public WindowManager Manager = null!;
+    public bool SettingsOpen;
     public GameWindow Window = null!;
-    public Button ResumeButton = null!, SaveButton = null!, QuitToMenuButton = null!, QuitGameButton = null!;
-    public bool IsOpen => IsInstanceValid(Window) && Window.Visible;
+    public Button ResumeButton = null!, SaveButton = null!, QuitToMenuButton = null!, QuitGameButton = null!, SettingsButton = null!;
+    public bool IsOpen => IsInstanceValid(Window) && (Window.Visible || SettingsOpen);
     public bool Busy { get; private set; }
     private bool _previousPause;
     public override void _Ready()
@@ -19,8 +21,8 @@ public partial class PauseMenu : Control
         ProcessMode = ProcessModeEnum.Always;
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
-        var manager = new WindowManager(); AddChild(manager);
-        Window = manager.Create("Paused", WindowPlacement.Center, new(320, 310), minimum: new(280, 280), modal: true,
+        var manager = Manager = new WindowManager(); AddChild(manager);
+        Window = manager.Create("Paused", WindowPlacement.Center, new(320, 365), minimum: new(280, 280), modal: true,
             collapsible: false, minimizable: false, scrollBody: false);
         Window.Body.AddThemeConstantOverride("separation", 10);
         Button Action(string text, Action action)
@@ -29,6 +31,7 @@ public partial class PauseMenu : Control
             Window.Body.AddChild(button); button.Pressed += action; return button;
         }
         ResumeButton = Action("Resume", Resume);
+        SettingsButton = Action("Settings", () => SettingsRequested?.Invoke());
         SaveButton = Action("Save game", () => _ = Save());
         QuitToMenuButton = Action("Quit to menu", () => QuitToMenuRequested?.Invoke());
         QuitGameButton = Action("Quit game", () => QuitGameRequested?.Invoke());
@@ -51,7 +54,7 @@ public partial class PauseMenu : Control
     public void SetBusy(bool busy)
     {
         Busy = busy;
-        foreach (var button in new[] { ResumeButton, SaveButton, QuitToMenuButton, QuitGameButton }) button.Disabled = busy;
+        foreach (var button in new[] { ResumeButton, SaveButton, SettingsButton, QuitToMenuButton, QuitGameButton }) button.Disabled = busy;
     }
     public async Task<bool> Save()
     {

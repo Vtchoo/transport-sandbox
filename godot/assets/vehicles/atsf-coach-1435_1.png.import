@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bk0orxu3t3j2a"
+uid="uid://dqu0wpro6wad"
 path.s3tc="res://.godot/imported/atsf-coach-1435_1.png-ec1c7489ffce8d1fe89ef363748ec626.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "977f9e57b3c2fc0597ec489ea4db0900"
 }
 
 [deps]

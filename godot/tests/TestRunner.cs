@@ -703,9 +703,9 @@ public partial class TestRunner : Node
         Check(hud.ContourLegend.Text.Contains("100 m"), "View settings update contour interval legend");
         hud.Contours.ButtonPressed = false;
         hud.OpenSettings();
-        Check(manager.HasModal && main.Camera.InputBlocked, "Modal settings block world camera input");
+        Check(main.PauseUI.Manager.HasModal, "Settings use the pause menu window manager");
         hud.SettingsWindow.Close();
-        Check(!manager.HasModal && !main.Camera.InputBlocked, "Closing settings releases camera input");
+        Check(!main.PauseUI.Manager.HasModal, "Closing settings releases its modal");
         string audioFile = main.SoundSettings.FilePath;
         main.SoundSettings.FilePath = "res://.godot/hud-audio-check.cfg";
         float oldMaster = main.SoundSettings.MasterVolume;
@@ -722,6 +722,46 @@ public partial class TestRunner : Node
         DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(main.SoundSettings.FilePath));
         main.SoundSettings.FilePath = audioFile;
         hud.SettingsWindow.Close();
+        main.PauseUI.Open();
+        main.PauseUI.SettingsButton.EmitSignal(Button.SignalName.Pressed);
+        Check(GetTree().Paused && main.PauseUI.IsOpen && hud.SettingsWindow.CanProcess(), "Pause settings remain interactive while gameplay is paused");
+        string graphicsFile = main.GraphicsSettings.FilePath;
+        main.GraphicsSettings.FilePath = "res://.godot/graphics-test.cfg";
+        hud.OpenGraphicsSettings();
+        int previousRings = main.World.RenderRings;
+        hud.RenderDistance.Value = 4;
+        hud.TreeQuality.Select(1);
+        hud.TreeQuality.EmitSignal(OptionButton.SignalName.ItemSelected, 1L);
+        hud.ShadowsEnabled.ButtonPressed = false;
+        hud.ShadowDistance.Value = 500;
+        hud.ResolutionScale.Value = 75;
+        Check(main.World.RenderRings == previousRings, "Editing graphics waits for Apply");
+        hud.ApplyGraphicsButton.EmitSignal(Button.SignalName.Pressed);
+        Check(hud.GraphicsConfirmation.Visible && GetTree().Paused, "Apply opens confirmation while paused");
+        hud.KeepGraphicsButton.EmitSignal(Button.SignalName.Pressed);
+        var graphicsReloaded = new GraphicsSettings { FilePath = main.GraphicsSettings.FilePath };
+        graphicsReloaded.Load();
+        Check(main.World.RenderRings == 4 && main.World.TreeDetail == 1 && Math.Abs(main.GetViewport().Scaling3DScale - .75f) < .001,
+            "Graphics controls apply live terrain, tree and resolution preferences");
+        Check(graphicsReloaded.TerrainRings == 4 && graphicsReloaded.TreeDetail == 1 && !graphicsReloaded.Shadows && graphicsReloaded.ShadowDistance == 500,
+            "Graphics preferences persist independently of world saves");
+        hud.RenderDistance.Value = 6;
+        hud.ApplyGraphicsButton.EmitSignal(Button.SignalName.Pressed);
+        hud.UndoGraphicsButton.EmitSignal(Button.SignalName.Pressed);
+        Check(main.World.RenderRings == 4 && hud.RenderDistance.Value == 4, "Undo restores rendering and controls");
+        hud.RenderDistance.Value = 7;
+        hud.ApplyGraphicsButton.EmitSignal(Button.SignalName.Pressed);
+        await ToSignal(GetTree().CreateTimer(15.5, processAlways: true, ignoreTimeScale: true), SceneTreeTimer.SignalName.Timeout);
+        graphicsReloaded.Load();
+        Check(!hud.GraphicsConfirmation.Visible && main.World.RenderRings == 4 && graphicsReloaded.TerrainRings == 4,
+            "Confirmation timeout rolls back while paused without saving the preview");
+        DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(main.GraphicsSettings.FilePath));
+        main.GraphicsSettings = new() { FilePath = graphicsFile };
+        main.GraphicsSettings.Apply(main);
+        hud.SettingsWindow.Close();
+        Check(main.PauseUI.Window.Visible && GetTree().Paused, "Closing settings returns to the paused menu");
+        main.PauseUI.Resume();
+        Check(!GetTree().Paused, "Resuming after settings restores gameplay");
         bool previous = main.Camera.FreeMode;
         hud.CameraButton.EmitSignal(Button.SignalName.Pressed);
         Check(main.Camera.FreeMode != previous && hud.CameraMode.Selected == 1, "Camera button and settings stay synchronized");
@@ -737,7 +777,7 @@ public partial class TestRunner : Node
         Check(hud.ActionBar.GetGlobalRect().Position.X >= 0 && hud.ActionBar.GetGlobalRect().End.X <= 400, "Action bar fits a narrow viewport");
         GetTree().Root.Size = new((int)width, (int)height);
         await Frames();
-        Check(hud.BuildButton.Text == "" && hud.BuildButton.IconAlignment == HorizontalAlignment.Center && hud.BuildButton.TooltipText == "Build track" && hud.SettingsButton.Text == "Settings", "HUD keeps the build action icon-only after resizing back to desktop");
+        Check(hud.BuildButton.Text == "" && hud.BuildButton.IconAlignment == HorizontalAlignment.Center && hud.BuildButton.TooltipText == "Build track" && main.PauseUI.SettingsButton.Text == "Settings", "HUD keeps the build action icon-only after resizing back to desktop");
     }
     private async Task Capture()
     {

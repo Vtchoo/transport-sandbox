@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ui6hs855rfuo"
+uid="uid://duihidh5sruok"
 path.s3tc="res://.godot/imported/drgw-consolidation-914_6.png-4539169709eefe5a2c762301638a5987.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "d82db928d074b141cca5ece994eacbb4"
 }
 
 [deps]

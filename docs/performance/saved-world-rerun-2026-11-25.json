@@ -1,0 +1,5280 @@
+{
+  "date": "2026-11-25",
+  "baseline": "saved-world-2026-11-23.json",
+  "snapshot_sha256": "D030AD5C6214A356B12D3FC3B505FF93BD314490458E349240EBDB8302FBD059",
+  "method": {
+    "same_snapshot": true,
+    "saved_trains": 7,
+    "saved_vehicles": 73,
+    "simulation_warmup": 120,
+    "simulation_samples": 300,
+    "delta_seconds": 0.016666666666666666,
+    "render_warmup": 45,
+    "render_samples_per_case": 120,
+    "world_samples": 240,
+    "strict_world_warmup": "441/441 chunks and pending work settled for 10 frames, up to 90 seconds",
+    "configuration": "Debug",
+    "project": "current working-tree copy, including uncommitted updates",
+    "render_metadata": {
+      "adapter": "Intel(R) Iris(R) Xe Graphics",
+      "renderer": "gl_compatibility",
+      "width": 1280,
+      "height": 720,
+      "chunks": 441,
+      "trees": 53729
+    }
+  },
+  "calculation_cases": {
+    "simulation": {
+      "before": {
+        "signals.footprints": {
+          "mean": 0.03553766666666669,
+          "p95": 0.047,
+          "p99": 0.108,
+          "max": 0.2209
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4925.893333333333,
+          "p95": 5136,
+          "p99": 5136,
+          "max": 5136
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.003971000000000006,
+          "p95": 0.0058,
+          "p99": 0.0138,
+          "max": 0.0328
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1378.96,
+          "p95": 1432,
+          "p99": 1432,
+          "max": 1640
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.10788566666666666,
+          "p95": 0.6755,
+          "p99": 1.0513,
+          "max": 1.6935
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11832.693333333333,
+          "p95": 47456,
+          "p99": 47704,
+          "max": 62728
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.014622000000000005,
+          "p95": 0.0182,
+          "p99": 0.0232,
+          "max": 0.031
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 616.2933333333333,
+          "p95": 616,
+          "p99": 616,
+          "max": 704
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.12025966666666671,
+          "p95": 0.1683,
+          "p99": 0.2387,
+          "max": 0.2885
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 1867.3333333333333,
+          "p95": 1912,
+          "p99": 1936,
+          "max": 1960
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "orders.execute": {
+          "mean": 0.0059076666666666635,
+          "p95": 0.0095,
+          "p99": 0.0181,
+          "max": 0.0343
+        },
+        "orders.execute.allocated.bytes": {
+          "mean": 1248,
+          "p95": 1248,
+          "p99": 1248,
+          "max": 1248
+        },
+        "orders.execute.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "signals.limit": {
+          "mean": 0.034787333333333316,
+          "p95": 0.047,
+          "p99": 0.08199999999999999,
+          "max": 0.12739999999999999
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 2848,
+          "p95": 3024,
+          "p99": 3024,
+          "max": 3792
+        },
+        "signals.limit.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "detours": {
+          "mean": 0.0007790000000000016,
+          "p95": 0.0011,
+          "p99": 0.0013000000000000002,
+          "max": 0.0015000000000000002
+        },
+        "detours.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "detours.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "curve.batch": {
+          "mean": 2.664521666666666,
+          "p95": 3.2562,
+          "p99": 3.4147,
+          "max": 3.5006
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 1824,
+          "p95": 1824,
+          "p99": 1824,
+          "max": 1824
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision": {
+          "mean": 0.9754156666666671,
+          "p95": 1.2032999999999998,
+          "p99": 1.2832,
+          "max": 1.3296
+        },
+        "collision.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "collision.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "poses": {
+          "mean": 0.6553686666666668,
+          "p95": 0.8192999999999999,
+          "p99": 0.8652000000000001,
+          "max": 1.9349
+        },
+        "poses.allocated.bytes": {
+          "mean": 6888,
+          "p95": 6888,
+          "p99": 6888,
+          "max": 6888
+        },
+        "poses.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.validate": {
+          "mean": 0.490687,
+          "p95": 0.5926,
+          "p99": 0.6186,
+          "max": 0.7056
+        },
+        "collision.validate.allocated.bytes": {
+          "mean": 3456,
+          "p95": 3456,
+          "p99": 3456,
+          "max": 3456
+        },
+        "collision.validate.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.update": {
+          "mean": 0.10658966666666668,
+          "p95": 0.1326,
+          "p99": 0.15530000000000002,
+          "max": 0.1822
+        },
+        "collision.update.allocated.bytes": {
+          "mean": 529.4666666666667,
+          "p95": 528,
+          "p99": 616,
+          "max": 616
+        },
+        "collision.update.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "substeps": {
+          "mean": 5.258897333333333,
+          "p95": 6.3356,
+          "p99": 6.6894,
+          "max": 7.492
+        },
+        "substeps.allocated.bytes": {
+          "mean": 41275.653333333335,
+          "p95": 76880,
+          "p99": 77088,
+          "max": 92240
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 1.4651873333333334,
+          "p95": 1.869,
+          "p99": 2.1368,
+          "max": 2.192
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 6824,
+          "p95": 6824,
+          "p99": 6824,
+          "max": 6824
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.4586033333333334,
+          "p95": 0.6637,
+          "p99": 0.8171,
+          "max": 0.8713
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 1916.88,
+          "p95": 2448,
+          "p99": 2448,
+          "max": 2448
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 7.189056000000002,
+          "p95": 8.5849,
+          "p99": 9.0747,
+          "max": 9.6599
+        },
+        "movement.allocated.bytes": {
+          "mean": 50264.53333333333,
+          "p95": 85864,
+          "p99": 86096,
+          "max": 101184
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.002449000000000001,
+          "p95": 0.0055,
+          "p99": 0.0086,
+          "max": 0.0114
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.037191000000000037,
+          "p95": 0.0327,
+          "p99": 0.0674,
+          "max": 4.2599
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 7.230245666666665,
+          "p95": 8.6652,
+          "p99": 9.2818,
+          "max": 12.2607
+        },
+        "train.update.allocated.bytes": {
+          "mean": 58464.53333333333,
+          "p95": 94064,
+          "p99": 94296,
+          "max": 109384
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 7.2522553333333315,
+          "p95": 8.6866,
+          "p99": 9.3061,
+          "max": 12.2808
+        },
+        "allocated.bytes": {
+          "mean": 60688.53333333333,
+          "p95": 96288,
+          "p99": 96520,
+          "max": 111608
+        },
+        "gc.gen0": {
+          "mean": 0.01,
+          "p95": 0,
+          "p99": 1,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "render.gpu": {
+          "mean": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "render.setup": {
+          "mean": 0.34399999999999825,
+          "p95": 0.344,
+          "p99": 0.344,
+          "max": 0.344
+        },
+        "render.draw_calls": {
+          "mean": 67,
+          "p95": 67,
+          "p99": 67,
+          "max": 67
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13900.806666666667,
+          "p95": 13906,
+          "p99": 13907,
+          "max": 13907
+        },
+        "signals.aspects": {
+          "mean": 0.060974666666666656,
+          "p95": 0.6335,
+          "p99": 0.9874,
+          "max": 1.6418
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3290.5066666666667,
+          "p95": 38880,
+          "p99": 38880,
+          "max": 54032
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "after": {
+        "signals.footprints": {
+          "mean": 0.029257999999999975,
+          "p95": 0.0446,
+          "p99": 0.1184,
+          "max": 0.2414
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4920.293333333333,
+          "p95": 5136,
+          "p99": 5136,
+          "max": 5136
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.003672000000000002,
+          "p95": 0.0049,
+          "p99": 0.0072,
+          "max": 0.0935
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1373.2266666666667,
+          "p95": 1432,
+          "p99": 1432,
+          "max": 1640
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.09048366666666667,
+          "p95": 0.5849,
+          "p99": 0.8199,
+          "max": 1.7293
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11822.96,
+          "p95": 47536,
+          "p99": 47704,
+          "max": 62920
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.01447600000000001,
+          "p95": 0.0223,
+          "p99": 0.0528,
+          "max": 0.0629
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 617.1733333333333,
+          "p95": 616,
+          "p99": 704,
+          "max": 704
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.11059166666666657,
+          "p95": 0.1513,
+          "p99": 0.1833,
+          "max": 0.4361
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 1901.2,
+          "p95": 1960,
+          "p99": 1960,
+          "max": 1960
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "orders.execute": {
+          "mean": 0.004763333333333334,
+          "p95": 0.0079,
+          "p99": 0.011200000000000002,
+          "max": 0.013500000000000002
+        },
+        "orders.execute.allocated.bytes": {
+          "mean": 1248,
+          "p95": 1248,
+          "p99": 1248,
+          "max": 1248
+        },
+        "orders.execute.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "signals.limit": {
+          "mean": 0.025959,
+          "p95": 0.0398,
+          "p99": 0.0542,
+          "max": 0.0595
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 2832.64,
+          "p95": 2928,
+          "p99": 3024,
+          "max": 3792
+        },
+        "signals.limit.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "detours": {
+          "mean": 0.0006496666666666688,
+          "p95": 0.0011000000000000003,
+          "p99": 0.0014000000000000002,
+          "max": 0.0019
+        },
+        "detours.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "detours.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "curve.batch": {
+          "mean": 1.9669650000000005,
+          "p95": 2.6156,
+          "p99": 3.1368,
+          "max": 3.2083
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 1824,
+          "p95": 1824,
+          "p99": 1824,
+          "max": 1824
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision": {
+          "mean": 0.688162333333333,
+          "p95": 0.9273,
+          "p99": 1.1169,
+          "max": 1.1431
+        },
+        "collision.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "collision.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "poses": {
+          "mean": 0.45659766666666657,
+          "p95": 0.6015,
+          "p99": 0.7844,
+          "max": 1.6134
+        },
+        "poses.allocated.bytes": {
+          "mean": 6888,
+          "p95": 6888,
+          "p99": 6888,
+          "max": 6888
+        },
+        "poses.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.validate": {
+          "mean": 0.43275266666666645,
+          "p95": 0.5666,
+          "p99": 0.7133,
+          "max": 2.9841
+        },
+        "collision.validate.allocated.bytes": {
+          "mean": 3456,
+          "p95": 3456,
+          "p99": 3456,
+          "max": 3456
+        },
+        "collision.validate.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.update": {
+          "mean": 0.09222400000000006,
+          "p95": 0.1369,
+          "p99": 0.1633,
+          "max": 0.1901
+        },
+        "collision.update.allocated.bytes": {
+          "mean": 529.1733333333333,
+          "p95": 528,
+          "p99": 616,
+          "max": 704
+        },
+        "collision.update.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "substeps": {
+          "mean": 3.952255,
+          "p95": 5.3275,
+          "p99": 6.4483,
+          "max": 7.2945
+        },
+        "substeps.allocated.bytes": {
+          "mean": 41285.013333333336,
+          "p95": 76952,
+          "p99": 77176,
+          "max": 92312
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 1.3289559999999998,
+          "p95": 1.7274,
+          "p99": 2.0257,
+          "max": 2.1757
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 6824,
+          "p95": 6824,
+          "p99": 6824,
+          "max": 6824
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.3928900000000001,
+          "p95": 0.5979,
+          "p99": 0.7621,
+          "max": 0.8687
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 1912.24,
+          "p95": 2448,
+          "p99": 2448,
+          "max": 3024
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 5.680064666666665,
+          "p95": 7.4338,
+          "p99": 8.8029,
+          "max": 10.2311
+        },
+        "movement.allocated.bytes": {
+          "mean": 50269.253333333334,
+          "p95": 85896,
+          "p99": 86120,
+          "max": 101256
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.0019173333333333343,
+          "p95": 0.0045,
+          "p99": 0.0083,
+          "max": 0.0164
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.019176666666666654,
+          "p95": 0.0283,
+          "p99": 0.0701,
+          "max": 0.1002
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 5.702605666666669,
+          "p95": 7.4653,
+          "p99": 8.8417,
+          "max": 10.2845
+        },
+        "train.update.allocated.bytes": {
+          "mean": 58469.253333333334,
+          "p95": 94096,
+          "p99": 94320,
+          "max": 109456
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 5.721622000000001,
+          "p95": 7.495,
+          "p99": 8.874,
+          "max": 10.3198
+        },
+        "allocated.bytes": {
+          "mean": 60693.253333333334,
+          "p95": 96320,
+          "p99": 96544,
+          "max": 111680
+        },
+        "gc.gen0": {
+          "mean": 0.01,
+          "p95": 0,
+          "p99": 1,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 0.8429999947547913,
+          "p95": 0.8429999947547913,
+          "p99": 0.8429999947547913,
+          "max": 0.8429999947547913
+        },
+        "render.gpu": {
+          "mean": 3.9570000171661377,
+          "p95": 3.9570000171661377,
+          "p99": 3.9570000171661377,
+          "max": 3.9570000171661377
+        },
+        "render.setup": {
+          "mean": 0.2590000000000003,
+          "p95": 0.259,
+          "p99": 0.259,
+          "max": 0.259
+        },
+        "render.draw_calls": {
+          "mean": 74,
+          "p95": 74,
+          "p99": 74,
+          "max": 74
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13900.606666666667,
+          "p95": 13905,
+          "p99": 13906,
+          "max": 13906
+        },
+        "signals.aspects": {
+          "mean": 0.050942,
+          "p95": 0.5169,
+          "p99": 0.7726,
+          "max": 1.6922
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3292.1066666666666,
+          "p95": 38880,
+          "p99": 38880,
+          "max": 54512
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "processors": 12
+    },
+    "simulation-serial": {
+      "before": {
+        "signals.footprints": {
+          "mean": 0.03914066666666667,
+          "p95": 0.0551,
+          "p99": 0.0774,
+          "max": 0.3671
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4923.093333333333,
+          "p95": 5136,
+          "p99": 5136,
+          "max": 5136
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.004008666666666668,
+          "p95": 0.0059,
+          "p99": 0.0082,
+          "max": 0.0107
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1374.4266666666667,
+          "p95": 1432,
+          "p99": 1432,
+          "max": 1640
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.11559733333333329,
+          "p95": 0.716,
+          "p99": 1.1532,
+          "max": 1.6688
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11825.36,
+          "p95": 47496,
+          "p99": 47704,
+          "max": 62480
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.016845333333333323,
+          "p95": 0.0223,
+          "p99": 0.0314,
+          "max": 0.0927
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 617.1733333333333,
+          "p95": 616,
+          "p99": 704,
+          "max": 704
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.14115433333333338,
+          "p95": 0.1822,
+          "p99": 0.2193,
+          "max": 0.3107
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "orders.execute": {
+          "mean": 0.006862666666666663,
+          "p95": 0.011099999999999999,
+          "p99": 0.015999999999999997,
+          "max": 0.0161
+        },
+        "orders.execute.allocated.bytes": {
+          "mean": 1248,
+          "p95": 1248,
+          "p99": 1248,
+          "max": 1248
+        },
+        "orders.execute.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "signals.limit": {
+          "mean": 0.03618533333333333,
+          "p95": 0.051500000000000004,
+          "p99": 0.081,
+          "max": 0.0973
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 2838.4,
+          "p95": 3024,
+          "p99": 3024,
+          "max": 3792
+        },
+        "signals.limit.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "detours": {
+          "mean": 0.0009000000000000001,
+          "p95": 0.0014000000000000002,
+          "p99": 0.0021999999999999997,
+          "max": 0.0026999999999999997
+        },
+        "detours.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "detours.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "curve.batch": {
+          "mean": 5.4469513333333355,
+          "p95": 6.5622,
+          "p99": 7.0842,
+          "max": 8.5681
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision": {
+          "mean": 1.0216360000000002,
+          "p95": 1.2801999999999998,
+          "p99": 1.74,
+          "max": 1.8961999999999999
+        },
+        "collision.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "collision.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "poses": {
+          "mean": 0.6999043333333336,
+          "p95": 0.9124,
+          "p99": 1.0581,
+          "max": 1.1806
+        },
+        "poses.allocated.bytes": {
+          "mean": 6888,
+          "p95": 6888,
+          "p99": 6888,
+          "max": 6888
+        },
+        "poses.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.validate": {
+          "mean": 0.5322253333333338,
+          "p95": 0.6789,
+          "p99": 0.8464999999999999,
+          "max": 1.9377
+        },
+        "collision.validate.allocated.bytes": {
+          "mean": 3456,
+          "p95": 3456,
+          "p99": 3456,
+          "max": 3456
+        },
+        "collision.validate.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.update": {
+          "mean": 0.12283000000000001,
+          "p95": 0.1573,
+          "p99": 0.21739999999999998,
+          "max": 0.2698
+        },
+        "collision.update.allocated.bytes": {
+          "mean": 529.1733333333333,
+          "p95": 528,
+          "p99": 616,
+          "max": 616
+        },
+        "collision.update.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "substeps": {
+          "mean": 8.23550133333333,
+          "p95": 9.9453,
+          "p99": 10.8468,
+          "max": 12.927
+        },
+        "substeps.allocated.bytes": {
+          "mean": 37807.973333333335,
+          "p95": 73472,
+          "p99": 73632,
+          "max": 88536
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 1.632738,
+          "p95": 2.209,
+          "p99": 2.5473,
+          "max": 2.6867
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 6824,
+          "p95": 6824,
+          "p99": 6824,
+          "max": 6824
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.498747666666667,
+          "p95": 0.7005,
+          "p99": 1.0166,
+          "max": 1.0636
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 1915.52,
+          "p95": 2448,
+          "p99": 2448,
+          "max": 3024
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 10.375128999999992,
+          "p95": 12.3923,
+          "p99": 14.1627,
+          "max": 15.6955
+        },
+        "movement.allocated.bytes": {
+          "mean": 46795.49333333333,
+          "p95": 82416,
+          "p99": 82824,
+          "max": 97480
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.0032863333333333316,
+          "p95": 0.0081,
+          "p99": 0.0172,
+          "max": 0.0182
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.026488666666666664,
+          "p95": 0.0379,
+          "p99": 0.0611,
+          "max": 0.1604
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 10.40692733333333,
+          "p95": 12.4375,
+          "p99": 14.209,
+          "max": 15.7315
+        },
+        "train.update.allocated.bytes": {
+          "mean": 54995.49333333333,
+          "p95": 90616,
+          "p99": 91024,
+          "max": 105680
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 10.432688333333322,
+          "p95": 12.4625,
+          "p99": 14.2319,
+          "max": 15.7544
+        },
+        "allocated.bytes": {
+          "mean": 57219.49333333333,
+          "p95": 92840,
+          "p99": 93248,
+          "max": 107904
+        },
+        "gc.gen0": {
+          "mean": 0.006666666666666667,
+          "p95": 0,
+          "p99": 0,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 0.8650000095367432,
+          "p95": 0.8650000095367432,
+          "p99": 0.8650000095367432,
+          "max": 0.8650000095367432
+        },
+        "render.gpu": {
+          "mean": 4.552000045776367,
+          "p95": 4.552000045776367,
+          "p99": 4.552000045776367,
+          "max": 4.552000045776367
+        },
+        "render.setup": {
+          "mean": 0.25400000000000006,
+          "p95": 0.254,
+          "p99": 0.254,
+          "max": 0.254
+        },
+        "render.draw_calls": {
+          "mean": 74,
+          "p95": 74,
+          "p99": 74,
+          "max": 74
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13900.696666666667,
+          "p95": 13905,
+          "p99": 13907,
+          "max": 13907
+        },
+        "signals.aspects": {
+          "mean": 0.06412266666666668,
+          "p95": 0.6684,
+          "p99": 1.079,
+          "max": 1.6289
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3290.5066666666667,
+          "p95": 38880,
+          "p99": 38880,
+          "max": 54032
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "after": {
+        "signals.footprints": {
+          "mean": 0.028058666666666662,
+          "p95": 0.0418,
+          "p99": 0.0669,
+          "max": 0.2214
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4921.973333333333,
+          "p95": 5136,
+          "p99": 5136,
+          "max": 5136
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.0032399999999999977,
+          "p95": 0.0049,
+          "p99": 0.006,
+          "max": 0.0075
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1374.0266666666666,
+          "p95": 1432,
+          "p99": 1432,
+          "max": 1640
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.08582533333333335,
+          "p95": 0.554,
+          "p99": 0.7869,
+          "max": 1.4358
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11825.44,
+          "p95": 47496,
+          "p99": 47704,
+          "max": 62960
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.013071666666666659,
+          "p95": 0.0189,
+          "p99": 0.0278,
+          "max": 0.0352
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 616.88,
+          "p95": 616,
+          "p99": 704,
+          "max": 704
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.10029500000000004,
+          "p95": 0.1405,
+          "p99": 0.2053,
+          "max": 0.2656
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "orders.execute": {
+          "mean": 0.004937666666666666,
+          "p95": 0.0092,
+          "p99": 0.0213,
+          "max": 0.0467
+        },
+        "orders.execute.allocated.bytes": {
+          "mean": 1248,
+          "p95": 1248,
+          "p99": 1248,
+          "max": 1248
+        },
+        "orders.execute.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "signals.limit": {
+          "mean": 0.026847333333333334,
+          "p95": 0.04190000000000001,
+          "p99": 0.06960000000000001,
+          "max": 0.1248
+        },
+        "signals.limit.allocated.bytes": {
+          "mean": 2837.44,
+          "p95": 3024,
+          "p99": 3024,
+          "max": 3792
+        },
+        "signals.limit.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "detours": {
+          "mean": 0.0008860000000000018,
+          "p95": 0.0012000000000000001,
+          "p99": 0.0018000000000000002,
+          "max": 0.0645
+        },
+        "detours.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "detours.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "curve.batch": {
+          "mean": 3.911854666666668,
+          "p95": 5.4918,
+          "p99": 10.488,
+          "max": 11.181
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision": {
+          "mean": 0.7063783333333336,
+          "p95": 0.9474999999999999,
+          "p99": 1.6348000000000003,
+          "max": 2.2237
+        },
+        "collision.allocated.bytes": {
+          "mean": 432,
+          "p95": 432,
+          "p99": 432,
+          "max": 432
+        },
+        "collision.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "poses": {
+          "mean": 0.4632313333333328,
+          "p95": 0.6168,
+          "p99": 1.0796000000000001,
+          "max": 1.6417999999999997
+        },
+        "poses.allocated.bytes": {
+          "mean": 6888,
+          "p95": 6888,
+          "p99": 6888,
+          "max": 6888
+        },
+        "poses.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.validate": {
+          "mean": 0.4921979999999998,
+          "p95": 0.6638000000000001,
+          "p99": 1.1265,
+          "max": 1.8208
+        },
+        "collision.validate.allocated.bytes": {
+          "mean": 3456,
+          "p95": 3456,
+          "p99": 3456,
+          "max": 3456
+        },
+        "collision.validate.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "collision.update": {
+          "mean": 0.09942333333333332,
+          "p95": 0.1411,
+          "p99": 0.2544,
+          "max": 0.32530000000000003
+        },
+        "collision.update.allocated.bytes": {
+          "mean": 528.88,
+          "p95": 528,
+          "p99": 616,
+          "max": 616
+        },
+        "collision.update.calls": {
+          "mean": 6,
+          "p95": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "substeps": {
+          "mean": 5.982661666666671,
+          "p95": 8.2683,
+          "p99": 14.8627,
+          "max": 17.3023
+        },
+        "substeps.allocated.bytes": {
+          "mean": 37806.50666666667,
+          "p95": 73472,
+          "p99": 73632,
+          "max": 89016
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 1.4077203333333321,
+          "p95": 1.795,
+          "p99": 3.3735,
+          "max": 3.9061
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 6824,
+          "p95": 6824,
+          "p99": 6824,
+          "max": 6824
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "instances.sync": {
+          "mean": 0.4048156666666667,
+          "p95": 0.6428,
+          "p99": 0.852,
+          "max": 0.9701
+        },
+        "instances.sync.allocated.bytes": {
+          "mean": 1915.52,
+          "p95": 2448,
+          "p99": 2448,
+          "max": 3024
+        },
+        "instances.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 7.801000666666667,
+          "p95": 10.3273,
+          "p99": 18.7244,
+          "max": 21.4685
+        },
+        "movement.allocated.bytes": {
+          "mean": 46794.026666666665,
+          "p95": 82416,
+          "p99": 82848,
+          "max": 97960
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.002253666666666668,
+          "p95": 0.0045,
+          "p99": 0.0117,
+          "max": 0.047
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.01899733333333334,
+          "p95": 0.0313,
+          "p99": 0.0399,
+          "max": 0.0441
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 7.82383733333333,
+          "p95": 10.3549,
+          "p99": 18.7613,
+          "max": 21.509
+        },
+        "train.update.allocated.bytes": {
+          "mean": 54994.026666666665,
+          "p95": 90616,
+          "p99": 91048,
+          "max": 106160
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 7.841756333333328,
+          "p95": 10.3756,
+          "p99": 18.7911,
+          "max": 21.5368
+        },
+        "allocated.bytes": {
+          "mean": 57218.026666666665,
+          "p95": 92840,
+          "p99": 93272,
+          "max": 108384
+        },
+        "gc.gen0": {
+          "mean": 0.01,
+          "p95": 0,
+          "p99": 1,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 0.824999988079071,
+          "p95": 0.824999988079071,
+          "p99": 0.824999988079071,
+          "max": 0.824999988079071
+        },
+        "render.gpu": {
+          "mean": 5.38100004196167,
+          "p95": 5.38100004196167,
+          "p99": 5.38100004196167,
+          "max": 5.38100004196167
+        },
+        "render.setup": {
+          "mean": 0.2340000000000007,
+          "p95": 0.234,
+          "p99": 0.234,
+          "max": 0.234
+        },
+        "render.draw_calls": {
+          "mean": 74,
+          "p95": 74,
+          "p99": 74,
+          "max": 74
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13900.676666666666,
+          "p95": 13905,
+          "p99": 13906,
+          "max": 13907
+        },
+        "signals.aspects": {
+          "mean": 0.04854266666666668,
+          "p95": 0.5188,
+          "p99": 0.7329,
+          "max": 1.3991
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3292.1066666666666,
+          "p95": 38880,
+          "p99": 38880,
+          "max": 54512
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "processors": 12
+    },
+    "simulation-stopped": {
+      "before": {
+        "signals.footprints": {
+          "mean": 0.03532566666666663,
+          "p95": 0.0568,
+          "p99": 0.0739,
+          "max": 0.2798
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4800.453333333333,
+          "p95": 4800,
+          "p99": 4800,
+          "max": 4936
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.02062466666666667,
+          "p95": 0.0068,
+          "p99": 0.0224,
+          "max": 4.9214
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1032.8266666666666,
+          "p95": 1032,
+          "p99": 1032,
+          "max": 1280
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.17336866666666664,
+          "p95": 1.1945,
+          "p99": 1.8036,
+          "max": 4.968
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11319.946666666667,
+          "p95": 47120,
+          "p99": 47120,
+          "max": 47120
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.018014666666666665,
+          "p95": 0.0258,
+          "p99": 0.0384,
+          "max": 0.1221
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 616,
+          "p95": 616,
+          "p99": 616,
+          "max": 616
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.000396,
+          "p95": 0.0008,
+          "p99": 0.0014,
+          "max": 0.0021
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.00021333333333333314,
+          "p95": 0.0003,
+          "p99": 0.0006,
+          "max": 0.001
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "substeps": {
+          "mean": 0.20062100000000002,
+          "p95": 1.2216,
+          "p99": 1.8371,
+          "max": 5.1304
+        },
+        "substeps.allocated.bytes": {
+          "mean": 14317.333333333334,
+          "p95": 50112,
+          "p99": 50112,
+          "max": 50112
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 0.0004263333333333333,
+          "p95": 0.0006,
+          "p99": 0.0022,
+          "max": 0.0141
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 80,
+          "p95": 80,
+          "p99": 80,
+          "max": 80
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 0.20324466666666666,
+          "p95": 1.2241,
+          "p99": 1.8398,
+          "max": 5.1355
+        },
+        "movement.allocated.bytes": {
+          "mean": 14581.333333333334,
+          "p95": 50376,
+          "p99": 50376,
+          "max": 50376
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.003028333333333334,
+          "p95": 0.0056,
+          "p99": 0.0163,
+          "max": 0.0247
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.019033999999999995,
+          "p95": 0.0358,
+          "p99": 0.0757,
+          "max": 0.1334
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 0.22680599999999998,
+          "p95": 1.2469,
+          "p99": 1.8767,
+          "max": 5.2308
+        },
+        "train.update.allocated.bytes": {
+          "mean": 22781.333333333332,
+          "p95": 58576,
+          "p99": 58576,
+          "max": 58576
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 0.23412733333333327,
+          "p95": 1.253,
+          "p99": 1.8847,
+          "max": 5.2473
+        },
+        "allocated.bytes": {
+          "mean": 24085.146666666667,
+          "p95": 60128,
+          "p99": 60128,
+          "max": 62672
+        },
+        "gc.gen0": {
+          "mean": 0.0033333333333333335,
+          "p95": 0,
+          "p99": 0,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 1.9249999523162842,
+          "p95": 1.9249999523162842,
+          "p99": 1.9249999523162842,
+          "max": 1.9249999523162842
+        },
+        "render.gpu": {
+          "mean": 3.010999917984009,
+          "p95": 3.010999917984009,
+          "p99": 3.010999917984009,
+          "max": 3.010999917984009
+        },
+        "render.setup": {
+          "mean": 0.013999999999999917,
+          "p95": 0.014,
+          "p99": 0.014,
+          "max": 0.014
+        },
+        "render.draw_calls": {
+          "mean": 67,
+          "p95": 67,
+          "p99": 67,
+          "max": 67
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13901,
+          "p95": 13901,
+          "p99": 13901,
+          "max": 13901
+        },
+        "signals.aspects": {
+          "mean": 0.10390333333333333,
+          "p95": 1.1463,
+          "p99": 1.7138,
+          "max": 1.7407
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3249.3333333333335,
+          "p95": 38992,
+          "p99": 38992,
+          "max": 38992
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "after": {
+        "signals.footprints": {
+          "mean": 0.030161000000000004,
+          "p95": 0.05,
+          "p99": 0.0591,
+          "max": 0.2808
+        },
+        "signals.footprints.allocated.bytes": {
+          "mean": 4800.453333333333,
+          "p95": 4800,
+          "p99": 4800,
+          "max": 4936
+        },
+        "signals.footprints.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.leases": {
+          "mean": 0.004299666666666669,
+          "p95": 0.0074,
+          "p99": 0.0084,
+          "max": 0.0091
+        },
+        "signals.leases.allocated.bytes": {
+          "mean": 1032.8266666666666,
+          "p95": 1032,
+          "p99": 1032,
+          "max": 1280
+        },
+        "signals.leases.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "signals.update": {
+          "mean": 0.164972,
+          "p95": 1.2917,
+          "p99": 1.7345,
+          "max": 3.4809
+        },
+        "signals.update.allocated.bytes": {
+          "mean": 11319.946666666667,
+          "p95": 47120,
+          "p99": 47120,
+          "max": 47120
+        },
+        "signals.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "collision.index": {
+          "mean": 0.01657933333333334,
+          "p95": 0.0249,
+          "p99": 0.0291,
+          "max": 0.0398
+        },
+        "collision.index.allocated.bytes": {
+          "mean": 616,
+          "p95": 616,
+          "p99": 616,
+          "max": 616
+        },
+        "collision.index.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "grade.batch": {
+          "mean": 0.0004133333333333333,
+          "p95": 0.0008,
+          "p99": 0.0014,
+          "max": 0.0026
+        },
+        "grade.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "grade.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "curve.batch": {
+          "mean": 0.00018499999999999948,
+          "p95": 0.0003,
+          "p99": 0.0019,
+          "max": 0.0023
+        },
+        "curve.batch.allocated.bytes": {
+          "mean": 120,
+          "p95": 120,
+          "p99": 120,
+          "max": 120
+        },
+        "curve.batch.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "substeps": {
+          "mean": 0.19064533333333336,
+          "p95": 1.3195,
+          "p99": 1.7764,
+          "max": 3.5252
+        },
+        "substeps.allocated.bytes": {
+          "mean": 14317.333333333334,
+          "p95": 50112,
+          "p99": 50112,
+          "max": 50112
+        },
+        "substeps.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "poses.apply": {
+          "mean": 0.00030300000000000026,
+          "p95": 0.0004,
+          "p99": 0.001,
+          "max": 0.0016
+        },
+        "poses.apply.allocated.bytes": {
+          "mean": 80,
+          "p95": 80,
+          "p99": 80,
+          "max": 80
+        },
+        "poses.apply.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "movement": {
+          "mean": 0.19284700000000007,
+          "p95": 1.3214,
+          "p99": 1.7796,
+          "max": 3.5279
+        },
+        "movement.allocated.bytes": {
+          "mean": 14581.333333333334,
+          "p95": 50376,
+          "p99": 50376,
+          "max": 50376
+        },
+        "movement.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "cargo.sync": {
+          "mean": 0.002501333333333334,
+          "p95": 0.0051,
+          "p99": 0.0072,
+          "max": 0.0085
+        },
+        "cargo.sync.allocated.bytes": {
+          "mean": 608,
+          "p95": 608,
+          "p99": 608,
+          "max": 608
+        },
+        "cargo.sync.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "smoke.outlets": {
+          "mean": 0.023372333333333325,
+          "p95": 0.0377,
+          "p99": 0.0457,
+          "max": 0.0665
+        },
+        "smoke.outlets.allocated.bytes": {
+          "mean": 7336,
+          "p95": 7336,
+          "p99": 7336,
+          "max": 7336
+        },
+        "smoke.outlets.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "train.update": {
+          "mean": 0.22018500000000008,
+          "p95": 1.3477,
+          "p99": 1.847,
+          "max": 3.5705
+        },
+        "train.update.allocated.bytes": {
+          "mean": 22781.333333333332,
+          "p95": 58576,
+          "p99": 58576,
+          "max": 58576
+        },
+        "train.update.calls": {
+          "mean": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "elapsed": {
+          "mean": 0.2272396666666667,
+          "p95": 1.3525,
+          "p99": 1.8559,
+          "max": 3.5806
+        },
+        "allocated.bytes": {
+          "mean": 24085.146666666667,
+          "p95": 60128,
+          "p99": 60128,
+          "max": 62672
+        },
+        "gc.gen0": {
+          "mean": 0.0033333333333333335,
+          "p95": 0,
+          "p99": 0,
+          "max": 1
+        },
+        "render.cpu": {
+          "mean": 3.9159998893737793,
+          "p95": 3.9159998893737793,
+          "p99": 3.9159998893737793,
+          "max": 3.9159998893737793
+        },
+        "render.gpu": {
+          "mean": 4.406000137329102,
+          "p95": 4.406000137329102,
+          "p99": 4.406000137329102,
+          "max": 4.406000137329102
+        },
+        "render.setup": {
+          "mean": 0.011000000000000018,
+          "p95": 0.011,
+          "p99": 0.011,
+          "max": 0.011
+        },
+        "render.draw_calls": {
+          "mean": 67,
+          "p95": 67,
+          "p99": 67,
+          "max": 67
+        },
+        "render.primitives": {
+          "mean": 120968,
+          "p95": 120968,
+          "p99": 120968,
+          "max": 120968
+        },
+        "scene.nodes": {
+          "mean": 13901,
+          "p95": 13901,
+          "p99": 13901,
+          "max": 13901
+        },
+        "signals.aspects": {
+          "mean": 0.10726466666666667,
+          "p95": 1.1446,
+          "p99": 1.6739,
+          "max": 1.7049
+        },
+        "signals.aspects.allocated.bytes": {
+          "mean": 3249.3333333333335,
+          "p95": 38992,
+          "p99": 38992,
+          "max": 38992
+        },
+        "signals.aspects.calls": {
+          "mean": 0.08333333333333333,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        }
+      },
+      "processors": 12
+    }
+  },
+  "render_cases": [
+    {
+      "mode": "baseline",
+      "before": {
+        "elapsed": {
+          "mean": 34.59760666666668,
+          "median": 33.6747,
+          "p95": 38.8453
+        },
+        "gpu": {
+          "mean": 33.45743325551351,
+          "median": 32.95899963378906,
+          "p95": 37.06999969482422
+        },
+        "cpu": {
+          "mean": 10.826633350054424,
+          "median": 10.687999725341797,
+          "p95": 13.571000099182129
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6485999,
+          "median": 6485999,
+          "p95": 6485999
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 53.42191083333333,
+          "median": 52.1719,
+          "p95": 70.561
+        },
+        "gpu": {
+          "mean": 42.41484176317851,
+          "median": 44.1150016784668,
+          "p95": 56.13199996948242
+        },
+        "cpu": {
+          "mean": 8.429883293310802,
+          "median": 8.260000228881836,
+          "p95": 10.491000175476074
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6486041,
+          "median": 6486041,
+          "p95": 6486041
+        }
+      }
+    },
+    {
+      "mode": "notrees",
+      "before": {
+        "elapsed": {
+          "mean": 17.469650833333336,
+          "median": 16.8146,
+          "p95": 23.7293
+        },
+        "gpu": {
+          "mean": 15.916691740353903,
+          "median": 16.02400016784668,
+          "p95": 18.136999130249023
+        },
+        "cpu": {
+          "mean": 15.10728329817454,
+          "median": 14.633000373840332,
+          "p95": 21.25
+        },
+        "draws": {
+          "mean": 1022,
+          "median": 1022,
+          "p95": 1022
+        },
+        "primitives": {
+          "mean": 2541899,
+          "median": 2541899,
+          "p95": 2541899
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 17.638983333333332,
+          "median": 16.9546,
+          "p95": 27.3785
+        },
+        "gpu": {
+          "mean": 14.274541600545247,
+          "median": 14.03499984741211,
+          "p95": 16.798999786376953
+        },
+        "cpu": {
+          "mean": 11.294616675376892,
+          "median": 10.767999649047852,
+          "p95": 15.86299991607666
+        },
+        "draws": {
+          "mean": 1022,
+          "median": 1022,
+          "p95": 1022
+        },
+        "primitives": {
+          "mean": 2541941,
+          "median": 2541941,
+          "p95": 2541941
+        }
+      }
+    },
+    {
+      "mode": "baseline-after-trees",
+      "before": {
+        "elapsed": {
+          "mean": 40.599729999999994,
+          "median": 38.9119,
+          "p95": 48.1411
+        },
+        "gpu": {
+          "mean": 38.64808330535889,
+          "median": 38.106998443603516,
+          "p95": 44.58000183105469
+        },
+        "cpu": {
+          "mean": 13.05034167766571,
+          "median": 12.520000457763672,
+          "p95": 17.929000854492188
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6485999,
+          "median": 6485999,
+          "p95": 6485999
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 52.957224166666656,
+          "median": 61.9162,
+          "p95": 72.8085
+        },
+        "gpu": {
+          "mean": 37.90509179433187,
+          "median": 38.95000076293945,
+          "p95": 54.46799850463867
+        },
+        "cpu": {
+          "mean": 8.675983305772146,
+          "median": 8.534000396728516,
+          "p95": 10.744999885559082
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6486041,
+          "median": 6486041,
+          "p95": 6486041
+        }
+      }
+    },
+    {
+      "mode": "noshadows",
+      "before": {
+        "elapsed": {
+          "mean": 21.261630833333335,
+          "median": 20.623,
+          "p95": 23.9011
+        },
+        "gpu": {
+          "mean": 20.377108271916708,
+          "median": 20.15399932861328,
+          "p95": 21.981000900268555
+        },
+        "cpu": {
+          "mean": 10.467941681543985,
+          "median": 10.343000411987305,
+          "p95": 12.54800033569336
+        },
+        "draws": {
+          "mean": 725,
+          "median": 725,
+          "p95": 725
+        },
+        "primitives": {
+          "mean": 2040410,
+          "median": 2040410,
+          "p95": 2040410
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 27.21401583333333,
+          "median": 28.6754,
+          "p95": 49.8993
+        },
+        "gpu": {
+          "mean": 18.905358338356017,
+          "median": 19.75,
+          "p95": 28.746999740600586
+        },
+        "cpu": {
+          "mean": 6.507191665967306,
+          "median": 6.434000015258789,
+          "p95": 7.752999782562256
+        },
+        "draws": {
+          "mean": 725,
+          "median": 725,
+          "p95": 725
+        },
+        "primitives": {
+          "mean": 2040452,
+          "median": 2040452,
+          "p95": 2040452
+        }
+      }
+    },
+    {
+      "mode": "notrains",
+      "before": {
+        "elapsed": {
+          "mean": 35.121596666666655,
+          "median": 34.533,
+          "p95": 39.2747
+        },
+        "gpu": {
+          "mean": 34.07571681340536,
+          "median": 33.70000076293945,
+          "p95": 37.35900115966797
+        },
+        "cpu": {
+          "mean": 10.879508320490519,
+          "median": 10.640000343322754,
+          "p95": 12.928999900817871
+        },
+        "draws": {
+          "mean": 1046,
+          "median": 1046,
+          "p95": 1046
+        },
+        "primitives": {
+          "mean": 6259599,
+          "median": 6259599,
+          "p95": 6259599
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 49.01476500000001,
+          "median": 45.6075,
+          "p95": 68.7272
+        },
+        "gpu": {
+          "mean": 33.90571675300598,
+          "median": 34.27399826049805,
+          "p95": 47.80099868774414
+        },
+        "cpu": {
+          "mean": 7.6860083421071375,
+          "median": 7.571000099182129,
+          "p95": 9.178999900817871
+        },
+        "draws": {
+          "mean": 1046,
+          "median": 1046,
+          "p95": 1046
+        },
+        "primitives": {
+          "mean": 6259641,
+          "median": 6259641,
+          "p95": 6259641
+        }
+      }
+    },
+    {
+      "mode": "notracks",
+      "before": {
+        "elapsed": {
+          "mean": 49.070074999999996,
+          "median": 49.8639,
+          "p95": 54.9994
+        },
+        "gpu": {
+          "mean": 47.618958441416424,
+          "median": 48.63800048828125,
+          "p95": 52.849998474121094
+        },
+        "cpu": {
+          "mean": 7.65679163535436,
+          "median": 7.754000186920166,
+          "p95": 10.305999755859375
+        },
+        "draws": {
+          "mean": 435,
+          "median": 435,
+          "p95": 435
+        },
+        "primitives": {
+          "mean": 6159387,
+          "median": 6159387,
+          "p95": 6159387
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 49.24357666666669,
+          "median": 49.2135,
+          "p95": 77.3104
+        },
+        "gpu": {
+          "mean": 36.255733370780945,
+          "median": 37.32099914550781,
+          "p95": 51.14099884033203
+        },
+        "cpu": {
+          "mean": 4.404616663853328,
+          "median": 4.150000095367432,
+          "p95": 6.289999961853027
+        },
+        "draws": {
+          "mean": 435,
+          "median": 435,
+          "p95": 435
+        },
+        "primitives": {
+          "mean": 6159429,
+          "median": 6159429,
+          "p95": 6159429
+        }
+      }
+    },
+    {
+      "mode": "nosignals",
+      "before": {
+        "elapsed": {
+          "mean": 40.161111666666656,
+          "median": 38.6625,
+          "p95": 47.4298
+        },
+        "gpu": {
+          "mean": 39.12690823872884,
+          "median": 38.34299850463867,
+          "p95": 46.0880012512207
+        },
+        "cpu": {
+          "mean": 9.15169998407364,
+          "median": 8.925999641418457,
+          "p95": 12.107999801635742
+        },
+        "draws": {
+          "mean": 847,
+          "median": 847,
+          "p95": 847
+        },
+        "primitives": {
+          "mean": 6472475,
+          "median": 6472475,
+          "p95": 6472475
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 48.606988333333334,
+          "median": 47.2972,
+          "p95": 69.3847
+        },
+        "gpu": {
+          "mean": 32.80307502746582,
+          "median": 34.44599914550781,
+          "p95": 48.834999084472656
+        },
+        "cpu": {
+          "mean": 7.5271499991416935,
+          "median": 7.373000144958496,
+          "p95": 9.902999877929688
+        },
+        "draws": {
+          "mean": 847,
+          "median": 847,
+          "p95": 847
+        },
+        "primitives": {
+          "mean": 6472517,
+          "median": 6472517,
+          "p95": 6472517
+        }
+      }
+    },
+    {
+      "mode": "noindustries",
+      "before": {
+        "elapsed": {
+          "mean": 40.24927333333334,
+          "median": 38.3795,
+          "p95": 49.9904
+        },
+        "gpu": {
+          "mean": 38.84017492930094,
+          "median": 36.625,
+          "p95": 47.310001373291016
+        },
+        "cpu": {
+          "mean": 12.432350023587544,
+          "median": 11.46500015258789,
+          "p95": 18.288000106811523
+        },
+        "draws": {
+          "mean": 1132,
+          "median": 1132,
+          "p95": 1132
+        },
+        "primitives": {
+          "mean": 6485567,
+          "median": 6485567,
+          "p95": 6485567
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 56.1594983333333,
+          "median": 56.0839,
+          "p95": 80.6068
+        },
+        "gpu": {
+          "mean": 42.32811671892802,
+          "median": 43.887001037597656,
+          "p95": 57.63800048828125
+        },
+        "cpu": {
+          "mean": 10.657091641426087,
+          "median": 10.333999633789062,
+          "p95": 15.979999542236328
+        },
+        "draws": {
+          "mean": 1132,
+          "median": 1132,
+          "p95": 1132
+        },
+        "primitives": {
+          "mean": 6485609,
+          "median": 6485609,
+          "p95": 6485609
+        }
+      }
+    },
+    {
+      "mode": "halfresolution",
+      "before": {
+        "elapsed": {
+          "mean": 34.93698083333334,
+          "median": 34.5633,
+          "p95": 37.298
+        },
+        "gpu": {
+          "mean": 33.98864987691243,
+          "median": 33.87799835205078,
+          "p95": 35.55799865722656
+        },
+        "cpu": {
+          "mean": 11.602441668510437,
+          "median": 11.484999656677246,
+          "p95": 13.597999572753906
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6485999,
+          "median": 6485999,
+          "p95": 6485999
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 50.35500833333333,
+          "median": 46.6892,
+          "p95": 89.6299
+        },
+        "gpu": {
+          "mean": 26.247800064086913,
+          "median": 18.788999557495117,
+          "p95": 50.42100143432617
+        },
+        "cpu": {
+          "mean": 9.538850029309591,
+          "median": 9.28600025177002,
+          "p95": 12.355999946594238
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6486055.4,
+          "median": 6486041,
+          "p95": 6486257
+        }
+      }
+    },
+    {
+      "mode": "baseline-repeat",
+      "before": {
+        "elapsed": {
+          "mean": 39.47900583333334,
+          "median": 38.8851,
+          "p95": 43.8324
+        },
+        "gpu": {
+          "mean": 38.44957504272461,
+          "median": 37.979000091552734,
+          "p95": 42.380001068115234
+        },
+        "cpu": {
+          "mean": 11.224866636594136,
+          "median": 10.895999908447266,
+          "p95": 14.654000282287598
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6485999,
+          "median": 6485999,
+          "p95": 6485999
+        }
+      },
+      "after": {
+        "elapsed": {
+          "mean": 55.0690675,
+          "median": 51.8296,
+          "p95": 94.1806
+        },
+        "gpu": {
+          "mean": 26.099858283996582,
+          "median": 20.430999755859375,
+          "p95": 54.60100173950195
+        },
+        "cpu": {
+          "mean": 10.240225025018056,
+          "median": 10.024999618530273,
+          "p95": 12.916000366210938
+        },
+        "draws": {
+          "mean": 1141,
+          "median": 1141,
+          "p95": 1141
+        },
+        "primitives": {
+          "mean": 6486041,
+          "median": 6486041,
+          "p95": 6486041
+        }
+      }
+    }
+  ],
+  "world-fixed": {
+    "before": {
+      "signals.footprints": {
+        "mean": 0.06663249999999997,
+        "p95": 0.0913,
+        "p99": 0.1669,
+        "max": 0.2593
+      },
+      "signals.footprints.allocated.bytes": {
+        "mean": 4894.366666666667,
+        "p95": 4968,
+        "p99": 5136,
+        "max": 5136
+      },
+      "signals.footprints.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.leases": {
+        "mean": 0.005594583333333331,
+        "p95": 0.0084,
+        "p99": 0.0233,
+        "max": 0.0357
+      },
+      "signals.leases.allocated.bytes": {
+        "mean": 1383.5333333333333,
+        "p95": 1432,
+        "p99": 1432,
+        "max": 1640
+      },
+      "signals.leases.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.update": {
+        "mean": 0.19239458333333334,
+        "p95": 1.2108,
+        "p99": 1.5745,
+        "max": 3.0709
+      },
+      "signals.update.allocated.bytes": {
+        "mean": 11818.366666666667,
+        "p95": 47368,
+        "p99": 47576,
+        "max": 62728
+      },
+      "signals.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "collision.index": {
+        "mean": 0.025457083333333345,
+        "p95": 0.0319,
+        "p99": 0.0468,
+        "max": 0.0825
+      },
+      "collision.index.allocated.bytes": {
+        "mean": 617.8333333333334,
+        "p95": 616,
+        "p99": 704,
+        "max": 704
+      },
+      "collision.index.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "grade.batch": {
+        "mean": 0.20286041666666682,
+        "p95": 0.2715,
+        "p99": 0.3345,
+        "max": 0.5371
+      },
+      "grade.batch.allocated.bytes": {
+        "mean": 1870.2666666666667,
+        "p95": 1912,
+        "p99": 1936,
+        "max": 1936
+      },
+      "grade.batch.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "orders.execute": {
+        "mean": 0.011511249999999985,
+        "p95": 0.019100000000000002,
+        "p99": 0.033900000000000007,
+        "max": 0.06950000000000002
+      },
+      "orders.execute.allocated.bytes": {
+        "mean": 1248,
+        "p95": 1248,
+        "p99": 1248,
+        "max": 1248
+      },
+      "orders.execute.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "signals.limit": {
+        "mean": 0.07577916666666666,
+        "p95": 0.08610000000000001,
+        "p99": 0.24679999999999996,
+        "max": 2.7298999999999998
+      },
+      "signals.limit.allocated.bytes": {
+        "mean": 2895.6,
+        "p95": 3024,
+        "p99": 3024,
+        "max": 3792
+      },
+      "signals.limit.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "detours": {
+        "mean": 0.0014487499999999993,
+        "p95": 0.0021,
+        "p99": 0.0022,
+        "max": 0.0032
+      },
+      "detours.allocated.bytes": {
+        "mean": 432,
+        "p95": 432,
+        "p99": 432,
+        "max": 432
+      },
+      "detours.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "curve.batch": {
+        "mean": 4.656406249999998,
+        "p95": 5.6444,
+        "p99": 6.035,
+        "max": 6.529
+      },
+      "curve.batch.allocated.bytes": {
+        "mean": 1824,
+        "p95": 1824,
+        "p99": 1824,
+        "max": 1824
+      },
+      "curve.batch.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "collision": {
+        "mean": 1.6780983333333337,
+        "p95": 2.1005,
+        "p99": 2.2479999999999998,
+        "max": 2.4738
+      },
+      "collision.allocated.bytes": {
+        "mean": 432,
+        "p95": 432,
+        "p99": 432,
+        "max": 432
+      },
+      "collision.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "poses": {
+        "mean": 1.1155445833333328,
+        "p95": 1.4030999999999998,
+        "p99": 1.5533000000000001,
+        "max": 1.5744
+      },
+      "poses.allocated.bytes": {
+        "mean": 6888,
+        "p95": 6888,
+        "p99": 6888,
+        "max": 6888
+      },
+      "poses.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "collision.validate": {
+        "mean": 0.8592691666666664,
+        "p95": 1.0742,
+        "p99": 1.3044,
+        "max": 3.6258999999999997
+      },
+      "collision.validate.allocated.bytes": {
+        "mean": 3456,
+        "p95": 3456,
+        "p99": 3456,
+        "max": 3456
+      },
+      "collision.validate.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "collision.update": {
+        "mean": 0.18715750000000006,
+        "p95": 0.2399,
+        "p99": 0.3078,
+        "max": 0.3676
+      },
+      "collision.update.allocated.bytes": {
+        "mean": 529.4666666666667,
+        "p95": 528,
+        "p99": 616,
+        "max": 616
+      },
+      "collision.update.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "substeps": {
+        "mean": 9.148505416666664,
+        "p95": 10.9887,
+        "p99": 12.418,
+        "max": 14.5194
+      },
+      "substeps.allocated.bytes": {
+        "mean": 41316.86666666667,
+        "p95": 76904,
+        "p99": 77088,
+        "max": 92216
+      },
+      "substeps.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "poses.apply": {
+        "mean": 3.490850000000002,
+        "p95": 5.4129,
+        "p99": 6.1132,
+        "max": 7.4394
+      },
+      "poses.apply.allocated.bytes": {
+        "mean": 6824,
+        "p95": 6824,
+        "p99": 6824,
+        "max": 6824
+      },
+      "poses.apply.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "instances.sync": {
+        "mean": 0.753695833333333,
+        "p95": 1.1323,
+        "p99": 1.6073,
+        "max": 3.3344
+      },
+      "instances.sync.allocated.bytes": {
+        "mean": 1914.8,
+        "p95": 2448,
+        "p99": 2448,
+        "max": 2448
+      },
+      "instances.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "movement": {
+        "mean": 13.409009999999999,
+        "p95": 17.0765,
+        "p99": 19.2401,
+        "max": 21.3324
+      },
+      "movement.allocated.bytes": {
+        "mean": 50349.86666666667,
+        "p95": 85920,
+        "p99": 86360,
+        "max": 101160
+      },
+      "movement.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "cargo.sync": {
+        "mean": 0.004793750000000002,
+        "p95": 0.011,
+        "p99": 0.0178,
+        "max": 0.0332
+      },
+      "cargo.sync.allocated.bytes": {
+        "mean": 608,
+        "p95": 608,
+        "p99": 608,
+        "max": 608
+      },
+      "cargo.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "smoke.outlets": {
+        "mean": 0.04100208333333333,
+        "p95": 0.0821,
+        "p99": 0.1349,
+        "max": 0.1839
+      },
+      "smoke.outlets.allocated.bytes": {
+        "mean": 7336,
+        "p95": 7336,
+        "p99": 7336,
+        "max": 7336
+      },
+      "smoke.outlets.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.update": {
+        "mean": 13.458670833333331,
+        "p95": 17.1123,
+        "p99": 19.2891,
+        "max": 21.3777
+      },
+      "train.update.allocated.bytes": {
+        "mean": 58549.86666666667,
+        "p95": 94120,
+        "p99": 94560,
+        "max": 109360
+      },
+      "train.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain.poll-convert": {
+        "mean": 0.03819208333333333,
+        "p95": 0.1112,
+        "p99": 0.1374,
+        "max": 0.2229
+      },
+      "terrain.poll-convert.allocated.bytes": {
+        "mean": 250.66666666666666,
+        "p95": 248,
+        "p99": 408,
+        "max": 408
+      },
+      "terrain.poll-convert.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "trees.pump": {
+        "mean": 0.07759291666666669,
+        "p95": 0.1877,
+        "p99": 0.2645,
+        "max": 0.2943
+      },
+      "trees.pump.allocated.bytes": {
+        "mean": 16416,
+        "p95": 16416,
+        "p99": 16416,
+        "max": 16416
+      },
+      "trees.pump.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain": {
+        "mean": 0.19177708333333324,
+        "p95": 0.4392,
+        "p99": 0.5999,
+        "max": 0.817
+      },
+      "terrain.allocated.bytes": {
+        "mean": 16962.666666666668,
+        "p95": 16960,
+        "p99": 17120,
+        "max": 17120
+      },
+      "terrain.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "track.render.update": {
+        "mean": 0.0060995833333333345,
+        "p95": 0.0176,
+        "p99": 0.0224,
+        "max": 0.0263
+      },
+      "track.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "track.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.render.update": {
+        "mean": 0.1746291666666667,
+        "p95": 0.4672,
+        "p99": 0.629,
+        "max": 0.6848
+      },
+      "signals.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "signals.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.ui": {
+        "mean": 0.014237083333333338,
+        "p95": 0.0379,
+        "p99": 0.074,
+        "max": 0.1045
+      },
+      "train.ui.allocated.bytes": {
+        "mean": 135.2,
+        "p95": 264,
+        "p99": 264,
+        "max": 264
+      },
+      "train.ui.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.update": {
+        "mean": 0.03068166666666667,
+        "p95": 0.1464,
+        "p99": 0.2987,
+        "max": 0.3484
+      },
+      "industries.update.allocated.bytes": {
+        "mean": 730.8333333333334,
+        "p95": 2328,
+        "p99": 4368,
+        "max": 4368
+      },
+      "industries.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "elapsed": {
+        "mean": 38.65323250000001,
+        "p95": 68.459,
+        "p99": 81.7801,
+        "max": 84.1225
+      },
+      "allocated.bytes": {
+        "mean": 89402.86666666667,
+        "p95": 124864,
+        "p99": 127968,
+        "max": 141800
+      },
+      "gc.gen0": {
+        "mean": 0.0125,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      },
+      "render.cpu": {
+        "mean": 10.923741670449575,
+        "p95": 12.958999633789062,
+        "p99": 16.05299949645996,
+        "max": 17.892000198364258
+      },
+      "render.gpu": {
+        "mean": 33.65118758678436,
+        "p95": 50.62799835205078,
+        "p99": 57.70000076293945,
+        "max": 65.88400268554688
+      },
+      "render.setup": {
+        "mean": 0.6540249999999997,
+        "p95": 1.075,
+        "p99": 1.281,
+        "max": 1.33
+      },
+      "render.draw_calls": {
+        "mean": 1179.3083333333334,
+        "p95": 1203,
+        "p99": 1205,
+        "max": 1205
+      },
+      "render.primitives": {
+        "mean": 6537188.808333334,
+        "p95": 6583765,
+        "p99": 6583767,
+        "max": 6583769
+      },
+      "scene.nodes": {
+        "mean": 22226.633333333335,
+        "p95": 22232,
+        "p99": 22232,
+        "max": 22232
+      },
+      "industries.production": {
+        "mean": 0.017189583333333334,
+        "p95": 0.0956,
+        "p99": 0.2638,
+        "max": 0.3367
+      },
+      "industries.production.allocated.bytes": {
+        "mean": 333,
+        "p95": 2160,
+        "p99": 2160,
+        "max": 2160
+      },
+      "industries.production.calls": {
+        "mean": 0.15416666666666667,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.aspects": {
+        "mean": 0.10152958333333334,
+        "p95": 1.1251,
+        "p99": 1.4772,
+        "max": 2.9826
+      },
+      "signals.aspects.allocated.bytes": {
+        "mean": 3303.133333333333,
+        "p95": 38880,
+        "p99": 38880,
+        "max": 54032
+      },
+      "signals.aspects.calls": {
+        "mean": 0.08333333333333333,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    "after": {
+      "signals.footprints": {
+        "mean": 0.0514479166666667,
+        "p95": 0.0702,
+        "p99": 0.1699,
+        "max": 0.2863
+      },
+      "signals.footprints.allocated.bytes": {
+        "mean": 4894.366666666667,
+        "p95": 4968,
+        "p99": 5136,
+        "max": 5136
+      },
+      "signals.footprints.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.leases": {
+        "mean": 0.015066666666666662,
+        "p95": 0.0079,
+        "p99": 0.0154,
+        "max": 2.3634
+      },
+      "signals.leases.allocated.bytes": {
+        "mean": 1383.5333333333333,
+        "p95": 1432,
+        "p99": 1432,
+        "max": 1640
+      },
+      "signals.leases.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.update": {
+        "mean": 0.15666916666666664,
+        "p95": 0.8679,
+        "p99": 1.1119,
+        "max": 2.5646
+      },
+      "signals.update.allocated.bytes": {
+        "mean": 11820.366666666667,
+        "p95": 47368,
+        "p99": 47576,
+        "max": 63208
+      },
+      "signals.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "collision.index": {
+        "mean": 0.023326666666666676,
+        "p95": 0.0313,
+        "p99": 0.0497,
+        "max": 0.055
+      },
+      "collision.index.allocated.bytes": {
+        "mean": 617.8333333333334,
+        "p95": 616,
+        "p99": 704,
+        "max": 704
+      },
+      "collision.index.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "grade.batch": {
+        "mean": 0.1672441666666667,
+        "p95": 0.221,
+        "p99": 0.3595,
+        "max": 1.9584
+      },
+      "grade.batch.allocated.bytes": {
+        "mean": 1882.6666666666667,
+        "p95": 1936,
+        "p99": 1960,
+        "max": 1960
+      },
+      "grade.batch.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "orders.execute": {
+        "mean": 0.03152750000000001,
+        "p95": 0.0142,
+        "p99": 0.027000000000000003,
+        "max": 5.3583
+      },
+      "orders.execute.allocated.bytes": {
+        "mean": 1248,
+        "p95": 1248,
+        "p99": 1248,
+        "max": 1248
+      },
+      "orders.execute.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "signals.limit": {
+        "mean": 0.04274499999999999,
+        "p95": 0.0663,
+        "p99": 0.07390000000000001,
+        "max": 0.07929999999999998
+      },
+      "signals.limit.allocated.bytes": {
+        "mean": 2895.6,
+        "p95": 3024,
+        "p99": 3024,
+        "max": 3792
+      },
+      "signals.limit.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "detours": {
+        "mean": 0.0009962499999999993,
+        "p95": 0.0015000000000000002,
+        "p99": 0.0018000000000000002,
+        "max": 0.003299999999999999
+      },
+      "detours.allocated.bytes": {
+        "mean": 432,
+        "p95": 432,
+        "p99": 432,
+        "max": 432
+      },
+      "detours.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "curve.batch": {
+        "mean": 3.010611666666665,
+        "p95": 3.9264,
+        "p99": 4.9458,
+        "max": 5.1142
+      },
+      "curve.batch.allocated.bytes": {
+        "mean": 1824.2666666666667,
+        "p95": 1824,
+        "p99": 1824,
+        "max": 1888
+      },
+      "curve.batch.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "collision": {
+        "mean": 1.11096375,
+        "p95": 1.3605,
+        "p99": 1.8362,
+        "max": 2.0184
+      },
+      "collision.allocated.bytes": {
+        "mean": 432,
+        "p95": 432,
+        "p99": 432,
+        "max": 432
+      },
+      "collision.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "poses": {
+        "mean": 0.7025345833333339,
+        "p95": 0.9305999999999999,
+        "p99": 1.1674,
+        "max": 1.2753999999999999
+      },
+      "poses.allocated.bytes": {
+        "mean": 6888,
+        "p95": 6888,
+        "p99": 6888,
+        "max": 6888
+      },
+      "poses.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "collision.validate": {
+        "mean": 0.6555491666666665,
+        "p95": 0.8762000000000001,
+        "p99": 1.0668,
+        "max": 1.0899999999999999
+      },
+      "collision.validate.allocated.bytes": {
+        "mean": 3456,
+        "p95": 3456,
+        "p99": 3456,
+        "max": 3456
+      },
+      "collision.validate.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "collision.update": {
+        "mean": 0.14700624999999995,
+        "p95": 0.20879999999999999,
+        "p99": 0.2597,
+        "max": 0.27390000000000003
+      },
+      "collision.update.allocated.bytes": {
+        "mean": 529.4666666666667,
+        "p95": 528,
+        "p99": 616,
+        "max": 616
+      },
+      "collision.update.calls": {
+        "mean": 6,
+        "p95": 6,
+        "p99": 6,
+        "max": 6
+      },
+      "substeps": {
+        "mean": 6.162402916666666,
+        "p95": 8.1536,
+        "p99": 10.091,
+        "max": 11.7984
+      },
+      "substeps.allocated.bytes": {
+        "mean": 41331.53333333333,
+        "p95": 76928,
+        "p99": 77112,
+        "max": 92720
+      },
+      "substeps.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "poses.apply": {
+        "mean": 2.931350833333332,
+        "p95": 3.7043,
+        "p99": 4.7774,
+        "max": 5.3795
+      },
+      "poses.apply.allocated.bytes": {
+        "mean": 6824,
+        "p95": 6824,
+        "p99": 6824,
+        "max": 6824
+      },
+      "poses.apply.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "instances.sync": {
+        "mean": 0.5826237499999999,
+        "p95": 0.8694,
+        "p99": 1.1813,
+        "max": 1.4695
+      },
+      "instances.sync.allocated.bytes": {
+        "mean": 1914.8,
+        "p95": 2448,
+        "p99": 2448,
+        "max": 2448
+      },
+      "instances.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "movement": {
+        "mean": 9.689812916666662,
+        "p95": 12.7816,
+        "p99": 15.725,
+        "max": 16.616
+      },
+      "movement.allocated.bytes": {
+        "mean": 50364.53333333333,
+        "p95": 85920,
+        "p99": 86360,
+        "max": 101664
+      },
+      "movement.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "cargo.sync": {
+        "mean": 0.0036441666666666658,
+        "p95": 0.0074,
+        "p99": 0.0146,
+        "max": 0.0446
+      },
+      "cargo.sync.allocated.bytes": {
+        "mean": 608,
+        "p95": 608,
+        "p99": 608,
+        "max": 608
+      },
+      "cargo.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "smoke.outlets": {
+        "mean": 0.03381208333333335,
+        "p95": 0.0547,
+        "p99": 0.1351,
+        "max": 0.2152
+      },
+      "smoke.outlets.allocated.bytes": {
+        "mean": 7336,
+        "p95": 7336,
+        "p99": 7336,
+        "max": 7336
+      },
+      "smoke.outlets.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.update": {
+        "mean": 9.730404166666663,
+        "p95": 12.841,
+        "p99": 15.7628,
+        "max": 16.6868
+      },
+      "train.update.allocated.bytes": {
+        "mean": 58564.53333333333,
+        "p95": 94120,
+        "p99": 94560,
+        "max": 109864
+      },
+      "train.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain.poll-convert": {
+        "mean": 0.02762791666666665,
+        "p95": 0.0418,
+        "p99": 0.0655,
+        "max": 0.0805
+      },
+      "terrain.poll-convert.allocated.bytes": {
+        "mean": 250.66666666666666,
+        "p95": 248,
+        "p99": 408,
+        "max": 408
+      },
+      "terrain.poll-convert.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "trees.pump": {
+        "mean": 0.06582708333333331,
+        "p95": 0.0825,
+        "p99": 0.1189,
+        "max": 2.0176
+      },
+      "trees.pump.allocated.bytes": {
+        "mean": 16416,
+        "p95": 16416,
+        "p99": 16416,
+        "max": 16416
+      },
+      "trees.pump.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain": {
+        "mean": 0.14709416666666666,
+        "p95": 0.1806,
+        "p99": 0.2181,
+        "max": 2.1156
+      },
+      "terrain.allocated.bytes": {
+        "mean": 16962.666666666668,
+        "p95": 16960,
+        "p99": 17120,
+        "max": 17120
+      },
+      "terrain.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "track.render.update": {
+        "mean": 0.004069999999999995,
+        "p95": 0.0056,
+        "p99": 0.0074,
+        "max": 0.015
+      },
+      "track.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "track.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.render.update": {
+        "mean": 0.12567124999999996,
+        "p95": 0.1895,
+        "p99": 0.2324,
+        "max": 0.3202
+      },
+      "signals.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "signals.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.ui": {
+        "mean": 0.008947083333333336,
+        "p95": 0.0203,
+        "p99": 0.0297,
+        "max": 0.0543
+      },
+      "train.ui.allocated.bytes": {
+        "mean": 135.2,
+        "p95": 264,
+        "p99": 264,
+        "max": 264
+      },
+      "train.ui.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.production": {
+        "mean": 0.011709583333333334,
+        "p95": 0.0716,
+        "p99": 0.089,
+        "max": 0.1839
+      },
+      "industries.production.allocated.bytes": {
+        "mean": 351,
+        "p95": 2160,
+        "p99": 2160,
+        "max": 2160
+      },
+      "industries.production.calls": {
+        "mean": 0.1625,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.update": {
+        "mean": 0.018636666666666673,
+        "p95": 0.0791,
+        "p99": 0.13,
+        "max": 0.1866
+      },
+      "industries.update.allocated.bytes": {
+        "mean": 749.5,
+        "p95": 2328,
+        "p99": 4368,
+        "max": 4368
+      },
+      "industries.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "elapsed": {
+        "mean": 40.05124833333334,
+        "p95": 66.7436,
+        "p99": 71.1976,
+        "max": 82.9083
+      },
+      "allocated.bytes": {
+        "mean": 89433.26666666666,
+        "p95": 124296,
+        "p99": 126936,
+        "max": 139600
+      },
+      "gc.gen0": {
+        "mean": 0.016666666666666666,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      },
+      "render.cpu": {
+        "mean": 9.24073334534963,
+        "p95": 12.085000038146973,
+        "p99": 15.32699966430664,
+        "max": 17.844999313354492
+      },
+      "render.gpu": {
+        "mean": 36.8819167693456,
+        "p95": 50.55699920654297,
+        "p99": 55.48899841308594,
+        "max": 55.91899871826172
+      },
+      "render.setup": {
+        "mean": 0.6483708333333335,
+        "p95": 0.874,
+        "p99": 1.085,
+        "max": 1.483
+      },
+      "render.draw_calls": {
+        "mean": 1179.3083333333334,
+        "p95": 1203,
+        "p99": 1205,
+        "max": 1205
+      },
+      "render.primitives": {
+        "mean": 6537230.775,
+        "p95": 6583807,
+        "p99": 6583809,
+        "max": 6583811
+      },
+      "scene.nodes": {
+        "mean": 22231.633333333335,
+        "p95": 22237,
+        "p99": 22237,
+        "max": 22237
+      },
+      "signals.aspects": {
+        "mean": 0.07359833333333331,
+        "p95": 0.7948,
+        "p99": 0.8683,
+        "max": 2.4894
+      },
+      "signals.aspects.allocated.bytes": {
+        "mean": 3305.133333333333,
+        "p95": 38880,
+        "p99": 38880,
+        "max": 54512
+      },
+      "signals.aspects.calls": {
+        "mean": 0.08333333333333333,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    "samples": 240
+  },
+  "world": {
+    "before": {
+      "terrain.poll-convert": {
+        "mean": 0.021284166666666646,
+        "p95": 0.032,
+        "p99": 0.0482,
+        "max": 0.1026
+      },
+      "terrain.poll-convert.allocated.bytes": {
+        "mean": 253.9,
+        "p95": 248,
+        "p99": 408,
+        "max": 408
+      },
+      "terrain.poll-convert.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "trees.pump": {
+        "mean": 0.07189083333333332,
+        "p95": 0.0835,
+        "p99": 0.1844,
+        "max": 2.5139
+      },
+      "trees.pump.allocated.bytes": {
+        "mean": 16417.033333333333,
+        "p95": 16416,
+        "p99": 16416,
+        "max": 16664
+      },
+      "trees.pump.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain": {
+        "mean": 0.1547541666666666,
+        "p95": 0.2223,
+        "p99": 0.3518,
+        "max": 2.5964
+      },
+      "terrain.allocated.bytes": {
+        "mean": 16966.933333333334,
+        "p95": 16960,
+        "p99": 17120,
+        "max": 17344
+      },
+      "terrain.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "track.render.update": {
+        "mean": 0.004331249999999999,
+        "p95": 0.0073,
+        "p99": 0.0086,
+        "max": 0.0116
+      },
+      "track.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "track.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.render.update": {
+        "mean": 0.14954124999999996,
+        "p95": 0.2258,
+        "p99": 0.3302,
+        "max": 0.3937
+      },
+      "signals.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "signals.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.footprints": {
+        "mean": 0.18024999999999994,
+        "p95": 0.29619999999999996,
+        "p99": 0.36840000000000006,
+        "max": 0.41200000000000003
+      },
+      "signals.footprints.allocated.bytes": {
+        "mean": 19702.4,
+        "p95": 25008,
+        "p99": 29808,
+        "max": 30816
+      },
+      "signals.footprints.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "signals.leases": {
+        "mean": 0.02236666666666667,
+        "p95": 0.0401,
+        "p99": 0.063,
+        "max": 0.0758
+      },
+      "signals.leases.allocated.bytes": {
+        "mean": 5233.766666666666,
+        "p95": 6840,
+        "p99": 7872,
+        "max": 8352
+      },
+      "signals.leases.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "signals.update": {
+        "mean": 0.6013937500000002,
+        "p95": 1.6248,
+        "p99": 2.3626,
+        "max": 3.4857
+      },
+      "signals.update.allocated.bytes": {
+        "mean": 47467.9,
+        "p95": 82104,
+        "p99": 90016,
+        "max": 95152
+      },
+      "signals.update.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "collision.index": {
+        "mean": 0.07936624999999994,
+        "p95": 0.1225,
+        "p99": 0.1627,
+        "max": 0.1718
+      },
+      "collision.index.allocated.bytes": {
+        "mean": 2510.2,
+        "p95": 3080,
+        "p99": 3696,
+        "max": 3696
+      },
+      "collision.index.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "grade.batch": {
+        "mean": 0.7362195833333334,
+        "p95": 1.0701,
+        "p99": 1.2382,
+        "max": 1.8454000000000002
+      },
+      "grade.batch.allocated.bytes": {
+        "mean": 7626.8,
+        "p95": 9416,
+        "p99": 11128,
+        "max": 11304
+      },
+      "grade.batch.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "orders.execute": {
+        "mean": 0.04051375,
+        "p95": 0.0713,
+        "p99": 0.08639999999999999,
+        "max": 0.0956
+      },
+      "orders.execute.allocated.bytes": {
+        "mean": 5080.4,
+        "p95": 6240,
+        "p99": 7488,
+        "max": 7488
+      },
+      "orders.execute.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "signals.limit": {
+        "mean": 0.1852999999999999,
+        "p95": 0.2933,
+        "p99": 0.36680000000000007,
+        "max": 0.4099
+      },
+      "signals.limit.allocated.bytes": {
+        "mean": 10990.866666666667,
+        "p95": 13680,
+        "p99": 15840,
+        "max": 15840
+      },
+      "signals.limit.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "detours": {
+        "mean": 0.004672916666666671,
+        "p95": 0.007700000000000001,
+        "p99": 0.009099999999999999,
+        "max": 0.03560000000000003
+      },
+      "detours.allocated.bytes": {
+        "mean": 1758.6,
+        "p95": 2160,
+        "p99": 2592,
+        "max": 2592
+      },
+      "detours.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "curve.batch": {
+        "mean": 14.116091249999998,
+        "p95": 22.6589,
+        "p99": 25.3556,
+        "max": 28.470699999999997
+      },
+      "curve.batch.allocated.bytes": {
+        "mean": 7426.8,
+        "p95": 9120,
+        "p99": 10944,
+        "max": 10944
+      },
+      "curve.batch.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "collision": {
+        "mean": 5.14342125,
+        "p95": 8.0139,
+        "p99": 9.4848,
+        "max": 10.2705
+      },
+      "collision.allocated.bytes": {
+        "mean": 1758.6,
+        "p95": 2160,
+        "p99": 2592,
+        "max": 2592
+      },
+      "collision.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "poses": {
+        "mean": 4.014444999999999,
+        "p95": 5.795,
+        "p99": 6.883899999999998,
+        "max": 7.356699999999999
+      },
+      "poses.allocated.bytes": {
+        "mean": 28039.9,
+        "p95": 34440,
+        "p99": 41328,
+        "max": 41328
+      },
+      "poses.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "collision.validate": {
+        "mean": 2.9857749999999994,
+        "p95": 4.418500000000001,
+        "p99": 5.1648999999999985,
+        "max": 5.6229
+      },
+      "collision.validate.allocated.bytes": {
+        "mean": 14068.8,
+        "p95": 17280,
+        "p99": 20736,
+        "max": 20736
+      },
+      "collision.validate.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "collision.update": {
+        "mean": 0.6977575,
+        "p95": 1.0618,
+        "p99": 1.2703999999999998,
+        "max": 1.3758000000000001
+      },
+      "collision.update.allocated.bytes": {
+        "mean": 2150.866666666667,
+        "p95": 2640,
+        "p99": 3168,
+        "max": 3168
+      },
+      "collision.update.calls": {
+        "mean": 24.425,
+        "p95": 30,
+        "p99": 36,
+        "max": 36
+      },
+      "substeps": {
+        "mean": 29.14013333333333,
+        "p95": 45.140800000000006,
+        "p99": 52.9611,
+        "max": 57.8827
+      },
+      "substeps.allocated.bytes": {
+        "mean": 166700.23333333334,
+        "p95": 227928,
+        "p99": 229728,
+        "max": 265432
+      },
+      "substeps.calls": {
+        "mean": 4.070833333333334,
+        "p95": 5,
+        "p99": 6,
+        "max": 6
+      },
+      "poses.apply": {
+        "mean": 3.207824583333332,
+        "p95": 4.6046,
+        "p99": 5.8087,
+        "max": 6.8527
+      },
+      "poses.apply.allocated.bytes": {
+        "mean": 6824,
+        "p95": 6824,
+        "p99": 6824,
+        "max": 6824
+      },
+      "poses.apply.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "instances.sync": {
+        "mean": 0.7092883333333332,
+        "p95": 1.0767,
+        "p99": 1.3367,
+        "max": 1.5347
+      },
+      "instances.sync.allocated.bytes": {
+        "mean": 1994.4,
+        "p95": 2448,
+        "p99": 2856,
+        "max": 3024
+      },
+      "instances.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "movement": {
+        "mean": 33.080142499999994,
+        "p95": 49.4513,
+        "p99": 58.5009,
+        "max": 62.1084
+      },
+      "movement.allocated.bytes": {
+        "mean": 176118.26666666666,
+        "p95": 237432,
+        "p99": 239240,
+        "max": 274656
+      },
+      "movement.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "cargo.sync": {
+        "mean": 0.004996249999999998,
+        "p95": 0.01,
+        "p99": 0.0148,
+        "max": 0.0465
+      },
+      "cargo.sync.allocated.bytes": {
+        "mean": 608,
+        "p95": 608,
+        "p99": 608,
+        "max": 608
+      },
+      "cargo.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "smoke.outlets": {
+        "mean": 0.03972708333333334,
+        "p95": 0.0538,
+        "p99": 0.1365,
+        "max": 1.1613
+      },
+      "smoke.outlets.allocated.bytes": {
+        "mean": 7336,
+        "p95": 7336,
+        "p99": 7336,
+        "max": 7336
+      },
+      "smoke.outlets.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.update": {
+        "mean": 33.12829083333334,
+        "p95": 49.4935,
+        "p99": 58.5757,
+        "max": 62.1563
+      },
+      "train.update.allocated.bytes": {
+        "mean": 184318.26666666666,
+        "p95": 245632,
+        "p99": 247440,
+        "max": 282856
+      },
+      "train.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.ui": {
+        "mean": 0.013009999999999999,
+        "p95": 0.0224,
+        "p99": 0.0353,
+        "max": 0.1427
+      },
+      "train.ui.allocated.bytes": {
+        "mean": 154.8,
+        "p95": 264,
+        "p99": 264,
+        "max": 264
+      },
+      "train.ui.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.production": {
+        "mean": 0.047955,
+        "p95": 0.0934,
+        "p99": 0.1295,
+        "max": 6.3402
+      },
+      "industries.production.allocated.bytes": {
+        "mean": 594,
+        "p95": 2160,
+        "p99": 2160,
+        "max": 2160
+      },
+      "industries.production.calls": {
+        "mean": 0.275,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.update": {
+        "mean": 0.060654166666666676,
+        "p95": 0.1164,
+        "p99": 0.2135,
+        "max": 6.4019
+      },
+      "industries.update.allocated.bytes": {
+        "mean": 1188.5,
+        "p95": 4368,
+        "p99": 4368,
+        "max": 4368
+      },
+      "industries.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "audio.update": {
+        "mean": 0.16722166666666669,
+        "p95": 0.2548,
+        "p99": 0.592,
+        "max": 13.9507
+      },
+      "audio.update.allocated.bytes": {
+        "mean": 1650.5,
+        "p95": 3488,
+        "p99": 3488,
+        "max": 16072
+      },
+      "audio.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "elapsed": {
+        "mean": 67.98392083333331,
+        "p95": 91.571,
+        "p99": 101.6198,
+        "max": 116.078
+      },
+      "allocated.bytes": {
+        "mean": 215257.53333333333,
+        "p95": 277936,
+        "p99": 284408,
+        "max": 319336
+      },
+      "gc.gen0": {
+        "mean": 0.03333333333333333,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      },
+      "render.cpu": {
+        "mean": 10.739370810985566,
+        "p95": 13.869999885559082,
+        "p99": 17.42099952697754,
+        "max": 18.027000427246094
+      },
+      "render.gpu": {
+        "mean": 53.63372507890065,
+        "p95": 71.89399719238281,
+        "p99": 81.06500244140625,
+        "max": 85.50700378417969
+      },
+      "render.setup": {
+        "mean": 0.6003166666666669,
+        "p95": 1.044,
+        "p99": 1.371,
+        "max": 1.495
+      },
+      "render.draw_calls": {
+        "mean": 1180.3125,
+        "p95": 1199,
+        "p99": 1203,
+        "max": 1205
+      },
+      "render.primitives": {
+        "mean": 6544758.966666667,
+        "p95": 6610911,
+        "p99": 6617007,
+        "max": 6619763
+      },
+      "scene.nodes": {
+        "mean": 22244.633333333335,
+        "p95": 22265,
+        "p99": 22267,
+        "max": 22267
+      },
+      "signals.aspects": {
+        "mean": 0.35058124999999996,
+        "p95": 1.3391,
+        "p99": 2.1077,
+        "max": 3.2237
+      },
+      "signals.aspects.allocated.bytes": {
+        "mean": 13419.5,
+        "p95": 38992,
+        "p99": 51888,
+        "max": 63856
+      },
+      "signals.aspects.calls": {
+        "mean": 0.3375,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    "after": {
+      "terrain.poll-convert": {
+        "mean": 0.02055583333333333,
+        "p95": 0.033,
+        "p99": 0.0413,
+        "max": 0.0927
+      },
+      "terrain.poll-convert.allocated.bytes": {
+        "mean": 252.56666666666666,
+        "p95": 248,
+        "p99": 408,
+        "max": 408
+      },
+      "terrain.poll-convert.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "trees.pump": {
+        "mean": 0.05715708333333331,
+        "p95": 0.078,
+        "p99": 0.0922,
+        "max": 0.187
+      },
+      "trees.pump.allocated.bytes": {
+        "mean": 16417.033333333333,
+        "p95": 16416,
+        "p99": 16416,
+        "max": 16664
+      },
+      "trees.pump.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "terrain": {
+        "mean": 0.13426583333333342,
+        "p95": 0.1854,
+        "p99": 0.2581,
+        "max": 0.4831
+      },
+      "terrain.allocated.bytes": {
+        "mean": 16965.6,
+        "p95": 16960,
+        "p99": 17120,
+        "max": 17344
+      },
+      "terrain.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "track.render.update": {
+        "mean": 0.004047499999999997,
+        "p95": 0.0061,
+        "p99": 0.0072,
+        "max": 0.0105
+      },
+      "track.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "track.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.render.update": {
+        "mean": 0.1281375,
+        "p95": 0.1968,
+        "p99": 0.2515,
+        "max": 0.5443
+      },
+      "signals.render.update.allocated.bytes": {
+        "mean": 96,
+        "p95": 96,
+        "p99": 96,
+        "max": 96
+      },
+      "signals.render.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.footprints": {
+        "mean": 0.09827958333333335,
+        "p95": 0.1635,
+        "p99": 0.2432,
+        "max": 0.3614
+      },
+      "signals.footprints.allocated.bytes": {
+        "mean": 12582.7,
+        "p95": 20544,
+        "p99": 24840,
+        "max": 25680
+      },
+      "signals.footprints.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "signals.leases": {
+        "mean": 0.011923333333333333,
+        "p95": 0.025099999999999997,
+        "p99": 0.0446,
+        "max": 0.0708
+      },
+      "signals.leases.allocated.bytes": {
+        "mean": 3422.3,
+        "p95": 5488,
+        "p99": 6560,
+        "max": 6880
+      },
+      "signals.leases.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "signals.update": {
+        "mean": 0.3313216666666667,
+        "p95": 1.1314,
+        "p99": 1.7936,
+        "max": 2.6353999999999997
+      },
+      "signals.update.allocated.bytes": {
+        "mean": 29867.8,
+        "p95": 65224,
+        "p99": 81504,
+        "max": 84544
+      },
+      "signals.update.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "collision.index": {
+        "mean": 0.046407500000000025,
+        "p95": 0.0799,
+        "p99": 0.10569999999999999,
+        "max": 0.1136
+      },
+      "collision.index.allocated.bytes": {
+        "mean": 1557.2333333333333,
+        "p95": 2464,
+        "p99": 3080,
+        "max": 3080
+      },
+      "collision.index.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "grade.batch": {
+        "mean": 0.3845108333333331,
+        "p95": 0.651,
+        "p99": 0.9156000000000001,
+        "max": 1.2246
+      },
+      "grade.batch.allocated.bytes": {
+        "mean": 4734.066666666667,
+        "p95": 7528,
+        "p99": 9304,
+        "max": 9384
+      },
+      "grade.batch.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "orders.execute": {
+        "mean": 0.02030166666666667,
+        "p95": 0.04470000000000002,
+        "p99": 0.0666,
+        "max": 0.0929
+      },
+      "orders.execute.allocated.bytes": {
+        "mean": 3151.2,
+        "p95": 4992,
+        "p99": 6240,
+        "max": 6240
+      },
+      "orders.execute.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "signals.limit": {
+        "mean": 0.09620000000000002,
+        "p95": 0.1469,
+        "p99": 0.2225,
+        "max": 1.5910000000000002
+      },
+      "signals.limit.allocated.bytes": {
+        "mean": 6885.6,
+        "p95": 10560,
+        "p99": 13200,
+        "max": 13200
+      },
+      "signals.limit.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "detours": {
+        "mean": 0.0025179166666666666,
+        "p95": 0.0046999999999999984,
+        "p99": 0.006000000000000001,
+        "max": 0.008599999999999998
+      },
+      "detours.allocated.bytes": {
+        "mean": 1090.8,
+        "p95": 1728,
+        "p99": 2160,
+        "max": 2160
+      },
+      "detours.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "curve.batch": {
+        "mean": 7.1341129166666635,
+        "p95": 11.3368,
+        "p99": 14.0412,
+        "max": 16.884999999999998
+      },
+      "curve.batch.allocated.bytes": {
+        "mean": 4605.6,
+        "p95": 7296,
+        "p99": 9120,
+        "max": 9120
+      },
+      "curve.batch.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "collision": {
+        "mean": 2.619128750000001,
+        "p95": 4.0604,
+        "p99": 5.301200000000001,
+        "max": 5.833600000000001
+      },
+      "collision.allocated.bytes": {
+        "mean": 1090.8,
+        "p95": 1728,
+        "p99": 2160,
+        "max": 2160
+      },
+      "collision.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "poses": {
+        "mean": 1.8093149999999996,
+        "p95": 3.0385999999999997,
+        "p99": 3.7495,
+        "max": 4.3587
+      },
+      "poses.allocated.bytes": {
+        "mean": 17392.2,
+        "p95": 27552,
+        "p99": 34440,
+        "max": 34440
+      },
+      "poses.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "collision.validate": {
+        "mean": 1.6792174999999994,
+        "p95": 2.7169,
+        "p99": 3.3097,
+        "max": 3.9548
+      },
+      "collision.validate.allocated.bytes": {
+        "mean": 8726.4,
+        "p95": 13824,
+        "p99": 17280,
+        "max": 17280
+      },
+      "collision.validate.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "collision.update": {
+        "mean": 0.3755241666666665,
+        "p95": 0.6108999999999999,
+        "p99": 0.7825000000000001,
+        "max": 0.9132
+      },
+      "collision.update.allocated.bytes": {
+        "mean": 1335.0333333333333,
+        "p95": 2112,
+        "p99": 2640,
+        "max": 2640
+      },
+      "collision.update.calls": {
+        "mean": 15.15,
+        "p95": 24,
+        "p99": 30,
+        "max": 30
+      },
+      "substeps": {
+        "mean": 14.784250416666655,
+        "p95": 23.6616,
+        "p99": 29.0593,
+        "max": 35.783899999999996
+      },
+      "substeps.allocated.bytes": {
+        "mean": 103899.53333333334,
+        "p95": 152912,
+        "p99": 201008,
+        "max": 228160
+      },
+      "substeps.calls": {
+        "mean": 2.525,
+        "p95": 4,
+        "p99": 5,
+        "max": 5
+      },
+      "poses.apply": {
+        "mean": 3.3453245833333343,
+        "p95": 5.3337,
+        "p99": 6.5331,
+        "max": 7.1946
+      },
+      "poses.apply.allocated.bytes": {
+        "mean": 6824,
+        "p95": 6824,
+        "p99": 6824,
+        "max": 6824
+      },
+      "poses.apply.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "instances.sync": {
+        "mean": 0.6646083333333331,
+        "p95": 1.1526,
+        "p99": 1.7664,
+        "max": 2.4753
+      },
+      "instances.sync.allocated.bytes": {
+        "mean": 1957.8,
+        "p95": 2448,
+        "p99": 2664,
+        "max": 2664
+      },
+      "instances.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "movement": {
+        "mean": 18.812505416666664,
+        "p95": 27.5912,
+        "p99": 33.1929,
+        "max": 39.5803
+      },
+      "movement.allocated.bytes": {
+        "mean": 113130.23333333334,
+        "p95": 162584,
+        "p99": 210120,
+        "max": 237736
+      },
+      "movement.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "cargo.sync": {
+        "mean": 0.0045049999999999995,
+        "p95": 0.0113,
+        "p99": 0.0192,
+        "max": 0.0534
+      },
+      "cargo.sync.allocated.bytes": {
+        "mean": 608,
+        "p95": 608,
+        "p99": 608,
+        "max": 608
+      },
+      "cargo.sync.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "smoke.outlets": {
+        "mean": 0.036718333333333325,
+        "p95": 0.0583,
+        "p99": 0.1244,
+        "max": 0.2073
+      },
+      "smoke.outlets.allocated.bytes": {
+        "mean": 7336,
+        "p95": 7336,
+        "p99": 7336,
+        "max": 7336
+      },
+      "smoke.outlets.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.update": {
+        "mean": 18.857192916666666,
+        "p95": 27.6564,
+        "p99": 33.2342,
+        "max": 39.6209
+      },
+      "train.update.allocated.bytes": {
+        "mean": 121330.23333333334,
+        "p95": 170784,
+        "p99": 218320,
+        "max": 245936
+      },
+      "train.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "train.ui": {
+        "mean": 0.01195374999999999,
+        "p95": 0.0221,
+        "p99": 0.0438,
+        "max": 0.1456
+      },
+      "train.ui.allocated.bytes": {
+        "mean": 138,
+        "p95": 264,
+        "p99": 264,
+        "max": 264
+      },
+      "train.ui.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "industries.update": {
+        "mean": 0.021627916666666667,
+        "p95": 0.086,
+        "p99": 0.1398,
+        "max": 0.1917
+      },
+      "industries.update.allocated.bytes": {
+        "mean": 784.3333333333334,
+        "p95": 2328,
+        "p99": 4368,
+        "max": 4368
+      },
+      "industries.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "audio.update": {
+        "mean": 0.20878500000000003,
+        "p95": 0.2937,
+        "p99": 0.5196,
+        "max": 14.6249
+      },
+      "audio.update.allocated.bytes": {
+        "mean": 1625.4333333333334,
+        "p95": 3488,
+        "p99": 3488,
+        "max": 16072
+      },
+      "audio.update.calls": {
+        "mean": 1,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "elapsed": {
+        "mean": 42.12529333333331,
+        "p95": 68.3338,
+        "p99": 80.0974,
+        "max": 92.9737
+      },
+      "allocated.bytes": {
+        "mean": 153384.36666666667,
+        "p95": 206568,
+        "p99": 251864,
+        "max": 281768
+      },
+      "gc.gen0": {
+        "mean": 0.025,
+        "p95": 0,
+        "p99": 1,
+        "max": 1
+      },
+      "render.cpu": {
+        "mean": 9.600970828533173,
+        "p95": 11.996000289916992,
+        "p99": 14.666000366210938,
+        "max": 15.890999794006348
+      },
+      "render.gpu": {
+        "mean": 35.52467913627625,
+        "p95": 54.75299835205078,
+        "p99": 61.35599899291992,
+        "max": 66.51499938964844
+      },
+      "render.setup": {
+        "mean": 0.5237208333333335,
+        "p95": 1.036,
+        "p99": 1.426,
+        "max": 1.588
+      },
+      "render.draw_calls": {
+        "mean": 1182.4791666666667,
+        "p95": 1203,
+        "p99": 1205,
+        "max": 1205
+      },
+      "render.primitives": {
+        "mean": 6534504.383333334,
+        "p95": 6583811,
+        "p99": 6583815,
+        "max": 6583815
+      },
+      "scene.nodes": {
+        "mean": 22263.029166666667,
+        "p95": 22271,
+        "p99": 22272,
+        "max": 22272
+      },
+      "industries.production": {
+        "mean": 0.012429999999999997,
+        "p95": 0.0774,
+        "p99": 0.0996,
+        "max": 0.1329
+      },
+      "industries.production.allocated.bytes": {
+        "mean": 360,
+        "p95": 2160,
+        "p99": 2160,
+        "max": 2160
+      },
+      "industries.production.calls": {
+        "mean": 0.16666666666666666,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      },
+      "signals.aspects": {
+        "mean": 0.191255,
+        "p95": 0.9481,
+        "p99": 1.454,
+        "max": 2.5025
+      },
+      "signals.aspects.allocated.bytes": {
+        "mean": 8209.133333333333,
+        "p95": 38880,
+        "p99": 38880,
+        "max": 54512
+      },
+      "signals.aspects.calls": {
+        "mean": 0.20833333333333334,
+        "p95": 1,
+        "p99": 1,
+        "max": 1
+      }
+    },
+    "samples": 240
+  }
+}

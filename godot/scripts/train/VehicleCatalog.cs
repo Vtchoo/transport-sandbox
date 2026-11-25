@@ -22,6 +22,7 @@ public sealed class VehicleDefinition
     public double Width { get; }
     public double Height { get; }
     public double BogieCenters { get; }
+    public double RunningGearWheelRadius { get; }
     public VehiclePhysics Physics { get; }
     public IReadOnlyList<(double Offset, VehicleDefinition Definition)> Sections { get; }
     public string Id
@@ -65,6 +66,7 @@ public sealed class VehicleDefinition
         Width = data.GetProperty("width").GetDouble();
         Height = data.GetProperty("height").GetDouble();
         BogieCenters = data.GetProperty("bogieCenters").GetDouble();
+        RunningGearWheelRadius = data.TryGetProperty("runningGearWheelRadius", out var wheelRadius) && wheelRadius.GetDouble() > 0 ? wheelRadius.GetDouble() : .65;
         var physics = data.GetProperty("physics");
         Physics = new(physics.GetProperty("massKg").GetDouble(), physics.GetProperty("powerW").GetDouble(), physics.GetProperty("tractiveEffortN").GetDouble(), physics.GetProperty("maxSpeedMps").GetDouble());
         var models = new Dictionary<int, string>();

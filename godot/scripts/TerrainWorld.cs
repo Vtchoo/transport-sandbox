@@ -25,6 +25,8 @@ public partial class TerrainWorld : Node3D
     private readonly Queue<Godot.Collections.Dictionary> _completed = new();
     private readonly Dictionary<Vector2I, PreparedTrees?> _preparedTrees = new();
     public TreeStreamer Trees { get; private set; } = null!;
+    public int RenderRings = 10;
+    public int TreeDetail = 2;
     public int MaxUploadsPerFrame = 2;
     public double UploadBudgetMs = 2;
     public int LastUploads
@@ -84,7 +86,7 @@ public partial class TerrainWorld : Node3D
     {
         if (!_naturalTrees.TryGetValue(key, out var natural))
             return;
-        if (holder.GetMeta("segments").AsInt32() < 32)
+        if (TreeDetail == 0 || holder.GetMeta("segments").AsInt32() < 32)
         {
             Trees.Deactivate(key);
             return;
@@ -103,7 +105,7 @@ public partial class TerrainWorld : Node3D
     {
         float centerY = _chunkInfo[key].CenterY;
         var center = Generator.Space.ToLocal(new TrackVector((key.X + .5) * Chunk, centerY, (key.Y + .5) * Chunk));
-        trees.UpdateLod(Camera.Position.DistanceTo(center));
+        trees.UpdateLod(Camera.Position.DistanceTo(center), TreeDetail);
     }
     public int WorkerLimit
     {
@@ -183,7 +185,7 @@ public partial class TerrainWorld : Node3D
         {
             _cell = cell;
             using var wantedProbe = FrameProbe.Measure("terrain.wanted.compute_and_apply");
-            SetWantedTiles(WantedTiles(eye, CachedLodHeight));
+            SetWantedTiles(WantedTiles(eye, CachedLodHeight, RenderRings));
         }
         foreach (var (key, tile) in Wanted)
         {
@@ -290,12 +292,12 @@ public partial class TerrainWorld : Node3D
         if (_lodHeights.Count >= 2048) _lodHeights.Remove(_lodHeightOrder.Dequeue());
         _lodHeightOrder.Enqueue(key); _lodHeights[key] = height; return height;
     }
-    private static TerrainTile[] WantedTiles(TrackVector camera, Func<Vector2I, double> sampleHeight)
+    private static TerrainTile[] WantedTiles(TrackVector camera, Func<Vector2I, double> sampleHeight, int rings = 10)
     {
         int cx = (int)Math.Floor(camera.X / Chunk), cz = (int)Math.Floor(camera.Z / Chunk);
         var tiles = new List<TerrainTile>();
-        for (int dz = -10; dz <= 10; dz++)
-            for (int dx = -10; dx <= 10; dx++)
+        for (int dz = -rings; dz <= rings; dz++)
+            for (int dx = -rings; dx <= rings; dx++)
             {
                 var key = new Vector2I(cx + dx, cz + dz);
                 double height = sampleHeight(key), vertical = Math.Abs(camera.Y - height) / Chunk;
@@ -303,6 +305,14 @@ public partial class TerrainWorld : Node3D
                 tiles.Add(new(key, detail <= 1.5 ? 128 : detail <= 3.5 ? 64 : detail <= 6.5 ? 32 : 16, Math.Sqrt(dx * dx + dz * dz + vertical * vertical)));
             }
         return tiles.OrderBy(t => t.Distance).ToArray();
+    }
+    public void ApplyGraphics(GraphicsSettings settings)
+    {
+        RenderRings = settings.TerrainRings;
+        TreeDetail = settings.TreeDetail;
+        _cell = new(int.MaxValue, 0, 0);
+        _treeLodEye = null;
+        foreach (var (key, holder) in Chunks) RefreshTrees(key, holder);
     }
     public void ShowContours(bool value)
     {

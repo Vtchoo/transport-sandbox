@@ -1,0 +1,1387 @@
+{
+  "date": "2026-11-25",
+  "snapshot_sha256": "D030AD5C6214A356B12D3FC3B505FF93BD314490458E349240EBDB8302FBD059",
+  "train": 5,
+  "train_description": "GE Dash 9 + passenger coaches, 8 vehicles",
+  "seconds_per_case": 20,
+  "warmup": "All wanted chunks and pending work settled for 10 frames (up to 90s), screenshot before timing, 45 additional static warmup frames.",
+  "camera": "yaw is locked relative to current train FrontDirection by a priority-99 node before priority-100 WorldCamera; manual input blocked.",
+  "code": "current copied project only; no before/after version A/B in this experiment",
+  "rows": [
+    {
+      "name": "rear-low",
+      "yaw_offset_degrees": 180,
+      "pitch_radians": -0.25,
+      "distance_metres": 60,
+      "runtime": {
+        "adapter": "Intel(R) Iris(R) Xe Graphics",
+        "renderer": "gl_compatibility",
+        "width": 1280,
+        "height": 720
+      },
+      "summary": {
+        "frames": 451,
+        "mean": 44.31576541019956,
+        "p50": 43.7705,
+        "p95": 53.4987,
+        "p99": 60.3614,
+        "max": 69.5839,
+        "rebases": 2,
+        "over50": 43,
+        "over100": 0
+      },
+      "fps": 22.565332918064495,
+      "travel_metres": 491.2283767047531,
+      "route_first400m": [
+        9,
+        7,
+        21
+      ],
+      "max_yaw_offset_error_degrees": 0.0,
+      "metrics": {
+        "elapsed": {
+          "mean": 44.31576541019955,
+          "p95": 53.4987
+        },
+        "render.gpu": {
+          "mean": 32.67544562853625,
+          "p95": 37.95100021362305
+        },
+        "render.cpu": {
+          "mean": 24.889793793536608,
+          "p95": 27.20199966430664
+        },
+        "render.draw_calls": {
+          "mean": 3032.0044345898004,
+          "p95": 3148
+        },
+        "render.primitives": {
+          "mean": 8073591.523281597,
+          "p95": 9144637
+        },
+        "train.update": {
+          "mean": 14.66690243902439,
+          "p95": 20.9144
+        },
+        "curve.batch": {
+          "mean": 5.206470288248337,
+          "p95": 8.145
+        },
+        "substeps": {
+          "mean": 11.346445011086475,
+          "p95": 17.5815
+        },
+        "substeps.calls": {
+          "mean": 2.6740576496674056,
+          "p95": 3
+        },
+        "terrain": {
+          "mean": 0.5183478935698448,
+          "p95": 1.4827
+        },
+        "terrain.upload_ms": {
+          "mean": 0.42927472283813745,
+          "p95": 0.9806
+        },
+        "camera.update": {
+          "mean": 0.05088580931263858,
+          "p95": 0.0499
+        }
+      },
+      "first400m": {
+        "frames": 385,
+        "fps": 22.57934853723444,
+        "metrics": {
+          "elapsed": {
+            "mean": 44.2882574025974,
+            "p95": 54.1706
+          },
+          "render.gpu": {
+            "mean": 32.13225189308067,
+            "p95": 37.80699920654297
+          },
+          "render.cpu": {
+            "mean": 24.752228585775796,
+            "p95": 27.111000061035156
+          },
+          "render.draw_calls": {
+            "mean": 3043.0467532467533,
+            "p95": 3152
+          },
+          "render.primitives": {
+            "mean": 7918176.116883117,
+            "p95": 8744607
+          },
+          "train.update": {
+            "mean": 14.800758181818182,
+            "p95": 22.1984
+          },
+          "curve.batch": {
+            "mean": 5.283015324675325,
+            "p95": 8.3149
+          },
+          "substeps": {
+            "mean": 11.452376623376624,
+            "p95": 18.9256
+          },
+          "substeps.calls": {
+            "mean": 2.672727272727273,
+            "p95": 3
+          },
+          "terrain": {
+            "mean": 0.5471012987012988,
+            "p95": 1.6187
+          },
+          "terrain.upload_ms": {
+            "mean": 0.45563662337662336,
+            "p95": 1.0734
+          },
+          "camera.update": {
+            "mean": 0.053444675324675325,
+            "p95": 0.0475
+          }
+        }
+      },
+      "worst_frame": {
+        "terrain.poll-convert": 0.0201,
+        "terrain.poll-convert.allocated.bytes": 384,
+        "terrain.poll-convert.calls": 1,
+        "trees.pump": 0.0258,
+        "trees.pump.allocated.bytes": 16664,
+        "trees.pump.calls": 1,
+        "terrain": 0.5364,
+        "terrain.allocated.bytes": 17344,
+        "terrain.calls": 1,
+        "track.render.update": 0.5812,
+        "track.render.update.allocated.bytes": 96,
+        "track.render.update.calls": 1,
+        "signals.render.update": 0.1043,
+        "signals.render.update.allocated.bytes": 96,
+        "signals.render.update.calls": 1,
+        "signals.footprints": 0.2189,
+        "signals.footprints.allocated.bytes": 28800,
+        "signals.footprints.calls": 6,
+        "signals.leases": 0.0378,
+        "signals.leases.allocated.bytes": 6192,
+        "signals.leases.calls": 6,
+        "signals.update": 0.37620000000000003,
+        "signals.update.allocated.bytes": 49472,
+        "signals.update.calls": 6,
+        "collision.index": 0.2781,
+        "collision.index.allocated.bytes": 6040,
+        "collision.index.calls": 6,
+        "grade.batch": 0.9918999999999999,
+        "grade.batch.allocated.bytes": 11256,
+        "grade.batch.calls": 6,
+        "orders.execute": 0.1668,
+        "orders.execute.allocated.bytes": 11520,
+        "orders.execute.calls": 36,
+        "signals.limit": 0.7971,
+        "signals.limit.allocated.bytes": 52752,
+        "signals.limit.calls": 36,
+        "curve.batch": 16.7335,
+        "curve.batch.allocated.bytes": 10944,
+        "curve.batch.calls": 6,
+        "collision": 6.2021000000000015,
+        "collision.allocated.bytes": 2592,
+        "collision.calls": 36,
+        "poses": 4.174799999999999,
+        "poses.allocated.bytes": 41328,
+        "poses.calls": 36,
+        "collision.validate": 3.6578,
+        "collision.validate.allocated.bytes": 20736,
+        "collision.validate.calls": 36,
+        "collision.update": 1.4335,
+        "collision.update.allocated.bytes": 3168,
+        "collision.update.calls": 36,
+        "substeps": 36.5597,
+        "substeps.allocated.bytes": 266928,
+        "substeps.calls": 6,
+        "poses.apply": 2.2992,
+        "poses.apply.allocated.bytes": 6824,
+        "poses.apply.calls": 1,
+        "instances.sync": 1.6442,
+        "instances.sync.allocated.bytes": 2536,
+        "instances.sync.calls": 1,
+        "movement": 40.5232,
+        "movement.allocated.bytes": 276816,
+        "movement.calls": 1,
+        "cargo.sync": 0.0061,
+        "cargo.sync.allocated.bytes": 608,
+        "cargo.sync.calls": 1,
+        "smoke.outlets": 0.0473,
+        "smoke.outlets.allocated.bytes": 7336,
+        "smoke.outlets.calls": 1,
+        "train.update": 40.5793,
+        "train.update.allocated.bytes": 285016,
+        "train.update.calls": 1,
+        "train.ui": 0.0206,
+        "train.ui.allocated.bytes": 328,
+        "train.ui.calls": 1,
+        "industries.update": 0.0328,
+        "industries.update.allocated.bytes": 2128,
+        "industries.update.calls": 1,
+        "origin.rebase": 0.0007,
+        "origin.rebase.allocated.bytes": 80,
+        "origin.rebase.calls": 1,
+        "camera.update": 0.0284,
+        "camera.update.allocated.bytes": 352,
+        "camera.update.calls": 1,
+        "audio.update": 0.3731,
+        "audio.update.allocated.bytes": 1760,
+        "audio.update.calls": 1,
+        "frame": 0,
+        "time": 0.0704728,
+        "elapsed": 69.5839,
+        "gc.gen0": 0,
+        "gc.gen1": 0,
+        "gc.gen2": 0,
+        "allocated.bytes": 309152,
+        "capture.contaminated": 0,
+        "render.cpu": 29.249000549316406,
+        "render.gpu": 27.041000366210938,
+        "render.setup": 0.019,
+        "render.draw_calls": 3161,
+        "render.primitives": 7110656,
+        "camera.yaw": 2.5377104767597016,
+        "camera.pitch": -0.25,
+        "camera.distance": 60,
+        "train.heading": -0.6038821768300913,
+        "speed.kmh": 69.6617699904919,
+        "train.edge": 9,
+        "train.u": 0.680853255156766,
+        "train.x": 1427.6709289550781,
+        "train.y": 44.06394958496094,
+        "train.z": -2617.049560546875,
+        "train.step": 1.9983642322943456,
+        "train.visual_error": 0.020885220530543057,
+        "camera.x": 1460.694168310729,
+        "camera.y": 58.90793537021278,
+        "camera.z": -2664.919622661229,
+        "camera.step": 1.999726992326462,
+        "screen.x": 640.0001220703125,
+        "screen.y": 360,
+        "screen.step": 0,
+        "origin.x": 1024,
+        "origin.z": -3072,
+        "origin.changed": 0,
+        "origin.events": 0,
+        "terrain.chunks": 441,
+        "terrain.jobs": 0,
+        "terrain.submitted": 0,
+        "terrain.uploads": 0,
+        "terrain.upload_ms": 0.4013,
+        "terrain.pending": 0,
+        "trees.operations": 0,
+        "terrain.evictions": 0,
+        "train.batches": 67
+      }
+    },
+    {
+      "name": "front-low",
+      "yaw_offset_degrees": 0,
+      "pitch_radians": -0.25,
+      "distance_metres": 60,
+      "runtime": {
+        "adapter": "Intel(R) Iris(R) Xe Graphics",
+        "renderer": "gl_compatibility",
+        "width": 1280,
+        "height": 720
+      },
+      "summary": {
+        "frames": 666,
+        "mean": 29.96093978978978,
+        "p50": 27.7463,
+        "p95": 47.8302,
+        "p99": 64.4663,
+        "max": 394.7764,
+        "rebases": 2,
+        "over50": 28,
+        "over100": 2
+      },
+      "fps": 33.37679014797742,
+      "travel_metres": 481.7922284366283,
+      "route_first400m": [
+        9,
+        7,
+        21
+      ],
+      "max_yaw_offset_error_degrees": 0.0,
+      "metrics": {
+        "elapsed": {
+          "mean": 29.96093978978979,
+          "p95": 47.8302
+        },
+        "render.gpu": {
+          "mean": 22.838554052977234,
+          "p95": 36.95399856567383
+        },
+        "render.cpu": {
+          "mean": 7.7145315455244825,
+          "p95": 11.428000450134277
+        },
+        "render.draw_calls": {
+          "mean": 864.4354354354355,
+          "p95": 1002
+        },
+        "render.primitives": {
+          "mean": 4283846.051051051,
+          "p95": 5176547
+        },
+        "train.update": {
+          "mean": 14.787221621621622,
+          "p95": 25.4323
+        },
+        "curve.batch": {
+          "mean": 4.752557957957958,
+          "p95": 9.0835
+        },
+        "substeps": {
+          "mean": 10.423503003003002,
+          "p95": 20.2621
+        },
+        "substeps.calls": {
+          "mean": 1.7837837837837838,
+          "p95": 3
+        },
+        "terrain": {
+          "mean": 0.598939039039039,
+          "p95": 1.3429
+        },
+        "terrain.upload_ms": {
+          "mean": 0.49851081081081083,
+          "p95": 1.0743
+        },
+        "camera.update": {
+          "mean": 0.06117972972972973,
+          "p95": 0.1013
+        }
+      },
+      "first400m": {
+        "frames": 592,
+        "fps": 34.1435243694474,
+        "metrics": {
+          "elapsed": {
+            "mean": 29.288130574324324,
+            "p95": 42.4228
+          },
+          "render.gpu": {
+            "mean": 22.955613162066484,
+            "p95": 37.04199981689453
+          },
+          "render.cpu": {
+            "mean": 7.568217919484989,
+            "p95": 11.437999725341797
+          },
+          "render.draw_calls": {
+            "mean": 846.339527027027,
+            "p95": 939
+          },
+          "render.primitives": {
+            "mean": 4167645.9121621624,
+            "p95": 4949199
+          },
+          "train.update": {
+            "mean": 14.678820608108108,
+            "p95": 24.4361
+          },
+          "curve.batch": {
+            "mean": 4.727514358108108,
+            "p95": 8.6512
+          },
+          "substeps": {
+            "mean": 10.319966385135135,
+            "p95": 19.8784
+          },
+          "substeps.calls": {
+            "mean": 1.741554054054054,
+            "p95": 3
+          },
+          "terrain": {
+            "mean": 0.6160711148648649,
+            "p95": 1.8079
+          },
+          "terrain.upload_ms": {
+            "mean": 0.5139863175675675,
+            "p95": 1.1802
+          },
+          "camera.update": {
+            "mean": 0.06355422297297297,
+            "p95": 0.1033
+          }
+        }
+      },
+      "worst_frame": {
+        "terrain.poll-convert": 0.022,
+        "terrain.poll-convert.allocated.bytes": 248,
+        "terrain.poll-convert.calls": 1,
+        "trees.pump": 0.0302,
+        "trees.pump.allocated.bytes": 17664,
+        "trees.pump.calls": 1,
+        "terrain": 0.3562,
+        "terrain.allocated.bytes": 18208,
+        "terrain.calls": 1,
+        "track.render.update": 0.6522,
+        "track.render.update.allocated.bytes": 96,
+        "track.render.update.calls": 1,
+        "signals.render.update": 0.1642,
+        "signals.render.update.allocated.bytes": 96,
+        "signals.render.update.calls": 1,
+        "signals.footprints": 0.0771,
+        "signals.footprints.allocated.bytes": 9936,
+        "signals.footprints.calls": 2,
+        "signals.leases": 0.010199999999999999,
+        "signals.leases.allocated.bytes": 2624,
+        "signals.leases.calls": 2,
+        "signals.update": 0.11699999999999999,
+        "signals.update.allocated.bytes": 17024,
+        "signals.update.calls": 2,
+        "collision.index": 0.0504,
+        "collision.index.allocated.bytes": 1232,
+        "collision.index.calls": 2,
+        "grade.batch": 0.3304,
+        "grade.batch.allocated.bytes": 3760,
+        "grade.batch.calls": 2,
+        "orders.execute": 0.0185,
+        "orders.execute.allocated.bytes": 2496,
+        "orders.execute.calls": 12,
+        "signals.limit": 0.07289999999999999,
+        "signals.limit.allocated.bytes": 5280,
+        "signals.limit.calls": 12,
+        "detours": 0.0022,
+        "detours.allocated.bytes": 864,
+        "detours.calls": 12,
+        "curve.batch": 5.4451,
+        "curve.batch.allocated.bytes": 3648,
+        "curve.batch.calls": 2,
+        "collision": 2.0490000000000004,
+        "collision.allocated.bytes": 864,
+        "collision.calls": 12,
+        "poses": 1.4028,
+        "poses.allocated.bytes": 13776,
+        "poses.calls": 12,
+        "collision.validate": 1.2955,
+        "collision.validate.allocated.bytes": 6912,
+        "collision.validate.calls": 12,
+        "collision.update": 0.3502,
+        "collision.update.allocated.bytes": 1056,
+        "collision.update.calls": 12,
+        "substeps": 11.386700000000001,
+        "substeps.allocated.bytes": 75488,
+        "substeps.calls": 2,
+        "poses.apply": 4.0689,
+        "poses.apply.allocated.bytes": 6824,
+        "poses.apply.calls": 1,
+        "instances.sync": 1.5081,
+        "instances.sync.allocated.bytes": 1872,
+        "instances.sync.calls": 1,
+        "movement": 16.9997,
+        "movement.allocated.bytes": 84488,
+        "movement.calls": 1,
+        "cargo.sync": 0.0041,
+        "cargo.sync.allocated.bytes": 608,
+        "cargo.sync.calls": 1,
+        "smoke.outlets": 0.0325,
+        "smoke.outlets.allocated.bytes": 7336,
+        "smoke.outlets.calls": 1,
+        "train.update": 17.0393,
+        "train.update.allocated.bytes": 92688,
+        "train.update.calls": 1,
+        "train.ui": 0.0165,
+        "train.ui.allocated.bytes": 160,
+        "train.ui.calls": 1,
+        "industries.production": 0.0607,
+        "industries.production.allocated.bytes": 2160,
+        "industries.production.calls": 1,
+        "industries.update": 0.0621,
+        "industries.update.allocated.bytes": 2328,
+        "industries.update.calls": 1,
+        "origin.rebase": 0.0011,
+        "origin.rebase.allocated.bytes": 80,
+        "origin.rebase.calls": 1,
+        "camera.update": 0.041,
+        "camera.update.allocated.bytes": 352,
+        "camera.update.calls": 1,
+        "audio.update": 0.1454,
+        "audio.update.allocated.bytes": 1160,
+        "audio.update.calls": 1,
+        "frame": 315,
+        "time": 8.1460938,
+        "elapsed": 394.7764,
+        "gc.gen0": 0,
+        "gc.gen1": 0,
+        "gc.gen2": 0,
+        "allocated.bytes": 124288,
+        "capture.contaminated": 0,
+        "render.cpu": 7.11299991607666,
+        "render.gpu": 18.788000106811523,
+        "render.setup": 350.636,
+        "render.draw_calls": 927,
+        "render.primitives": 4194309,
+        "camera.yaw": -0.4986846453935565,
+        "camera.pitch": -0.25,
+        "camera.distance": 60,
+        "train.heading": -0.4986846453935565,
+        "speed.kmh": 78.77280417504404,
+        "train.edge": 7,
+        "train.u": 0.2005096251835639,
+        "train.x": 1346.72509765625,
+        "train.y": 44.22357177734375,
+        "train.z": -2476.502899169922,
+        "train.step": 0.7277500965506503,
+        "train.visual_error": 0.19566479203283713,
+        "camera.x": 1319.0142697355618,
+        "camera.y": 59.069564093357315,
+        "camera.z": -2425.620210531703,
+        "camera.step": 0.6060232133621706,
+        "screen.x": 639.9998779296875,
+        "screen.y": 360.0000305175781,
+        "screen.step": 6.823938019806519e-05,
+        "origin.x": 1024,
+        "origin.z": -2560,
+        "origin.changed": 0,
+        "origin.events": 0,
+        "terrain.chunks": 441,
+        "terrain.jobs": 0,
+        "terrain.submitted": 0,
+        "terrain.uploads": 0,
+        "terrain.upload_ms": 0.2957,
+        "terrain.pending": 0,
+        "trees.operations": 0,
+        "terrain.evictions": 0,
+        "train.batches": 71
+      }
+    },
+    {
+      "name": "rear-elevated",
+      "yaw_offset_degrees": 180,
+      "pitch_radians": -1.1,
+      "distance_metres": 180,
+      "runtime": {
+        "adapter": "Intel(R) Iris(R) Xe Graphics",
+        "renderer": "gl_compatibility",
+        "width": 1280,
+        "height": 720
+      },
+      "summary": {
+        "frames": 760,
+        "mean": 26.22576894736844,
+        "p50": 26.0488,
+        "p95": 35.3592,
+        "p99": 40.6843,
+        "max": 69.0537,
+        "rebases": 2,
+        "over50": 4,
+        "over100": 0
+      },
+      "fps": 38.13043583228634,
+      "travel_metres": 491.2282249431608,
+      "route_first400m": [
+        9,
+        7,
+        21
+      ],
+      "max_yaw_offset_error_degrees": 0.0,
+      "metrics": {
+        "elapsed": {
+          "mean": 26.225768947368422,
+          "p95": 35.3592
+        },
+        "render.gpu": {
+          "mean": 23.712546090075843,
+          "p95": 31.65999984741211
+        },
+        "render.cpu": {
+          "mean": 5.2395118468686155,
+          "p95": 7.758999824523926
+        },
+        "render.draw_calls": {
+          "mean": 775.1105263157895,
+          "p95": 895
+        },
+        "render.primitives": {
+          "mean": 5554735.538157894,
+          "p95": 6717416
+        },
+        "train.update": {
+          "mean": 14.037972236842105,
+          "p95": 20.1199
+        },
+        "curve.batch": {
+          "mean": 4.342293026315789,
+          "p95": 6.5069
+        },
+        "substeps": {
+          "mean": 9.47193947368421,
+          "p95": 14.2595
+        },
+        "substeps.calls": {
+          "mean": 1.5868421052631578,
+          "p95": 2
+        },
+        "terrain": {
+          "mean": 0.6056618421052632,
+          "p95": 1.453
+        },
+        "terrain.upload_ms": {
+          "mean": 0.49742763157894737,
+          "p95": 1.0414
+        },
+        "camera.update": {
+          "mean": 0.06656236842105263,
+          "p95": 0.0914
+        }
+      },
+      "first400m": {
+        "frames": 667,
+        "fps": 39.14621299535483,
+        "metrics": {
+          "elapsed": {
+            "mean": 25.545255172413793,
+            "p95": 34.5874
+          },
+          "render.gpu": {
+            "mean": 22.781043503059262,
+            "p95": 26.874000549316406
+          },
+          "render.cpu": {
+            "mean": 5.17197152056258,
+            "p95": 7.706999778747559
+          },
+          "render.draw_calls": {
+            "mean": 764.1574212893553,
+            "p95": 873
+          },
+          "render.primitives": {
+            "mean": 5406808.830584708,
+            "p95": 6307584
+          },
+          "train.update": {
+            "mean": 13.787485157421289,
+            "p95": 20.1199
+          },
+          "curve.batch": {
+            "mean": 4.267234932533733,
+            "p95": 6.527799999999999
+          },
+          "substeps": {
+            "mean": 9.262262218890555,
+            "p95": 14.2479
+          },
+          "substeps.calls": {
+            "mean": 1.5457271364317842,
+            "p95": 2
+          },
+          "terrain": {
+            "mean": 0.6295848575712144,
+            "p95": 1.628
+          },
+          "terrain.upload_ms": {
+            "mean": 0.5165157421289356,
+            "p95": 1.1193
+          },
+          "camera.update": {
+            "mean": 0.0696287856071964,
+            "p95": 0.0962
+          }
+        }
+      },
+      "worst_frame": {
+        "terrain.poll-convert": 0.0384,
+        "terrain.poll-convert.allocated.bytes": 248,
+        "terrain.poll-convert.calls": 1,
+        "terrain.wanted": 5.0577,
+        "terrain.wanted.allocated.bytes": 15328,
+        "terrain.wanted.calls": 1,
+        "terrain.wanted.compute_and_apply": 6.3947,
+        "terrain.wanted.compute_and_apply.allocated.bytes": 67064,
+        "terrain.wanted.compute_and_apply.calls": 1,
+        "trees.pump": 0.0548,
+        "trees.pump.allocated.bytes": 16416,
+        "trees.pump.calls": 1,
+        "terrain": 7.0791,
+        "terrain.allocated.bytes": 84992,
+        "terrain.calls": 1,
+        "track.render.update": 0.6772,
+        "track.render.update.allocated.bytes": 96,
+        "track.render.update.calls": 1,
+        "signals.render.update": 0.126,
+        "signals.render.update.allocated.bytes": 96,
+        "signals.render.update.calls": 1,
+        "signals.footprints": 0.1455,
+        "signals.footprints.allocated.bytes": 19872,
+        "signals.footprints.calls": 4,
+        "signals.leases": 0.0186,
+        "signals.leases.allocated.bytes": 5248,
+        "signals.leases.calls": 4,
+        "signals.update": 0.20909999999999998,
+        "signals.update.allocated.bytes": 34048,
+        "signals.update.calls": 4,
+        "collision.index": 0.1927,
+        "collision.index.allocated.bytes": 2464,
+        "collision.index.calls": 4,
+        "grade.batch": 1.0876000000000001,
+        "grade.batch.allocated.bytes": 7480,
+        "grade.batch.calls": 4,
+        "orders.execute": 0.059600000000000014,
+        "orders.execute.allocated.bytes": 4992,
+        "orders.execute.calls": 24,
+        "signals.limit": 0.18090000000000003,
+        "signals.limit.allocated.bytes": 10560,
+        "signals.limit.calls": 24,
+        "detours": 0.005800000000000001,
+        "detours.allocated.bytes": 1728,
+        "detours.calls": 24,
+        "curve.batch": 12.4483,
+        "curve.batch.allocated.bytes": 7296,
+        "curve.batch.calls": 4,
+        "collision": 4.525500000000001,
+        "collision.allocated.bytes": 1728,
+        "collision.calls": 24,
+        "poses": 3.1289,
+        "poses.allocated.bytes": 27552,
+        "poses.calls": 24,
+        "collision.validate": 2.8906000000000005,
+        "collision.validate.allocated.bytes": 13824,
+        "collision.validate.calls": 24,
+        "collision.update": 0.7231000000000001,
+        "collision.update.allocated.bytes": 2112,
+        "collision.update.calls": 24,
+        "substeps": 44.4353,
+        "substeps.allocated.bytes": 505312,
+        "substeps.calls": 4,
+        "poses.apply": 2.7033,
+        "poses.apply.allocated.bytes": 6824,
+        "poses.apply.calls": 1,
+        "instances.sync": 0.6541,
+        "instances.sync.allocated.bytes": 1872,
+        "instances.sync.calls": 1,
+        "movement": 47.8181,
+        "movement.allocated.bytes": 515040,
+        "movement.calls": 1,
+        "cargo.sync": 0.0034,
+        "cargo.sync.allocated.bytes": 608,
+        "cargo.sync.calls": 1,
+        "smoke.outlets": 0.0319,
+        "smoke.outlets.allocated.bytes": 7336,
+        "smoke.outlets.calls": 1,
+        "train.update": 47.8563,
+        "train.update.allocated.bytes": 523240,
+        "train.update.calls": 1,
+        "train.ui": 0.0155,
+        "train.ui.allocated.bytes": 160,
+        "train.ui.calls": 1,
+        "industries.update": 0.0004,
+        "industries.update.allocated.bytes": 88,
+        "industries.update.calls": 1,
+        "origin.rebase": 0.0015,
+        "origin.rebase.allocated.bytes": 80,
+        "origin.rebase.calls": 1,
+        "camera.update": 0.0367,
+        "camera.update.allocated.bytes": 352,
+        "camera.update.calls": 1,
+        "audio.update": 0.1256,
+        "audio.update.allocated.bytes": 1160,
+        "audio.update.calls": 1,
+        "frame": 285,
+        "time": 7.3096597,
+        "elapsed": 69.0537,
+        "gc.gen0": 0,
+        "gc.gen1": 0,
+        "gc.gen2": 0,
+        "allocated.bytes": 619880,
+        "capture.contaminated": 0,
+        "render.cpu": 4.689000129699707,
+        "render.gpu": 24.381000518798828,
+        "render.setup": 0.033,
+        "render.draw_calls": 855,
+        "render.primitives": 5087665,
+        "camera.yaw": 2.645400955661016,
+        "camera.pitch": -1.1,
+        "camera.distance": 180,
+        "train.heading": -0.49619169792877693,
+        "speed.kmh": 77.87963054694677,
+        "train.edge": 7,
+        "train.u": 0.0323944896564987,
+        "train.x": 1352.0388793945312,
+        "train.y": 44.3188591003418,
+        "train.z": -2486.3276901245117,
+        "train.step": 1.4357729067105975,
+        "train.visual_error": 0.346361062486159,
+        "camera.x": 1391.0738921381837,
+        "camera.y": 204.73898008449586,
+        "camera.z": -2558.433352904425,
+        "camera.step": 1.2270817375461756,
+        "screen.x": 640,
+        "screen.y": 360,
+        "screen.step": 6.823938019806519e-05,
+        "origin.x": 1024,
+        "origin.z": -2560,
+        "origin.changed": 0,
+        "origin.events": 0,
+        "terrain.chunks": 420,
+        "terrain.jobs": 3,
+        "terrain.submitted": 3,
+        "terrain.uploads": 0,
+        "terrain.upload_ms": 6.9686,
+        "terrain.pending": 0,
+        "trees.operations": 0,
+        "terrain.evictions": 0,
+        "train.batches": 75
+      }
+    },
+    {
+      "name": "side-low",
+      "yaw_offset_degrees": 90,
+      "pitch_radians": -0.25,
+      "distance_metres": 60,
+      "runtime": {
+        "adapter": "Intel(R) Iris(R) Xe Graphics",
+        "renderer": "gl_compatibility",
+        "width": 1280,
+        "height": 720
+      },
+      "summary": {
+        "frames": 610,
+        "mean": 32.63979311475412,
+        "p50": 30.19,
+        "p95": 52.446,
+        "p99": 65.1697,
+        "max": 70.3366,
+        "rebases": 2,
+        "over50": 46,
+        "over100": 0
+      },
+      "fps": 30.637449094245987,
+      "travel_metres": 490.1820484438093,
+      "route_first400m": [
+        9,
+        7,
+        21
+      ],
+      "max_yaw_offset_error_degrees": 0.0,
+      "metrics": {
+        "elapsed": {
+          "mean": 32.6397931147541,
+          "p95": 52.446
+        },
+        "render.gpu": {
+          "mean": 26.22743934881492,
+          "p95": 32.82699966430664
+        },
+        "render.cpu": {
+          "mean": 5.888508212370951,
+          "p95": 9.288999557495117
+        },
+        "render.draw_calls": {
+          "mean": 502.3540983606557,
+          "p95": 605
+        },
+        "render.primitives": {
+          "mean": 4431609.219672131,
+          "p95": 5317124
+        },
+        "train.update": {
+          "mean": 18.591114098360656,
+          "p95": 36.2597
+        },
+        "curve.batch": {
+          "mean": 6.3005513114754095,
+          "p95": 13.463799999999999
+        },
+        "substeps": {
+          "mean": 13.78265262295082,
+          "p95": 29.124200000000002
+        },
+        "substeps.calls": {
+          "mean": 1.9754098360655739,
+          "p95": 3
+        },
+        "terrain": {
+          "mean": 0.7017983606557378,
+          "p95": 1.6545
+        },
+        "terrain.upload_ms": {
+          "mean": 0.5704222950819672,
+          "p95": 1.2367
+        },
+        "camera.update": {
+          "mean": 0.07947147540983607,
+          "p95": 0.1404
+        }
+      },
+      "first400m": {
+        "frames": 516,
+        "fps": 30.289369491436442,
+        "metrics": {
+          "elapsed": {
+            "mean": 33.01488333333333,
+            "p95": 55.73
+          },
+          "render.gpu": {
+            "mean": 25.520627905232036,
+            "p95": 31.76099967956543
+          },
+          "render.cpu": {
+            "mean": 6.012846915296806,
+            "p95": 9.5
+          },
+          "render.draw_calls": {
+            "mean": 507.51356589147287,
+            "p95": 605
+          },
+          "render.primitives": {
+            "mean": 4289771.151162791,
+            "p95": 4860672
+          },
+          "train.update": {
+            "mean": 19.467025581395347,
+            "p95": 37.7866
+          },
+          "curve.batch": {
+            "mean": 6.666526550387597,
+            "p95": 13.765899999999998
+          },
+          "substeps": {
+            "mean": 14.534816860465117,
+            "p95": 30.256000000000004
+          },
+          "substeps.calls": {
+            "mean": 2,
+            "p95": 3
+          },
+          "terrain": {
+            "mean": 0.7514593023255814,
+            "p95": 1.7461
+          },
+          "terrain.upload_ms": {
+            "mean": 0.6094406976744186,
+            "p95": 1.3327
+          },
+          "camera.update": {
+            "mean": 0.08524244186046512,
+            "p95": 0.1486
+          }
+        }
+      },
+      "worst_frame": {
+        "terrain.poll-convert": 0.0359,
+        "terrain.poll-convert.allocated.bytes": 248,
+        "terrain.poll-convert.calls": 1,
+        "trees.pump": 0.0568,
+        "trees.pump.allocated.bytes": 17664,
+        "trees.pump.calls": 1,
+        "terrain": 0.6055,
+        "terrain.allocated.bytes": 18208,
+        "terrain.calls": 1,
+        "track.render.update": 1.2982,
+        "track.render.update.allocated.bytes": 96,
+        "track.render.update.calls": 1,
+        "signals.render.update": 0.3359,
+        "signals.render.update.allocated.bytes": 96,
+        "signals.render.update.calls": 1,
+        "signals.footprints": 0.3611,
+        "signals.footprints.allocated.bytes": 19872,
+        "signals.footprints.calls": 4,
+        "signals.leases": 0.0632,
+        "signals.leases.allocated.bytes": 5248,
+        "signals.leases.calls": 4,
+        "signals.update": 2.5624,
+        "signals.update.allocated.bytes": 72992,
+        "signals.update.calls": 4,
+        "collision.index": 0.1849,
+        "collision.index.allocated.bytes": 2464,
+        "collision.index.calls": 4,
+        "grade.batch": 1.0455,
+        "grade.batch.allocated.bytes": 7368,
+        "grade.batch.calls": 4,
+        "orders.execute": 0.1062,
+        "orders.execute.allocated.bytes": 4992,
+        "orders.execute.calls": 24,
+        "signals.limit": 0.29460000000000003,
+        "signals.limit.allocated.bytes": 10560,
+        "signals.limit.calls": 24,
+        "detours": 0.009099999999999999,
+        "detours.allocated.bytes": 1728,
+        "detours.calls": 24,
+        "curve.batch": 20.2686,
+        "curve.batch.allocated.bytes": 7296,
+        "curve.batch.calls": 4,
+        "collision": 7.5315,
+        "collision.allocated.bytes": 1728,
+        "collision.calls": 24,
+        "poses": 5.6579999999999995,
+        "poses.allocated.bytes": 27552,
+        "poses.calls": 24,
+        "collision.validate": 5.1522,
+        "collision.validate.allocated.bytes": 13824,
+        "collision.validate.calls": 24,
+        "collision.update": 1.3064,
+        "collision.update.allocated.bytes": 2112,
+        "collision.update.calls": 24,
+        "substeps": 45.618700000000004,
+        "substeps.allocated.bytes": 189768,
+        "substeps.calls": 4,
+        "signals.aspects": 2.0254,
+        "signals.aspects.allocated.bytes": 38880,
+        "signals.aspects.calls": 1,
+        "poses.apply": 4.5355,
+        "poses.apply.allocated.bytes": 6824,
+        "poses.apply.calls": 1,
+        "instances.sync": 1.0116,
+        "instances.sync.allocated.bytes": 1872,
+        "instances.sync.calls": 1,
+        "movement": 51.2201,
+        "movement.allocated.bytes": 199496,
+        "movement.calls": 1,
+        "cargo.sync": 0.0133,
+        "cargo.sync.allocated.bytes": 608,
+        "cargo.sync.calls": 1,
+        "smoke.outlets": 0.0567,
+        "smoke.outlets.allocated.bytes": 7336,
+        "smoke.outlets.calls": 1,
+        "train.update": 51.295,
+        "train.update.allocated.bytes": 207696,
+        "train.update.calls": 1,
+        "train.ui": 0.0255,
+        "train.ui.allocated.bytes": 160,
+        "train.ui.calls": 1,
+        "industries.production": 0.1234,
+        "industries.production.allocated.bytes": 2160,
+        "industries.production.calls": 1,
+        "industries.update": 0.1258,
+        "industries.update.allocated.bytes": 2328,
+        "industries.update.calls": 1,
+        "origin.rebase": 0.0018,
+        "origin.rebase.allocated.bytes": 80,
+        "origin.rebase.calls": 1,
+        "camera.update": 0.0689,
+        "camera.update.allocated.bytes": 352,
+        "camera.update.calls": 1,
+        "audio.update": 0.2222,
+        "audio.update.allocated.bytes": 3488,
+        "audio.update.calls": 1,
+        "frame": 248,
+        "time": 9.1920272,
+        "elapsed": 70.3366,
+        "gc.gen0": 0,
+        "gc.gen1": 0,
+        "gc.gen2": 0,
+        "allocated.bytes": 242120,
+        "capture.contaminated": 0,
+        "render.cpu": 9.003000259399414,
+        "render.gpu": 33.70800018310547,
+        "render.setup": 0.756,
+        "render.draw_calls": 452,
+        "render.primitives": 4071772,
+        "camera.yaw": 1.066669756660266,
+        "camera.pitch": -0.25,
+        "camera.distance": 60,
+        "train.heading": -0.5041265701346304,
+        "speed.kmh": 78.06332276307884,
+        "train.edge": 7,
+        "train.u": 0.6396774333997399,
+        "train.x": 1332.7329711914062,
+        "train.y": 43.93220138549805,
+        "train.z": -2450.8983459472656,
+        "train.step": 1.4388809220282932,
+        "train.visual_error": 0.31755620101430615,
+        "camera.x": 1383.7886087096913,
+        "camera.y": 58.779898871189346,
+        "camera.z": -2423.0949938857566,
+        "camera.step": 1.4258539019116943,
+        "screen.x": 639.9999389648438,
+        "screen.y": 360.0000305175781,
+        "screen.step": 8.63167442730628e-05,
+        "origin.x": 1024,
+        "origin.z": -2560,
+        "origin.changed": 0,
+        "origin.events": 0,
+        "terrain.chunks": 441,
+        "terrain.jobs": 0,
+        "terrain.submitted": 0,
+        "terrain.uploads": 0,
+        "terrain.upload_ms": 0.4991,
+        "terrain.pending": 0,
+        "trees.operations": 0,
+        "terrain.evictions": 0,
+        "train.batches": 69
+      }
+    },
+    {
+      "name": "rear-low-repeat",
+      "yaw_offset_degrees": 180,
+      "pitch_radians": -0.25,
+      "distance_metres": 60,
+      "runtime": {
+        "adapter": "Intel(R) Iris(R) Xe Graphics",
+        "renderer": "gl_compatibility",
+        "width": 1280,
+        "height": 720
+      },
+      "summary": {
+        "frames": 403,
+        "mean": 49.590014640198504,
+        "p50": 48.7381,
+        "p95": 59.9903,
+        "p99": 69.2658,
+        "max": 79.4813,
+        "rebases": 2,
+        "over50": 136,
+        "over100": 0
+      },
+      "fps": 20.16534996522028,
+      "travel_metres": 489.42342391217875,
+      "route_first400m": [
+        9,
+        7,
+        21
+      ],
+      "max_yaw_offset_error_degrees": 0.0,
+      "metrics": {
+        "elapsed": {
+          "mean": 49.59001464019851,
+          "p95": 59.9903
+        },
+        "render.gpu": {
+          "mean": 35.11333741976073,
+          "p95": 47.119998931884766
+        },
+        "render.cpu": {
+          "mean": 26.860258097684117,
+          "p95": 30.951000213623047
+        },
+        "render.draw_calls": {
+          "mean": 3032.14888337469,
+          "p95": 3148
+        },
+        "render.primitives": {
+          "mean": 8096661.831265509,
+          "p95": 9143713
+        },
+        "train.update": {
+          "mean": 17.487598014888338,
+          "p95": 24.8246
+        },
+        "curve.batch": {
+          "mean": 6.403909181141439,
+          "p95": 9.5428
+        },
+        "substeps": {
+          "mean": 13.9724,
+          "p95": 21.133300000000002
+        },
+        "substeps.calls": {
+          "mean": 2.9875930521091814,
+          "p95": 4
+        },
+        "terrain": {
+          "mean": 0.5861846153846154,
+          "p95": 1.5403
+        },
+        "terrain.upload_ms": {
+          "mean": 0.4904531017369727,
+          "p95": 0.9976
+        },
+        "camera.update": {
+          "mean": 0.057816625310173696,
+          "p95": 0.0571
+        }
+      },
+      "first400m": {
+        "frames": 340,
+        "fps": 19.892884190701917,
+        "metrics": {
+          "elapsed": {
+            "mean": 50.26923147058824,
+            "p95": 60.8447
+          },
+          "render.gpu": {
+            "mean": 34.501947021484376,
+            "p95": 46.89500045776367
+          },
+          "render.cpu": {
+            "mean": 26.976044166789336,
+            "p95": 31.496000289916992
+          },
+          "render.draw_calls": {
+            "mean": 3043.823529411765,
+            "p95": 3152
+          },
+          "render.primitives": {
+            "mean": 7933315.720588235,
+            "p95": 8742929
+          },
+          "train.update": {
+            "mean": 18.014194411764706,
+            "p95": 25.6536
+          },
+          "curve.batch": {
+            "mean": 6.661533235294118,
+            "p95": 9.8002
+          },
+          "substeps": {
+            "mean": 14.460317647058824,
+            "p95": 21.7136
+          },
+          "substeps.calls": {
+            "mean": 3.0294117647058822,
+            "p95": 4
+          },
+          "terrain": {
+            "mean": 0.6284523529411765,
+            "p95": 1.7568
+          },
+          "terrain.upload_ms": {
+            "mean": 0.52642,
+            "p95": 1.1689
+          },
+          "camera.update": {
+            "mean": 0.06152764705882353,
+            "p95": 0.0571
+          }
+        }
+      },
+      "worst_frame": {
+        "terrain.poll-convert": 0.0218,
+        "terrain.poll-convert.allocated.bytes": 248,
+        "terrain.poll-convert.calls": 1,
+        "trees.pump": 0.0299,
+        "trees.pump.allocated.bytes": 17664,
+        "trees.pump.calls": 1,
+        "terrain": 0.4092,
+        "terrain.allocated.bytes": 18208,
+        "terrain.calls": 1,
+        "track.render.update": 0.6691,
+        "track.render.update.allocated.bytes": 96,
+        "track.render.update.calls": 1,
+        "signals.render.update": 0.1327,
+        "signals.render.update.allocated.bytes": 96,
+        "signals.render.update.calls": 1,
+        "signals.footprints": 0.163,
+        "signals.footprints.allocated.bytes": 18528,
+        "signals.footprints.calls": 4,
+        "signals.leases": 0.023,
+        "signals.leases.allocated.bytes": 4768,
+        "signals.leases.calls": 4,
+        "signals.update": 0.2323,
+        "signals.update.allocated.bytes": 32224,
+        "signals.update.calls": 4,
+        "collision.index": 0.07919999999999999,
+        "collision.index.allocated.bytes": 2464,
+        "collision.index.calls": 4,
+        "grade.batch": 0.5362,
+        "grade.batch.allocated.bytes": 7480,
+        "grade.batch.calls": 4,
+        "orders.execute": 0.03650000000000002,
+        "orders.execute.allocated.bytes": 4992,
+        "orders.execute.calls": 24,
+        "signals.limit": 0.1498,
+        "signals.limit.allocated.bytes": 10560,
+        "signals.limit.calls": 24,
+        "detours": 0.003799999999999999,
+        "detours.allocated.bytes": 1728,
+        "detours.calls": 24,
+        "curve.batch": 9.890600000000001,
+        "curve.batch.allocated.bytes": 7296,
+        "curve.batch.calls": 4,
+        "collision": 3.8427999999999995,
+        "collision.allocated.bytes": 1728,
+        "collision.calls": 24,
+        "poses": 3.281399999999999,
+        "poses.allocated.bytes": 27552,
+        "poses.calls": 24,
+        "collision.validate": 3.019799999999999,
+        "collision.validate.allocated.bytes": 13824,
+        "collision.validate.calls": 24,
+        "collision.update": 0.8420999999999998,
+        "collision.update.allocated.bytes": 2112,
+        "collision.update.calls": 24,
+        "substeps": 22.585900000000002,
+        "substeps.allocated.bytes": 149112,
+        "substeps.calls": 4,
+        "poses.apply": 4.0445,
+        "poses.apply.allocated.bytes": 6824,
+        "poses.apply.calls": 1,
+        "instances.sync": 0.5799,
+        "instances.sync.allocated.bytes": 1872,
+        "instances.sync.calls": 1,
+        "movement": 27.2425,
+        "movement.allocated.bytes": 158840,
+        "movement.calls": 1,
+        "cargo.sync": 0.0041,
+        "cargo.sync.allocated.bytes": 608,
+        "cargo.sync.calls": 1,
+        "smoke.outlets": 0.0425,
+        "smoke.outlets.allocated.bytes": 7336,
+        "smoke.outlets.calls": 1,
+        "train.update": 27.2923,
+        "train.update.allocated.bytes": 167040,
+        "train.update.calls": 1,
+        "train.ui": 0.0354,
+        "train.ui.allocated.bytes": 160,
+        "train.ui.calls": 1,
+        "industries.production": 0.1112,
+        "industries.production.allocated.bytes": 2160,
+        "industries.production.calls": 1,
+        "industries.update": 0.1139,
+        "industries.update.allocated.bytes": 2328,
+        "industries.update.calls": 1,
+        "origin.rebase": 0.0022,
+        "origin.rebase.allocated.bytes": 80,
+        "origin.rebase.calls": 1,
+        "camera.update": 0.0595,
+        "camera.update.allocated.bytes": 352,
+        "camera.update.calls": 1,
+        "audio.update": 0.2569,
+        "audio.update.allocated.bytes": 3488,
+        "audio.update.calls": 1,
+        "frame": 278,
+        "time": 14.1400953,
+        "elapsed": 79.4813,
+        "gc.gen0": 0,
+        "gc.gen1": 0,
+        "gc.gen2": 0,
+        "allocated.bytes": 198888,
+        "capture.contaminated": 0,
+        "render.cpu": 27.665000915527344,
+        "render.gpu": 38.85499954223633,
+        "render.setup": 0.925,
+        "render.draw_calls": 2995,
+        "render.primitives": 8731465,
+        "camera.yaw": 2.6309955430870526,
+        "camera.pitch": -0.25,
+        "camera.distance": 60,
+        "train.heading": -0.5105971105027404,
+        "speed.kmh": 100.20381694416214,
+        "train.edge": 21,
+        "train.u": 0.3659657696731962,
+        "train.x": 1277.6996002197266,
+        "train.y": 42.475379943847656,
+        "train.z": -2352.2344360351562,
+        "train.step": 1.8490266147478238,
+        "train.visual_error": 0.4148013123979279,
+        "camera.x": 1306.3127245805463,
+        "camera.y": 57.325247992283096,
+        "camera.z": -2403.3160770319655,
+        "camera.step": 1.823175236898857,
+        "screen.x": 639.9999389648438,
+        "screen.y": 360.0000305175781,
+        "screen.step": 0.0001258271950064227,
+        "origin.x": 1024,
+        "origin.z": -2560,
+        "origin.changed": 0,
+        "origin.events": 0,
+        "terrain.chunks": 441,
+        "terrain.jobs": 0,
+        "terrain.submitted": 0,
+        "terrain.uploads": 0,
+        "terrain.upload_ms": 0.3486,
+        "terrain.pending": 0,
+        "trees.operations": 0,
+        "terrain.evictions": 0,
+        "train.batches": 61
+      }
+    }
+  ]
+}

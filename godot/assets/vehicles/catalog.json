@@ -557,5 +557,79 @@
     },
     "thumbnail": "res://assets/vehicles/thumbnails/brightline-venture-premium.svg",
     "exhausts": []
+  },
+  {
+    "id": "na-pacific-462",
+    "name": "Pennsylvania K4s - 4-6-2 Pacific + tender",
+    "kind": "locomotive",
+    "length": 25.065975,
+    "width": 3.1306,
+    "height": 4.572,
+    "bogieCenters": 19.9644,
+    "runningGear": "steam",
+    "runningGearWheelRadius": 1.016,
+    "physics": {
+      "massKg": 245419.28999999998,
+      "powerW": 1850000,
+      "tractiveEffortN": 197767.76,
+      "maxSpeedMps": 35.76
+    },
+    "gauges": [
+      1435
+    ],
+    "models": {
+      "1435": "res://assets/vehicles/na-pacific-462-composition-1435.tscn"
+    },
+    "thumbnail": "res://assets/vehicles/thumbnails/na-pacific-462.svg",
+    "exhausts": [
+      {
+        "position": [
+          0,
+          4.582,
+          10.447009999999999
+        ],
+        "kind": "steam"
+      }
+    ],
+    "sections": [
+      {
+        "offset": 5.18445,
+        "definition": {
+          "id": "na-pacific-462-engine",
+          "name": "Pennsylvania K4s engine",
+          "kind": "locomotive",
+          "length": 14.697075,
+          "width": 3.1306,
+          "height": 4.572,
+          "bogieCenters": 9.9822,
+          "runningGear": "steam",
+          "runningGearWheelRadius": 1.016,
+          "physics": {
+            "massKg": 145149.56,
+            "powerW": 1850000,
+            "tractiveEffortN": 197767.76,
+            "maxSpeedMps": 35.76
+          }
+        }
+      },
+      {
+        "offset": -7.4085374999999996,
+        "definition": {
+          "id": "na-pacific-tender",
+          "name": "Pennsylvania 110P75 coal tender",
+          "kind": "coach",
+          "length": 10.2489,
+          "width": 3.1242,
+          "height": 3.9624,
+          "bogieCenters": 6.096,
+          "physics": {
+            "massKg": 100269.73,
+            "powerW": 0,
+            "tractiveEffortN": 0,
+            "maxSpeedMps": 35.76
+          }
+        }
+      }
+    ]
   }
 ]

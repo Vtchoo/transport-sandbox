@@ -147,9 +147,10 @@ public partial class TreeChunk : Node3D
     {
         get; private set;
     }
-    public void UpdateLod(double distance)
+    public void UpdateLod(double distance, int detail = 2)
     {
-        bool trunksVisible = distance < 1100, distant = distance >= 850;
+        double scale = detail == 3 ? 2 : detail == 1 ? 0 : 1;
+        bool trunksVisible = distance < 1100 * scale, distant = distance >= 850 * scale;
         if (_trunksVisible == trunksVisible && _distant == distant)
             return;
         LodChanges++;

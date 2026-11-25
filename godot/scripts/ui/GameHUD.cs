@@ -16,10 +16,13 @@ public partial class GameHUD : Control
     public WindowManager Windows = null!;
     public string PreferencesFile = "user://game-ui.cfg";
     public SoundSettings SoundSettings = new();
+    public GraphicsSettings GraphicsSettings = new();
+    public Action ApplyGraphics = () => { };
+    public WindowManager? SettingsManager;
     public HSlider MasterVolume = null!, EngineVolume = null!, WheelVolume = null!, CurveVolume = null!;
     public CheckBox MuteSound = null!;
     public PanelContainer ActionBar = null!, DebugPanel = null!;
-    public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, StationsButton = null!, CameraButton = null!, ViewButton = null!, SettingsButton = null!, MenuButton = null!;
+    public Button BuildButton = null!, VehiclesButton = null!, TrainsButton = null!, StationsButton = null!, CameraButton = null!, ViewButton = null!, MenuButton = null!;
     public Button IndustriesButton = null!;
     public GameWindow ViewWindow = null!, SettingsWindow = null!;
     public CheckBox Contours = null!;
@@ -71,7 +74,6 @@ public partial class GameHUD : Control
         CameraButton = Top("Overlook · C", "camera", () => { if (Camera.WalkingMode) Camera.SetWalkingMode(false); else Camera.SetFreeMode(!Camera.FreeMode); });
         CameraButton.TooltipText = "Switch camera mode (C)";
         ViewButton = Top("View", "view", () => Toggle(ViewWindow));
-        SettingsButton = Top("Settings", "settings", OpenSettings);
         var share = Top("Copy world seed", "copy", () => { });
         share.Pressed += () =>
         {
@@ -142,6 +144,7 @@ public partial class GameHUD : Control
         LoadPreferences();
         Camera.ModeChanged += RefreshCamera;
         Windows.ModalChanged += BlockCamera;
+        if (SettingsManager != null) SettingsManager.ModalChanged += BlockCamera;
         GetViewport().SizeChanged += LayoutHUD;
         RefreshCamera();
         SynchronizeBuild(Editor.Enabled);
@@ -187,7 +190,7 @@ public partial class GameHUD : Control
     }
     private void BuildSettingsWindow()
     {
-        SettingsWindow = Windows.Create("Settings", WindowPlacement.Center, new Vector2(440, 360), minimum: new(300, 240), modal: true);
+        SettingsWindow = (SettingsManager ?? Windows).Create("Settings", WindowPlacement.Center, new Vector2(440, 360), minimum: new(300, 240), modal: true);
         _settingsRoot = new();
         SettingsWindow.Body.AddChild(_settingsRoot);
         var gameplay = new Button { Text = "Gameplay  →", CustomMinimumSize = new(0, 58) };
@@ -214,6 +217,7 @@ public partial class GameHUD : Control
         _gameplayRoot.AddChild(CameraMode);
         CameraMode.ItemSelected += index => { if (index == 2) Camera.SetWalkingMode(true); else Camera.SetFreeMode(index == 1); };
         BuildSoundMenu();
+        BuildGraphicsMenu();
         UiSkin.Label(_gameplayRoot, "Overlook pans and orbits above the terrain. Free camera lets you fly. Walk explores the terrain at eye level.", 12, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
         UiSkin.Label(_gameplayRoot, "C switches overlook/free camera. P toggles walking and returns to your previous camera.", 11, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
     }
@@ -223,6 +227,7 @@ public partial class GameHUD : Control
         _settingsRoot.Show();
         _gameplayRoot.Hide();
         _soundRoot.Hide();
+        _graphicsRoot.Hide();
         SettingsWindow.Open();
     }
     public void OpenSoundSettings()
@@ -360,6 +365,7 @@ public partial class GameHUD : Control
         Camera.ModeChanged -= RefreshCamera;
         Editor.EnabledChanged -= SynchronizeBuild;
         Windows.ModalChanged -= BlockCamera;
+        if (SettingsManager != null) SettingsManager.ModalChanged -= BlockCamera;
         GetViewport().SizeChanged -= LayoutHUD;
     }
 }

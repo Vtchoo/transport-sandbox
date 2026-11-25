@@ -101,7 +101,7 @@ public partial class PosedVehicleVisual : Node3D
                 if (name != null) { player.Play(name); player.Pause(); }
             }
         }
-        WheelTurns += distance / (Math.Tau * .65);
+        WheelTurns += distance / (Math.Tau * Definition.RunningGearWheelRadius);
         _wheelPhase = ((WheelTurns % 1) + 1) % 1;
         foreach (var player in _runningGear)
             if (!string.IsNullOrEmpty(player.AssignedAnimation)) player.Seek(_wheelPhase, true);
