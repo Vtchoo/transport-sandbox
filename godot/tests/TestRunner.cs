@@ -342,8 +342,8 @@ public partial class TestRunner : Node
             Check(diorama.Composition.Vehicles.Select(item => item.Id).SequenceEqual(reference.GetProperty("cars").EnumerateArray().Select(e => e.GetString())), "Menu compositions match source");
             Check(diorama.Composition.Gauge == Number(reference, "gauge"), "Menu gauges match source");
             Check(Math.Abs(diorama.Train.Length - Number(reference, "length")) < 1e-6, "Menu coupler spacing matches source");
-            Check(diorama.Track.Network == diorama.Network && diorama.Network.Edges.Count == 1, "Menu uses gameplay track graph and renderer");
-            Check(diorama.Network.Edges.Values.Single().Station != 0, "Menu platform is a gameplay station");
+            Check(diorama.Track.Network == diorama.Network && diorama.Network.Edges.Count == 3, "Menu uses gameplay track graph and renderer");
+            Check(diorama.Network.Edges.Values.Count(e => e.Station != 0) == 1, "Menu platform is a gameplay station");
             foreach (var vehicle in diorama.Train.Vehicles)
             {
                 Check(vehicle.Scale == Vector3.One && vehicle.Model.Scale == Vector3.One, "Catalog vehicle dimensions are not rescaled");
@@ -360,6 +360,23 @@ public partial class TestRunner : Node
                 Check(diorama.Camera.Quaternion.AngleTo(rotation) < 0.001, "Menu look direction matches source");
             }
             Check(diorama.Camera.Fov == 38 && diorama.Camera.Far == 1800, "Menu lens matches source");
+            var arrivalStart = diorama.Train.PosedVehicles[0].Pose!.Center;
+            Check(diorama.ArrivalSpeed > 0 && diorama.ArrivalSpeed == diorama.ApproachSpeedLimit,
+                "Menu train enters at its HO curve speed limit, capped by the consist maximum");
+            diorama.UpdateArrival(1);
+            Check(diorama.Train.PosedVehicles[0].Pose!.Center.DistanceTo(arrivalStart) > 1 && diorama.ArrivalSpeed > 0,
+                "Menu train approaches using HO gameplay physics");
+            Check(diorama.Train.PosedVehicles[0].WheelTurns > 0 && diorama.Train.PosedVehicles[0].Pose!.FrontDirection.DistanceTo(
+                diorama.Train.PosedVehicles[0].Pose!.RearDirection) > .00001,
+                "Menu train advances imported running gear and independently poses bogies on curves");
+            diorama.UpdateArrival(180);
+            Check(diorama.Arrived && diorama.ArrivalSpeed == 0 && diorama.Train.PosedVehicles.Select((v, i) =>
+                v.Pose!.Center.DistanceTo(new Vector3(0, TrackRenderer.RailHeadHeight, (float)diorama.Train.Offsets[i])) < .0001).All(v => v),
+                "Menu arrival stops at the original station layout for every consist");
+            double parkedTurns = diorama.Train.PosedVehicles[0].WheelTurns;
+            diorama.UpdateArrival(240);
+            Check(diorama.ArrivalSpeed == 0 && diorama.Train.PosedVehicles[0].WheelTurns == parkedTurns,
+                "Menu train and running gear remain stopped after arrival");
             for (int i = 0; i < 60; i++)
                 diorama.Smoke.Advance(1.0 / 60);
             var smoke = reference.GetProperty("smoke");
@@ -372,6 +389,40 @@ public partial class TestRunner : Node
                 foreach (var (key, value) in new[] { ("life", particle.Life), ("radius", particle.Radius), ("density", particle.Density), ("shade", particle.Shade), ("growth", particle.Growth), ("phase", particle.Phase) })
                     Check(Math.Abs(value - Number(expected, key)) < 1e-6, "Exhaust " + key + " matches source");
             }
+            var trackBeforeDispatch = diorama.Network.Edges.Values.Select(e => diorama.Network.Controls(e)).ToArray();
+            var originalScenery = diorama.Scenery;
+            var originalTrack = diorama.Track;
+            var originalTrackHolders = diorama.Track.Holders.Values.ToArray();
+            var originalNetwork = diorama.Network;
+            int oldPreset = diorama.Preset;
+            var cameraPosition = diorama.Camera.Position;
+            var departureStart = diorama.Train.PosedVehicles[0].Pose!.Center;
+            var clickPoint = diorama.Camera.UnprojectPosition(departureStart + Vector3.Up * (float)(diorama.Train.Vehicles[0].Definition.Height / 2));
+            Check(diorama.HitsTrain(clickPoint), "Menu picking hits the visible train geometry");
+            diorama._UnhandledInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true, DoubleClick = true, Position = clickPoint });
+            diorama.UpdateArrival(241);
+            Check(diorama.Departing && diorama.ArrivalSpeed > 0 && diorama.Train.PosedVehicles[0].Pose!.Center.Z > departureStart.Z,
+                "Dispatch accelerates the current train out of the station");
+            diorama.DispatchTrain();
+            diorama.UpdateArrival(360);
+            Check(diorama.Scenery == originalScenery && diorama.Track == originalTrack && diorama.Network == originalNetwork,
+                "Dispatch retains the existing scenery, track renderer and network");
+            Check(diorama.Network.Edges.Values.All(edge => edge.Gauge == 1435)
+                && diorama.Track.Holders.Values.SequenceEqual(originalTrackHolders),
+                "Menu trains share the default gauge and keep existing track meshes");
+            Check(diorama.Track.Holders.Count == diorama.Network.Edges.Count,
+                "Replacement track gauge is rendered immediately without an empty frame");
+            Check(diorama.Network.Edges.Values.SelectMany(e => diorama.Network.Controls(e)).SequenceEqual(trackBeforeDispatch.SelectMany(p => p)),
+                "Changing consists preserves every track control point");
+            Check(!diorama.Departing && diorama.Preset != oldPreset && !diorama.Arrived && diorama.ArrivalSpeed > 0,
+                "A different menu consist arrives after the departing train clears the camera");
+            diorama.UpdateCamera(Number(reference.GetProperty("cameras").EnumerateArray().Last(), "time"),
+                Number(reference.GetProperty("cameras").EnumerateArray().Last(), "aspect"));
+            Check(diorama.Camera.Position.DistanceTo(cameraPosition) < .00001,
+                "Changing menu trains preserves the camera framing");
+            diorama.UpdateArrival(180);
+            Check(diorama.Arrived && diorama.ArrivalSpeed == 0,
+                "The replacement train stops at the station");
             diorama.Free();
         }
         // A new definition works without editing MenuDiorama or exporting a scene.

@@ -112,7 +112,8 @@ public partial class ConsistVisual : Node3D
     {
         get;
     }
-    public static ConsistVisual Create(VehicleCatalog catalog, ConsistDefinition consist)
+    public IReadOnlyList<PosedVehicleVisual> PosedVehicles { get; private set; } = Array.Empty<PosedVehicleVisual>();
+    public static ConsistVisual Create(VehicleCatalog catalog, ConsistDefinition consist, bool posed = false)
     {
         if (consist.Vehicles.Count == 0)
             throw new ArgumentException("A consist needs at least one vehicle.");
@@ -121,11 +122,12 @@ public partial class ConsistVisual : Node3D
         foreach (var definition in definitions)
             if (!definition.Models.ContainsKey(consist.Gauge))
                 throw new ArgumentException($"{definition.Id} is unavailable for {consist.Gauge} mm track.");
-        return new ConsistVisual(consist, definitions);
+        return new ConsistVisual(consist, definitions, posed);
     }
-    private ConsistVisual(ConsistDefinition consist, VehicleDefinition[] definitions)
+    private ConsistVisual(ConsistDefinition consist, VehicleDefinition[] definitions, bool posed)
     {
         Length = definitions.Sum(definition => definition.Length) + (definitions.Length - 1) * CouplerGap;
+        var posedVehicles = new List<PosedVehicleVisual>();
         double front = Length / 2;
         var vehicles = new List<VehicleVisual>();
         var offsets = new List<double>();
@@ -133,15 +135,25 @@ public partial class ConsistVisual : Node3D
         {
             double offset = front - definitions[i].Length / 2;
             front -= definitions[i].Length + CouplerGap;
-            var vehicle = new VehicleVisual(definitions[i], consist.Gauge, consist.Vehicles[i].Reversed)
+            VehicleVisual vehicle;
+            if (posed)
             {
-                Position = new(0, 0, (float)offset)
-            };
-            AddChild(vehicle);
+                var visual = new PosedVehicleVisual(definitions[i], consist.Gauge, reversed: consist.Vehicles[i].Reversed);
+                AddChild(visual);
+                posedVehicles.Add(visual);
+                vehicle = visual.Vehicle;
+            }
+            else
+            {
+                vehicle = new VehicleVisual(definitions[i], consist.Gauge, consist.Vehicles[i].Reversed)
+                { Position = new(0, 0, (float)offset) };
+                AddChild(vehicle);
+            }
             vehicles.Add(vehicle);
             offsets.Add(offset);
         }
         Vehicles = vehicles;
+        PosedVehicles = posedVehicles;
         Offsets = offsets;
     }
     public IEnumerable<ExhaustOutlet> WorldExhausts()

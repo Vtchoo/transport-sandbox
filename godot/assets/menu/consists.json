@@ -12,7 +12,7 @@
   },
   {
 	"id": "rio-grande",
-	"gauge": 914,
+	"gauge": 1435,
 	"vehicles": [
 	  { "id": "drgw-consolidation" },
 	  { "id": "drgw-wood-baggage" },
