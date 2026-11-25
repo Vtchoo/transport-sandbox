@@ -15,6 +15,8 @@ The Godot desktop version supports named saved worlds, **Load game**, **F5** sav
 
 Godot display shortcuts follow Minecraft: **F1** hides/shows the interface; **F11** toggles fullscreen. Both work while paused. **Escape** reveals a hidden interface before normal menu handling.
 
+In Godot, **P** toggles first-person walking at the overlook target (or below the free camera). Use **WASD / arrows** to walk, **mouse** to look, and **Shift** to move faster. **Escape** releases the mouse; click the world to capture it again. Press **P** again to restore the previous camera. This first version follows terrain and cut/fill, with gravity and steep-slope/water limits; it does not collide with trains, structures or bridge decks yet. Saved games retain the regular camera view.
+
 In Godot, press **H** to sound the horn of the train the camera is following. Releasing H early fades it out over 0.2 seconds. Each press plays once; holding H does not loop the sound or overlap an already-playing horn.
 
 ## Exploring

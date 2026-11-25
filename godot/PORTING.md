@@ -6,6 +6,25 @@ Open `project.godot` in the .NET editor and press F5 to run the project. Start g
 
 The project now requires the .NET editor and .NET 8 SDK or newer. The editor builds the C# assembly when running; for command-line tests, first run `dotnet build "godot/Transport Sandbox.csproj"` from the repository root. The solution uses Godot's Debug, ExportDebug and ExportRelease configurations.
 
+## First-person walking
+
+**P** toggles an eye-level player controller. It spawns at the overlook target
+or on the ground below the free camera, looking in the camera's heading. A
+nearby dry position is used if the target lies underwater. **WASD / arrows**
+walk at 4.5 m/s; **Shift** runs at 8 m/s. Mouse look captures the pointer;
+**Escape** releases it and clicking the world captures it again. P restores
+the previous camera pose. Walking is also available under Settings → Gameplay.
+
+The controller uses absolute double coordinates and floating-origin updates,
+samples the terrain/cut-and-fill height field, applies gravity, rejects steep
+uphill steps and deep water, and waits at unloaded terrain boundaries. This
+initial version has no collisions with vehicles, structures or bridge decks,
+and no swimming or jumping. It cancels construction on entry; starting a new
+construction tool or following a train leaves walking. UI text/popup focus,
+modals and mouse release suppress movement. Walking is transient: saves keep
+the previous regular camera pose. Run `tests/runner.tscn -- --suite=walking`
+after building for movement, terrain, floating-origin and toggle checks.
+
 ## Industries and cargo
 
 Use the **factory icon** on the bottom bar to open the discovered-industry list. Each row shows its type and absolute X/Z location. Click a row or a nearby industry in the world to open its window. The shared world viewport shows the industry model even when its terrain is unloaded; **Go to** below it moves the main camera there. Moves farther than 2 km jump immediately; nearby moves animate for 0.6 seconds and manual navigation interrupts them. Main-world scenery is culled beyond 3,500 m from the camera.

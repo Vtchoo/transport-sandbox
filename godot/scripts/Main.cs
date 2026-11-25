@@ -162,6 +162,12 @@ public partial class Main : Node3D
         Camera.BuildMode = () => TrackEditor.Enabled || Trains.Placing || Industries.Placing;
         Camera.NavigationBlocked = () => TrackEditor.IsDragging;
         Camera.FloatingOriginEnabled = true;
+        Camera.ModeChanged += () =>
+        {
+            if (!Camera.WalkingMode) return;
+            TrackEditor.SetEnabled(false);
+            Trains.CancelPlacement(); Industries.CancelPlacement(); TrainUI.CancelOrderPicking();
+        };
         HUD.SaveRequested += () => _ = SaveGame();
         PauseUI = new() { SaveGame = SaveGame };
         Interface.AddChild(PauseUI);

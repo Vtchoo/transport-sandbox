@@ -68,7 +68,7 @@ public partial class GameHUD : Control
             _topLabels[button] = text;
             return button;
         }
-        CameraButton = Top("Overlook · C", "camera", () => Camera.SetFreeMode(!Camera.FreeMode));
+        CameraButton = Top("Overlook · C", "camera", () => { if (Camera.WalkingMode) Camera.SetWalkingMode(false); else Camera.SetFreeMode(!Camera.FreeMode); });
         CameraButton.TooltipText = "Switch camera mode (C)";
         ViewButton = Top("View", "view", () => Toggle(ViewWindow));
         SettingsButton = Top("Settings", "settings", OpenSettings);
@@ -209,12 +209,13 @@ public partial class GameHUD : Control
         CameraMode = new();
         CameraMode.AddItem("Overlook (default)");
         CameraMode.AddItem("Free camera");
+        CameraMode.AddItem("Walk (first person · P)");
         UiSkin.Selector(CameraMode);
         _gameplayRoot.AddChild(CameraMode);
-        CameraMode.ItemSelected += index => Camera.SetFreeMode(index == 1);
+        CameraMode.ItemSelected += index => { if (index == 2) Camera.SetWalkingMode(true); else Camera.SetFreeMode(index == 1); };
         BuildSoundMenu();
-        UiSkin.Label(_gameplayRoot, "Overlook pans and orbits above the terrain. Free camera lets you fly and look around independently.", 12, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
-        UiSkin.Label(_gameplayRoot, "Press C during gameplay to switch. Your preference is saved automatically.", 11, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
+        UiSkin.Label(_gameplayRoot, "Overlook pans and orbits above the terrain. Free camera lets you fly. Walk explores the terrain at eye level.", 12, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
+        UiSkin.Label(_gameplayRoot, "C switches overlook/free camera. P toggles walking and returns to your previous camera.", 11, "b5c3b1").AutowrapMode = TextServer.AutowrapMode.Word;
     }
     public void OpenSettings()
     {
@@ -278,9 +279,10 @@ public partial class GameHUD : Control
     }
     private void RefreshCamera()
     {
-        _topLabels[CameraButton] = Camera.FreeMode ? "Free camera · C" : "Overlook · C";
-        CameraMode.Select(Camera.FreeMode ? 1 : 0);
-        Hint.Text = Camera.FreeMode ? "WASD: move · Right drag: look · Q / E: down / up · Shift: faster · C: overlook · F3: debug" : "WASD: pan · Right drag: pan · Middle drag: orbit / tilt · Scroll: zoom · Shift: faster · C: free camera · F3: debug";
+        _topLabels[CameraButton] = Camera.WalkingMode ? "Walking · P" : Camera.FreeMode ? "Free camera · C" : "Overlook · C";
+        CameraMode.Select(Camera.WalkingMode ? 2 : Camera.FreeMode ? 1 : 0);
+        Hint.Text = Camera.WalkingMode ? "WASD: walk · Mouse: look · Shift: faster · Esc: release mouse · Click world: resume · P: previous camera"
+            : (Camera.FreeMode ? "WASD: move · Right drag: look · Q / E: down / up · Shift: faster · C: overlook · F3: debug" : "WASD: pan · Right drag: pan · Middle drag: orbit / tilt · Scroll: zoom · Shift: faster · C: free camera · F3: debug") + " · P: walk";
         SavePreferences();
         LayoutHUD();
     }
@@ -321,7 +323,7 @@ public partial class GameHUD : Control
             return;
         _debugElapsed = 0;
         var p = Camera.WorldPosition;
-        _debug.Text = $"TRANSPORT SANDBOX · DEBUG · F3 TO HIDE\n{(Camera.FreeMode ? "FREE CAMERA" : "OVERLOOK CAMERA")}\nSeed: {World.Generator.SeedText}\nX {p.X:F1}  Y {p.Y:F1}  Z {p.Z:F1}\nChunks: {World.Chunks.Count} / {World.Wanted.Count}\nTerrain workers: {World.WorkerLimit}   FPS: {Engine.GetFramesPerSecond()}";
+        _debug.Text = $"TRANSPORT SANDBOX · DEBUG · F3 TO HIDE\n{(Camera.WalkingMode ? "WALKING" : Camera.FreeMode ? "FREE CAMERA" : "OVERLOOK CAMERA")}\nSeed: {World.Generator.SeedText}\nX {p.X:F1}  Y {p.Y:F1}  Z {p.Z:F1}\nChunks: {World.Chunks.Count} / {World.Wanted.Count}\nTerrain workers: {World.WorkerLimit}   FPS: {Engine.GetFramesPerSecond()}";
     }
     public override void _UnhandledInput(InputEvent input)
     {

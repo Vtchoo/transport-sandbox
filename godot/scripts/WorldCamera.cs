@@ -74,6 +74,7 @@ public partial class WorldCamera : Camera3D
     }
     public void ResetWorld(TerrainGenerator generator, float x = 600, float z = 900)
     {
+        if (WalkingMode) SetWalkingMode(false);
         Ground = generator;
         Following = _lastFollowing = null;
         Rig.Free = false;
@@ -100,9 +101,10 @@ public partial class WorldCamera : Camera3D
         Rotation = new((float)Rig.Pitch, (float)Rig.Yaw, 0);
         _publishedRotation = Rotation;
     }
-    public SavedCamera Capture() => new() { Position = WorldPosition, Target = Rig.Target, Yaw = Rig.Yaw, Pitch = Rig.Pitch, Distance = Rig.Distance, Free = Rig.Free };
+    public SavedCamera Capture() => _beforeWalking ?? new() { Position = WorldPosition, Target = Rig.Target, Yaw = Rig.Yaw, Pitch = Rig.Pitch, Distance = Rig.Distance, Free = Rig.Free };
     public void GoTo(TrackVector point)
     {
+        if (WalkingMode) SetWalkingMode(false);
         StopFollowing(); ReleaseMouse();
         var from = Capture();
         double pitch = -.65, distance = 240;
@@ -115,6 +117,7 @@ public partial class WorldCamera : Camera3D
     }
     public void Restore(SavedCamera saved)
     {
+        if (WalkingMode) { _walker = null; _beforeWalking = null; Near = .15f; Fov = _beforeWalkingFov; ReleaseMouse(); }
         _goToFrom = _goToTo = null;
         Following = _lastFollowing = null; Rig.Following = false;
         Rig.Position = saved.Position; Rig.Target = saved.Target; Rig.Yaw = saved.Yaw; Rig.Pitch = saved.Pitch; Rig.Distance = saved.Distance; Rig.Free = saved.Free;
@@ -148,6 +151,15 @@ public partial class WorldCamera : Camera3D
         if (!Enabled)
             return;
         ImportPose();
+        if (WalkingMode)
+        {
+            if (IsInstanceValid(Following) || BuildMode())
+            {
+                var following = Following;
+                SetWalkingMode(false); Following = following;
+            }
+            else { UpdateWalking(delta); return; }
+        }
         if (BuildMode() && Input.MouseMode == Input.MouseModeEnum.Captured)
             ReleaseMouse();
         var keys = new HashSet<string>();
@@ -193,6 +205,7 @@ public partial class WorldCamera : Camera3D
     }
     public void SetFreeMode(bool free)
     {
+        if (WalkingMode) SetWalkingMode(false);
         _goToFrom = _goToTo = null;
         if (FreeMode == free)
             return;
@@ -207,6 +220,12 @@ public partial class WorldCamera : Camera3D
     {
         _goToFrom = _goToTo = null;
         ImportPose();
+        if (WalkingMode)
+        {
+            Rig.Yaw -= dx * .003;
+            Rig.Pitch = Math.Clamp(Rig.Pitch - dy * .003, -Math.PI / 2 + .02, Math.PI / 2 - .02);
+            Publish(); return;
+        }
         Rig.Look(dx, dy, Height);
         Publish();
     }
@@ -235,16 +254,30 @@ public partial class WorldCamera : Camera3D
             ReleaseMouse();
             GetViewport().SetInputAsHandled();
         }
-        else if (input is InputEventMouseMotion motion && FreeMode)
+        else if (input is InputEventMouseMotion motion && (FreeMode || WalkingMode))
         {
             Look(motion.Relative.X, motion.Relative.Y);
             GetViewport().SetInputAsHandled();
         }
+        else if (WalkingMode && input is InputEventMouseButton)
+            GetViewport().SetInputAsHandled();
     }
     public override void _UnhandledInput(InputEvent input)
     {
         if (!Enabled || InputBlocked)
             return;
+        if (input is InputEventKey { Pressed: true, Echo: false } key && !key.CtrlPressed && !key.AltPressed && !key.MetaPressed
+            && (key.PhysicalKeycode == Key.P || key.Keycode == Key.P) && !TypingOrSelecting())
+        {
+            SetWalkingMode(!WalkingMode);
+            GetViewport().SetInputAsHandled(); return;
+        }
+        if (WalkingMode && input is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+        {
+            Input.MouseMode = Input.MouseModeEnum.Captured;
+            GetViewport().SetInputAsHandled(); return;
+        }
+        if (WalkingMode && input is InputEventMouseButton) return;
         if (input is InputEventKey { Pressed: true, Echo: false, Keycode: Key.C })
         {
             SetFreeMode(!FreeMode);

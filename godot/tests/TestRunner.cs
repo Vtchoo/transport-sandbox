@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "walking":
+                    WalkingChecks.Run(Check, this);
+                    break;
                 case "brightline-author":
                     BrightlineModels.Export();
                     break;
@@ -191,6 +194,7 @@ public partial class TestRunner : Node
                     await Frames();
                     break;
                 case "core":
+                    WalkingChecks.Run(Check, this);
                     Core();
                     break;
                 case "menu":
