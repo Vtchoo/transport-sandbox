@@ -69,20 +69,8 @@ public sealed class RailRoutingGraph
             if (distance < 0)
             {
                 integrated++;
-                // Same 512-step arc table as placement, without retaining a table for every graph edge.
-                var p1 = edge.P1 - edge.P0; var p2 = edge.P2 - edge.P0; var p3 = edge.P3 - edge.P0;
-                double lastX = 0, lastY = 0, lastZ = 0; distance = 0;
-                for (int step = 1; step <= 512; step++)
-                {
-                    double t = step / 512.0, s = 1 - t;
-                    double c1 = 3 * s * s * t, c2 = 3 * s * t * t, c3 = t * t * t;
-                    double x = p1.X * c1 + p2.X * c2 + p3.X * c3;
-                    double y = p1.Y * c1 + p2.Y * c2 + p3.Y * c3;
-                    double z = p1.Z * c1 + p2.Z * c2 + p3.Z * c3;
-                    double dx = x - lastX, dy = y - lastY, dz = z - lastZ;
-                    distance += Math.Sqrt(dx * dx + dy * dy + dz * dz);
-                    lastX = x; lastY = y; lastZ = z;
-                }
+                // Identical integration to placement, without retaining lookup arrays.
+                distance = TrackArcTable.Measure(edge.P0, edge.P1, edge.P2, edge.P3);
             }
             if (!double.IsFinite(distance) || distance < 0) throw new ArgumentException("Invalid track arc length.");
             length[i * 2] = length[i * 2 + 1] = distance;

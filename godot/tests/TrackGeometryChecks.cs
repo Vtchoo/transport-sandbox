@@ -9,6 +9,8 @@ public static class TrackGeometryChecks
 {
     public static void Run(Action<bool, string> check)
     {
+        // Browser fixtures use an approximate fixed-512 table. Preserve geometry/layout parity
+        // within 1 mm; TrackArcChecks independently checks the new distance map against a dense reference.
         foreach (var reference in JsonData.Read("res://tests/track-geometry-fixtures.json").EnumerateArray())
         {
             string name = reference.GetProperty("name").GetString()!;
@@ -16,7 +18,7 @@ public static class TrackGeometryChecks
             bool preview = reference.TryGetProperty("preview", out var p) && p.GetBoolean();
             bool railsOnly = reference.TryGetProperty("railsOnly", out var r) && r.GetBoolean();
             var geometry = new TrackGeometry(points, reference.GetProperty("gauge").GetInt32(), reference.GetProperty("sides").EnumerateArray().Select(s => s.GetInt32()), preview, railsOnly);
-            check(Math.Abs(geometry.Curve.Length - reference.GetProperty("length").GetDouble()) < 1e-7, name + ": arc length matches browser");
+            check(Math.Abs(geometry.Curve.Length - reference.GetProperty("length").GetDouble()) < .001, name + ": arc length within 1 mm of browser");
             check(geometry.Anchor.DistanceTo(JsonData.Vector(reference.GetProperty("anchor"))) < 1e-6, name + ": local origin matches");
             var surfaces = reference.GetProperty("surfaces");
             check(geometry.Surfaces.Count == surfaces.GetArrayLength(), name + ": surface count matches");
@@ -38,8 +40,8 @@ public static class TrackGeometryChecks
                         normalError = Math.Max(normalError, Math.Abs(normal[axis] - normals[i * 3 + axis].GetDouble()));
                     }
                 }
-                check(positionError < 1e-5, name + ": every swept vertex matches source (error " + positionError + ")");
-                check(normalError < 1e-5, name + ": swept normals match source (error " + normalError + ")");
+                check(positionError < .001, name + ": every swept vertex within 1 mm of source (error " + positionError + ")");
+                check(normalError < .0002, name + ": swept normals match source (error " + normalError + ")");
                 bool topology = true;
                 for (int i = 0; i < surface.Indices.Length; i += 3)
                     topology &= surface.Indices[i] == indices[i].GetInt32() && surface.Indices[i + 1] == indices[i + 2].GetInt32() && surface.Indices[i + 2] == indices[i + 1].GetInt32();
@@ -53,7 +55,7 @@ public static class TrackGeometryChecks
                 var source = batches[b];
                 var transforms = source.GetProperty("transforms");
                 check(batch.Counts.SequenceEqual(source.GetProperty("counts").EnumerateArray().Select(n => n.GetInt32())), name + ": LOD counts match");
-                check(batch.Center.DistanceTo(JsonData.Vector(source.GetProperty("center"))) < 1e-5, name + ": LOD batch center matches");
+                check(batch.Center.DistanceTo(JsonData.Vector(source.GetProperty("center"))) < .001, name + ": LOD batch center within 1 mm");
                 double error = 0;
                 for (int i = 0; i < batch.Transforms.Length; i++)
                 {
@@ -64,7 +66,7 @@ public static class TrackGeometryChecks
                     error = Math.Max(error, Math.Max(actual.Basis.X.DistanceTo(Column(0)), Math.Max(actual.Basis.Y.DistanceTo(Column(1)), actual.Basis.Z.DistanceTo(Column(2)))));
                     check(actual.Basis.X.Y == 0 && actual.Basis.Y.Y >= 0, name + ": sleepers have no superelevation");
                 }
-                check(error < 1e-5, name + ": sleeper positions and frames match (error " + error + ")");
+                check(error < .001, name + ": sleeper positions and frames within 1 mm of source (error " + error + ")");
             }
             foreach (var lod in reference.GetProperty("lod").EnumerateArray())
                 check(geometry.Sleepers[0].Update(lod.GetProperty("distance").GetDouble()) == lod.GetProperty("count").GetInt32(), name + ": sleeper LOD hysteresis matches");

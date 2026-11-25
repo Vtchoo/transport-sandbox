@@ -43,6 +43,9 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "track-arcs":
+                    TrackArcChecks.Run(Check, _args.GetValueOrDefault("save"));
+                    break;
                 case "walking":
                     WalkingChecks.Run(Check, this);
                     break;
@@ -252,6 +255,7 @@ public partial class TestRunner : Node
         ClearanceChecks.Run(Check);
         BridgeChecks.Core(Check);
         TrackGeometryChecks.Run(Check);
+        TrackArcChecks.Run(Check);
         NodeHoverChecks.ParallelSourceParity(Check);
         var fixtures = JsonData.Read("res://tests/terrain-fixtures.json");
         foreach (var reference in fixtures.GetProperty("cases").EnumerateArray())

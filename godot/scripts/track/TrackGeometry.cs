@@ -32,66 +32,54 @@ public readonly record struct TrackFrame(TrackVector Right, TrackVector Up, Trac
     }
 }
 
-/// <summary>The browser curve's 512-step arc table and finite-difference tangents, in double precision.</summary>
+/// <summary>Immutable, error-controlled cubic arc table. All distances are metres.</summary>
 public sealed class TrackCurve
 {
-    public TrackVector[] Controls
-    {
-        get;
-    }
-    private readonly double[] _lengths = new double[513];
+    public TrackVector[] Controls { get; }
+    private readonly double[] _parameters, _lengths;
+    private readonly TrackVector _linear, _quadratic, _cubic;
     public double Length => _lengths[^1];
+    internal int SampleCount => _lengths.Length;
     public TrackCurve(Vector3[] controls) : this(controls.Select(TrackVector.From).ToArray()) { }
     public TrackCurve(TrackVector[] controls)
     {
         if (controls.Length != 4)
             throw new ArgumentException("A cubic track requires four control points.");
         Controls = controls.ToArray();
-        var last = Point(0);
-        for (int i = 1; i <= 512; i++)
-        {
-            var point = Point(i / 512.0);
-            _lengths[i] = _lengths[i - 1] + (point - last).Length;
-            last = point;
-        }
+        var a = Controls[1] - Controls[0]; var b = Controls[2] - Controls[0]; var c = Controls[3] - Controls[0];
+        _linear = a * 3;
+        _quadratic = (b - a * 2) * 3;
+        _cubic = c - b * 3 + a * 3;
+        var table = TrackArcTable.Build(Controls[0], Controls[1], Controls[2], Controls[3]);
+        _parameters = table.Parameters;
+        _lengths = table.Lengths;
     }
     public TrackVector Point(double t)
     {
-        double u = 1 - t;
-        return Controls[0] * (u * u * u) + Controls[1] * (3 * u * u * t) + Controls[2] * (3 * u * t * t) + Controls[3] * (t * t * t);
+        return new(Controls[0].X + ((_cubic.X * t + _quadratic.X) * t + _linear.X) * t,
+            Controls[0].Y + ((_cubic.Y * t + _quadratic.Y) * t + _linear.Y) * t,
+            Controls[0].Z + ((_cubic.Z * t + _quadratic.Z) * t + _linear.Z) * t);
     }
     private double Map(double u)
     {
-        if (Length <= 1e-12)
-            return u;
+        if (u <= 0) return 0;
+        if (u >= 1) return 1;
+        if (Length <= 1e-12) return u;
         double target = u * Length;
-        int low = 0, high = 512;
-        while (low <= high)
+        int low = 0, high = _lengths.Length - 1;
+        while (high - low > 1)
         {
-            int middle = low + (high - low) / 2;
-            double comparison = _lengths[middle] - target;
-            if (comparison < 0)
-                low = middle + 1;
-            else if (comparison > 0)
-                high = middle - 1;
-            else
-            {
-                high = middle;
-                break;
-            }
+            int middle = (low + high) / 2;
+            if (_lengths[middle] <= target) low = middle;
+            else high = middle;
         }
-        int index = high;
-        if (_lengths[index] == target)
-            return index / 512.0;
-        return (index + (target - _lengths[index]) / (_lengths[index + 1] - _lengths[index])) / 512;
+        double span = _lengths[high] - _lengths[low];
+        return span <= 0 ? _parameters[low] : _parameters[low]
+            + (target - _lengths[low]) / span * (_parameters[high] - _parameters[low]);
     }
     public TrackVector PointAt(double u) => Point(Map(u));
     public TrackVector Tangent(double t) => (Point(Math.Min(1, t + .0001)) - Point(Math.Max(0, t - .0001))).Unit();
-    public TrackFrame FrameAt(double u)
-    {
-        double t = Map(u);
-        return TrackFrame.From((Point(Math.Min(1, t + .0001)) - Point(Math.Max(0, t - .0001))).Unit());
-    }
+    public TrackFrame FrameAt(double u) => TrackFrame.From(Tangent(Map(u)));
 }
 
 public sealed record TrackSurface(string Name, Vector3[] Vertices, Vector3[] Normals, int[] Indices)
