@@ -41,5 +41,15 @@
       { "id": "brightline-venture-smart" },
       { "id": "brightline-scb40", "reversed": true }
     ]
+  },
+  {
+    "id": "pacific-express",
+    "gauge": 1435,
+    "vehicles": [
+      { "id": "na-pacific-462" },
+      { "id": "atsf-coach" },
+      { "id": "atsf-coach" },
+      { "id": "atsf-coach" }
+    ]
   }
 ]

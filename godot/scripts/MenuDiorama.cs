@@ -138,17 +138,61 @@ public partial class MenuDiorama : Node3D
             Scenery.AddChild(Track);
             Track.Markers.Hide();
             Track._Process(0);
-            Scenery.AddChild(new MeshInstance3D
-            {
-                Name = "Ground",
-                Mesh = new PlaneMesh { Size = new(1800, 1800) },
-                Position = new(0, -0.66f, 0),
-                MaterialOverride = TrackRenderer.Material(new("6c8050"))
-            });
+            Scenery.AddChild(CreateGround());
             Scenery.AddChild(new StationScenery(half) { Position = new(0, 0, (float)stationCenter) });
             Scenery.AddChild(TreeScenery.CreateWoodland());
+            Scenery.AddChild(CreateArrivalWoodland());
         }
         UpdateArrival(0);
+    }
+    private static MeshInstance3D CreateGround()
+    {
+        // Share gameplay's grass palette, world-space grain, lighting and distance fog.
+        using var plane = new PlaneMesh { Size = new(1800, 1800), SubdivideWidth = 89, SubdivideDepth = 89 };
+        using var arrays = plane.GetMeshArrays();
+        var vertices = arrays[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+        var colors = new Color[vertices.Length];
+        var settings = new WorldSettings();
+        var sampler = new Terrain.TerrainSampler(settings.Seed, settings.MountainHeight, settings.HorizontalScale, settings.SeaLevel);
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            // A flat meadow above the shore band, without alpine or exposed-rock blending.
+            var color = sampler.Color(vertices[i].X, vertices[i].Z, settings.SeaLevel + 20, 0);
+            colors[i] = new Color((float)color.R, (float)color.G, (float)color.B).LinearToSrgb();
+        }
+        arrays[(int)Mesh.ArrayType.Color] = colors;
+        var mesh = new ArrayMesh();
+        mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+        return new MeshInstance3D
+        {
+            Name = "Ground",
+            Mesh = mesh,
+            Position = new(0, -.66f, 0),
+            MaterialOverride = new ShaderMaterial { Shader = GD.Load<Shader>("res://shaders/terrain.gdshader") }
+        };
+    }
+    private TreeChunk CreateArrivalWoodland()
+    {
+        var trees = new List<TreeData>();
+        // Screen the entire initial footprint of the longest train, then let it emerge
+        // around the bend. Low conifers fill the gaps beneath the taller canopy.
+        double end = Math.Min(_approach.Length - 60, _longestConsist + 110);
+        for (double distance = 0; distance <= end; distance += 7)
+        {
+            var point = _approach.PointAt(distance / _approach.Length).Float();
+            var right = _approach.FrameAt(distance / _approach.Length).Right.Float();
+            for (int row = 0; row < 4; row++)
+            {
+                float side = row == 3 ? -11 : 11 + row * 8;
+                double phase = distance * .71 + row * 5.3;
+                var position = point + right * (side + (float)Math.Sin(phase));
+                float height = 17 + (float)Math.Cos(phase) * 2;
+                trees.Add(new(position.X, -.65f, position.Z, height, 7, (float)phase, 1));
+                trees.Add(new(position.X + right.X, -.65f, position.Z + right.Z,
+                    7 + (float)Math.Sin(phase), 5, (float)(phase + 1), 1));
+            }
+        }
+        return TreeScenery.Create(trees, "ArrivalWoodland");
     }
     public void UpdateCamera(double timeMs, double aspect)
     {
