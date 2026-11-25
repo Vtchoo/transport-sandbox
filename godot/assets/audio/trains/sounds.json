@@ -9,6 +9,7 @@
     "ge-809": { "engine": "testing/dash9.wav", "engineProfile": "ge", "horn": "testing/horn-ge.wav" },
     "tgv-sud-est-power": { "engine": "testing/electric.wav", "engineProfile": "electric", "horn": "testing/horn-electric.wav" },
     "drgw-consolidation": { "engine": "testing/steam-idle.wav", "chuffs": ["testing/chuff-a.wav", "testing/chuff-b.wav", "testing/chuff-c.wav", "testing/chuff-d.wav"], "horn": "testing/whistle-steam.wav" },
-    "na-pacific-462": {"engine": "testing/steam-idle.wav", "chuffs": ["testing/chuff-a.wav", "testing/chuff-b.wav", "testing/chuff-c.wav", "testing/chuff-d.wav"], "horn": "testing/whistle-steam.wav"}
+    "na-pacific-462": {"engine": "testing/steam-idle.wav", "chuffs": ["testing/chuff-a.wav", "testing/chuff-b.wav", "testing/chuff-c.wav", "testing/chuff-d.wav"], "horn": "testing/whistle-steam.wav"},
+    "brightline-scb40": {"engine": "testing/dash9.wav", "engineProfile": "ge", "horn": "testing/horn-ge.wav"}
   }
 }
