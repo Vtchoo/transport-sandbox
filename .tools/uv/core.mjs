@@ -107,7 +107,12 @@ function orient(uv,triangles) {
     const lo=[Infinity,Infinity],hi=[-Infinity,-Infinity];for(const p of result)for(let k=0;k<2;k++){lo[k]=Math.min(lo[k],p[k]);hi[k]=Math.max(hi[k],p[k]);}
     const width=hi[0]-lo[0],height=hi[1]-lo[1],area=width*height;
     if(!best||area<best.area-1e-10||(Math.abs(area-best.area)<1e-10&&width>best.width))best={uv:result.map(p=>p.map((x,k)=>x-lo[k])),width,height,area};
-  }return best;
+  }
+  // The conformal solution uses Y-up coordinates; island points are canvas
+  // Y-down. Reflect here so updateUVs' bottom-left conversion preserves the
+  // source triangle winding instead of mirroring every exported chart.
+  best.uv=best.uv.map(([x,y])=>[x,best.height-y]);
+  return best;
 }
 export function unwrap(faces,topology,seams,selected,{size=4096,padding=16,method='conformal'}={},progress=()=>{}) {
   if(!selected.size)throw new Error('Select at least one face.');

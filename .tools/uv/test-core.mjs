@@ -11,6 +11,12 @@ test('conformal rectangle preserves angles, shared edge and relative lengths',()
   assert.ok(Math.abs(a[0]*b[0]+a[1]*b[1])<1e-7);assert.ok(Math.abs(Math.hypot(...a)/Math.hypot(...b)-2)<1e-6);
   assert.deepEqual(atlasIssues(r),[]);
 });
+test('exported UVs preserve outside-facing winding, avoiding mirrored textures',()=>{
+  for(const method of ['conformal','projection']){
+    const r=unwrap(square,buildTopology(square),new Set(),new Set([0,1]),{size:1024,padding:8,method});
+    for(const uv of r.uvByFace){const [a,b,c]=uv,signed=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);assert.ok(signed>0,`${method} must keep the positive source-face orientation in bottom-left UV coordinates`);}
+  }
+});
 test('marked diagonal disconnects faces and duplicates its UVs',()=>{
   const t=buildTopology(square),diagonal=[...t.edges.values()].find(e=>e.uses.length===2),seams=new Set([diagonal.key]);
   assert.equal(connectedFaces(0,t,seams).size,1);const r=unwrap(square,t,seams,new Set([0,1]),{size:1024,padding:8});assert.equal(r.islands.length,2);assert.notDeepEqual(r.uvByFace[0][0],r.uvByFace[1][0]);assert.deepEqual(atlasIssues(r),[]);
