@@ -15,37 +15,56 @@ from PIL import Image, ImageDraw, ImageFont
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--version', default='v5')
 parser.add_argument('--iteration', default='01-initial')
+parser.add_argument('--model', type=Path)
+parser.add_argument('--texture', type=Path)
+parser.add_argument('--source-version', help='Authored DAE kit used to trace unchanged geometry')
+parser.add_argument('--output', type=Path)
 args = parser.parse_args()
-output = ROOT / f'.files/f7a/uv-paint-only/{args.version}/iterations/{args.iteration}'
+source_version = args.source_version or args.version
+output = args.output or ROOT / f'.files/f7a/uv-paint-only/{args.version}/iterations/{args.iteration}'
 output.mkdir(parents=True, exist_ok=True)
-data = (ROOT / 'godot/assets/vehicles/emd-f7a-1435.glb').read_bytes()
+data = (args.model or ROOT / 'godot/assets/vehicles/emd-f7a-1435.glb').read_bytes()
 length = struct.unpack_from('<I', data, 12)[0]
 gltf = json.loads(data[20:20+length])
 binary = data[28+length:]
-texture = np.asarray(Image.open(ROOT / f'.files/f7a/f7a {args.version} santa fe.png').convert('RGB'))
+texture = np.asarray(Image.open(args.texture or ROOT / f'.files/f7a/f7a {args.version} santa fe.png').convert('RGB'))
 
 def accessor(index):
     a = gltf['accessors'][index]; v = gltf['bufferViews'][a['bufferView']]
     types = {5126: '<f4', 5125: '<u4', 5123: '<u2', 5121: 'u1'}
     count = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3}[a['type']]
-    return np.frombuffer(binary, dtype=types[a['componentType']], count=a['count']*count,
-                         offset=v.get('byteOffset', 0)+a.get('byteOffset', 0)).reshape(-1, count)
+    dtype=np.dtype(types[a['componentType']])
+    return np.ndarray((a['count'],count),dtype=dtype,buffer=binary,
+                      offset=v.get('byteOffset',0)+a.get('byteOffset',0),
+                      strides=(v.get('byteStride',count*dtype.itemsize),dtype.itemsize)).copy()
 
 triangles, texcoords, colors, painted = [], [], [], []
 def visit(index, parent):
     node = gltf['nodes'][index]
     local = np.array(node.get('matrix', np.eye(4).T.flatten())).reshape(4, 4).T
-    if 'translation' in node: local[:3, 3] = node['translation']
+    if 'matrix' not in node:
+        x,y,z,w=node.get('rotation',[0,0,0,1])
+        local[:3,:3]=np.array([[1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w)],
+                              [2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w)],
+                              [2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)]])@np.diag(node.get('scale',[1,1,1]))
+        local[:3,3]=node.get('translation',[0,0,0])
     world = parent @ local
     if 'mesh' in node:
         for primitive in gltf['meshes'][node['mesh']]['primitives']:
+            if primitive.get('mode',4) != 4: continue
             a = primitive['attributes']; p = accessor(a['POSITION'])
             p = (np.column_stack((p, np.ones(len(p)))) @ world.T)[:, :3]
             indices = accessor(primitive['indices']).flatten() if 'indices' in primitive else np.arange(len(p))
             t = p[indices].reshape(-1, 3, 3)
             m = gltf['materials'][primitive['material']]
-            uses = 'TEXCOORD_0' in a
+            info=m.get('pbrMetallicRoughness',{}).get('baseColorTexture')
+            uses = 'TEXCOORD_0' in a and info is not None
             uv = accessor(a['TEXCOORD_0'])[indices].reshape(-1, 3, 2) if uses else np.zeros((len(t), 3, 2))
+            if uses:
+                transform_uv=info.get('extensions',{}).get('KHR_texture_transform',{})
+                uv=uv*np.array(transform_uv.get('scale',[1,1]))
+                angle=transform_uv.get('rotation',0);c,s=np.cos(angle),np.sin(angle)
+                uv=uv@np.array([[c,s],[-s,c]])+np.array(transform_uv.get('offset',[0,0]))
             color = m['pbrMetallicRoughness'].get('baseColorFactor', [1, 1, 1, 1])[:3]
             color = {'metal-stainless': [.77, .79, .80], 'metal-dark': [.16, .18, .20], 'glass-tinted': [.10, .19, .24]}.get(m.get('name'), color)
             triangles.extend(t); texcoords.extend(uv); colors.extend([color]*len(t)); painted.extend([uses]*len(t))
@@ -56,7 +75,7 @@ triangles, texcoords, colors, painted = map(np.asarray, (triangles, texcoords, c
 # Trace painted GLB triangles back to the UV copy's authored material groups.
 helpers = runpy.run_path(str(ROOT/'scripts/generate-dash9-uv.py'))
 Q, transform, positions = (helpers[k] for k in ('Q', 'transform', 'positions'))
-dae = ET.parse(ROOT/f'.files/f7a/uv-paint-only/{args.version}/f7a-{args.version}-uv.dae').getroot()
+dae = ET.parse(ROOT/f'.files/f7a/uv-paint-only/{source_version}/f7a-{source_version}-uv.dae').getroot()
 unit = float(dae.find(f"{Q('asset')}/{Q('unit')}").get('meter', '1'))
 geometries = {g.get('id'): g for g in dae.findall(f"{Q('library_geometries')}/{Q('geometry')}")}
 names = {m.get('id'): m.get('name', '') for m in dae.findall(f"{Q('library_materials')}/{Q('material')}")}
@@ -79,6 +98,17 @@ def source_visit(node, parent):
     for child in node.findall(Q('node')): source_visit(child, world)
 for scene in dae.findall(f"{Q('library_visual_scenes')}/{Q('visual_scene')}"):
     for node in scene.findall(Q('node')): source_visit(node, np.eye(4))
+# Float32 GLB serialization can move coordinates across a four-decimal rounding
+# boundary. Resolve only unmatched triangles using a bounded geometric match.
+if args.model:
+    source_keys=list(groups);source_points=np.asarray(source_keys);centers=source_points.mean(axis=1)
+    for tri,uses in zip(triangles,painted):
+        if not uses or key(tri) in groups:continue
+        candidates=np.flatnonzero(np.linalg.norm(centers-tri.mean(axis=0),axis=1)<.0002)
+        for candidate in candidates:
+            distance=np.linalg.norm(tri[:,None,:]-source_points[candidate][None,:,:],axis=2)
+            if max(distance.min(axis=0).max(),distance.min(axis=1).max())<.00015:
+                groups[key(tri)]=groups[source_keys[candidate]];break
 face_map = [{'group': groups.get(key(tri), 'UNMATCHED'), 'center': tri.mean(axis=0).tolist(), 'uv': uv.tolist()}
             for tri, uv, uses in zip(triangles, texcoords, painted) if uses]
 (output/'paint-face-map.json').write_text(json.dumps(face_map, indent=2)+'\n')
@@ -87,8 +117,8 @@ assert all(f['group'] != 'UNMATCHED' for f in face_map), 'Every painted runtime 
 # Check the actual exported coordinates, rather than trusting guide labels.
 # Opposite outside views require opposite longitudinal UV handedness so text
 # reads normally on both sides of the vehicle.
-report = json.loads((ROOT/f'.files/f7a/uv-paint-only/{args.version}/uv-report.json').read_text())
-if report.get('unfolded'):
+report = json.loads((ROOT/f'.files/f7a/uv-paint-only/{source_version}/uv-report.json').read_text())
+if report.get('unfolded') and source_version == args.version:
     assignments = report['groupViewAssignments']
     checked = {'left': 0, 'right': 0}
     for tri, uv, uses in zip(triangles, texcoords, painted):

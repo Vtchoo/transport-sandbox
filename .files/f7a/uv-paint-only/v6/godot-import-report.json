@@ -1,0 +1,54 @@
+{
+  "id": "emd-f7a",
+  "name": "F7A",
+  "source": "/D:/Documentos/DEV/projetos/transport-sandbox/.files/f7a/uv-paint-only/v5/f7a-v5-uv.dae",
+  "sourceSha256": "cc049ca58ee59f2dde054eabbf78370c93f2b594fd254ab749eca5ffeb384f47",
+  "version": "v6",
+  "mapping": "/D:/Documentos/DEV/projetos/transport-sandbox/.files/f7a/uv-paint-only/v6/corrected/f7a-v6-uv-map.json",
+  "mappingSha256": "825190de0ec3fd81d9ab060ae2264d2b0d5da464d7b782971d2deec3c528fd03",
+  "textureSha256": "be00114c3ac6ab186442ab28a2320b66744fd2ff26f2606ee4d9bed94bd7a2bf",
+  "paintedTriangles": 948,
+  "solidTriangles": 5859,
+  "degenerateTriangles": 177,
+  "wheelsetCount": 4,
+  "bounds": {
+    "minimum": [
+      -1.5986000299453735,
+      -0.07062317562103337,
+      -7.171600818634033
+    ],
+    "maximum": [
+      1.5986000299453735,
+      4.482706069946289,
+      7.702277660369873
+    ],
+    "size": [
+      3.197200059890747,
+      4.553329245567323,
+      14.873878479003906
+    ]
+  },
+  "pivots": {
+    "body": [
+      0,
+      0,
+      0
+    ],
+    "bogie-front": [
+      0,
+      -1.0151879337172432e-15,
+      4.572
+    ],
+    "bogie-rear": [
+      0,
+      1.0151879337172432e-15,
+      -4.572
+    ]
+  },
+  "placementLength": 15.4432,
+  "bogieCenters": 9.144,
+  "textureSize": [
+    1254,
+    1254
+  ]
+}

@@ -12,10 +12,18 @@ const require = createRequire(new URL('web/package.json', root));
 const THREE = await import(pathToFileURL(require.resolve('three')).href);
 const { DOMParser } = require('linkedom');
 const { ColladaLoader } = await import(pathToFileURL(require.resolve('three/addons/loaders/ColladaLoader.js')).href);
-const version = process.argv.find(a => a.startsWith('--version='))?.slice(10) ?? 'v5';
+const version = process.argv.find(a => a.startsWith('--version='))?.slice(10) ?? 'v6';
 assert.match(version, /^v\d+$/, 'Version must be v followed by digits');
 const kit = new URL(`.files/f7a/uv-paint-only/${version}/`, root);
-const source = new URL(`f7a-${version}-uv.dae`, kit);
+// V6 is a manual UV Workshop layout on the unchanged v5 authored geometry.
+// Normalize that geometry through the same runtime importer, replacing only UVs.
+const geometryKit = version === 'v6' ? new URL('.files/f7a/uv-paint-only/v5/', root) : kit;
+const source = new URL(`f7a-${version === 'v6' ? 'v5' : version}-uv.dae`, geometryKit);
+const mappingBytes = version === 'v6' ? await readFile(new URL('corrected/f7a-v6-uv-map.json', kit)) : null;
+const mappedFaces = mappingBytes ? JSON.parse(mappingBytes).faces.filter(f => f.uv !== null).map(f => ({
+  ...f, center: new THREE.Vector3(...f.p[0]).add(new THREE.Vector3(...f.p[1])).add(new THREE.Vector3(...f.p[2])).divideScalar(3)
+})) : null;
+const usedFaces = new Set();
 const texture = new URL(`.files/f7a/f7a ${version} santa fe.png`, root);
 const target = new URL('godot/assets/vehicles/emd-f7a-1435.glb', root);
 const bytes = await readFile(source), png = await readFile(texture);
@@ -100,6 +108,18 @@ for (const [part, nativeName, station] of [['body', 'body', 0], ['bogie-front', 
         if (area.lengthSq() < 1e-20) { degenerateTriangles++; continue; }
         const normal = new THREE.Vector3().fromBufferAttribute(geometry.attributes.normal, start + order[0]);
         if (area.dot(normal) < 0) [order[1], order[2]] = [order[2], order[1]];
+        let manualFace;
+        if (painted && mappedFaces) {
+          const worldVertices = vertices.map(p => wheel ? p.clone().applyMatrix4(wheel.world) : p.clone().add(new THREE.Vector3(0, 0, origin.z)));
+          const center = worldVertices.reduce((sum, p) => sum.add(p), new THREE.Vector3()).divideScalar(3);
+          const winding = worldVertices[1].clone().sub(worldVertices[0]).cross(worldVertices[2].clone().sub(worldVertices[0]));
+          let candidates = mappedFaces.filter(f => !usedFaces.has(f.id) && f.center.distanceToSquared(center) < 1e-7 &&
+            worldVertices.every(p => f.p.some(q => p.distanceToSquared(new THREE.Vector3(...q)) < 2.25e-8)));
+          if (candidates.length > 1) candidates = candidates.filter(f =>
+            new THREE.Vector3(...f.p[1]).sub(new THREE.Vector3(...f.p[0])).cross(new THREE.Vector3(...f.p[2]).sub(new THREE.Vector3(...f.p[0]))).dot(winding) > 0);
+          assert.equal(candidates.length, 1, 'Every paint triangle must match exactly one corrected v6 triangle with the same facing');
+          manualFace = candidates[0]; usedFaces.add(manualFace.id);
+        }
         for (const offset of order) {
           const i = start + offset, p = new THREE.Vector3().fromBufferAttribute(geometry.attributes.position, i);
           positions.push(...p.toArray());
@@ -108,7 +128,9 @@ for (const [part, nativeName, station] of [['body', 'body', 0], ['bogie-front', 
           bounds.expandByPoint(world);
           if (painted) {
             assert.ok(geometry.attributes.uv, 'Painted faces require UVs');
-            const u = geometry.attributes.uv.getX(i), v = geometry.attributes.uv.getY(i);
+            const corner = manualFace ? manualFace.p.map(q => world.distanceToSquared(new THREE.Vector3(...q)))
+              .reduce((best, distance, index, distances) => distance < distances[best] ? index : best, 0) : null;
+            const [u, v] = manualFace ? manualFace.uv[corner] : [geometry.attributes.uv.getX(i), geometry.attributes.uv.getY(i)];
             assert.ok(Number.isFinite(u) && Number.isFinite(v) && u >= 0 && u <= 1 && v >= 0 && v <= 1);
             uv.push(u, 1 - v); // COLLADA bottom-left to glTF image coordinates.
           }
@@ -139,7 +161,8 @@ for (const [part, nativeName, station] of [['body', 'body', 0], ['bogie-front', 
   });
 }
 assert.equal(wheelsetCount, 4);
-const uvReport = JSON.parse(await readFile(new URL('uv-report.json', kit)));
+const uvReport = JSON.parse(await readFile(new URL('uv-report.json', geometryKit)));
+if (mappedFaces) assert.equal(usedFaces.size, mappedFaces.length, 'All corrected v6 triangles must be imported exactly once');
 assert.equal(paintedTriangles, uvReport.paintedTriangles, 'All marked paint faces must survive import');
 assert.equal(paintedTriangles + solidTriangles + degenerateTriangles, uvReport.triangles, 'Every source triangle must be accounted for');
 const padding = (4 - length % 4) % 4;
@@ -176,6 +199,7 @@ await writeFile(catalogPath, updateArrayEntry(catalogRaw, definition.id, definit
 assert.ok(JSON.parse(updatedSounds).vehicles[definition.id]);
 await writeFile(soundsPath, updatedSounds);
 const report = { id: definition.id, name: definition.name, source: source.pathname, sourceSha256: createHash('sha256').update(bytes).digest('hex'),
+  version, ...(mappingBytes ? { mapping: new URL('corrected/f7a-v6-uv-map.json', kit).pathname, mappingSha256: createHash('sha256').update(mappingBytes).digest('hex') } : {}),
   textureSha256: createHash('sha256').update(png).digest('hex'), paintedTriangles, solidTriangles, degenerateTriangles, wheelsetCount,
   bounds: { minimum: bounds.min.toArray(), maximum: bounds.max.toArray(), size: size.toArray() }, pivots,
   placementLength: definition.length, bogieCenters: definition.bogieCenters, textureSize: [png.readUInt32BE(16), png.readUInt32BE(20)] };
