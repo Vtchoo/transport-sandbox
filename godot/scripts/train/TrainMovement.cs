@@ -265,12 +265,20 @@ public partial class TrainEditor
             }
         }
     }
-    private static VehiclePose BlendPose(VehiclePose previous, VehiclePose current, float weight)
+    internal static VehiclePose BlendPose(VehiclePose previous, VehiclePose current, float weight)
     {
         if (previous.Sections.Length != current.Sections.Length) return current;
         var sections = current.Sections.Length == 0 ? Array.Empty<VehiclePose>() : new VehiclePose[current.Sections.Length];
         for (int i = 0; i < sections.Length; i++) sections[i] = BlendPose(previous.Sections[i], current.Sections[i], weight);
+        var parts=current.ArticulatedParts;
+        if(previous.ArticulatedParts is { } a && parts is { } b && a.Length==b.Length)
+        {
+            parts=new ArticulatedPartPose[b.Length];
+            for(int i=0;i<parts.Length;i++)
+                parts[i]=new(b[i].Node,a[i].Position.Lerp(b[i].Position,weight),a[i].Direction.Lerp(b[i].Direction,weight).Normalized());
+        }
         return new(previous.Center.Lerp(current.Center, weight), previous.Front.Lerp(current.Front, weight), previous.Rear.Lerp(current.Rear, weight),
-            previous.FrontDirection.Lerp(current.FrontDirection, weight).Normalized(), previous.RearDirection.Lerp(current.RearDirection, weight).Normalized(), sections);
+            previous.FrontDirection.Lerp(current.FrontDirection, weight).Normalized(), previous.RearDirection.Lerp(current.RearDirection, weight).Normalized(), sections,parts,
+            current.BodyOrigin is { } origin ? (previous.BodyOrigin ?? previous.BodyCenter).Lerp(origin,weight) : null);
     }
 }

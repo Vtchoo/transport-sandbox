@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="76" viewBox="0 0 240 76">
+<g stroke="#899297" stroke-width="1">
+<path fill="#282d31" d="M8 42V24H27V15H119V21H139V46H8Z"/><path fill="#4f585d" d="M8 24H31V43H8Z"/>
+<path fill="#22272b" d="M150 25H232V48H150Z"/><path fill="#101619" d="M150 25L158 16H177L185 25Z"/>
+<path d="M16 24V15H21V24M24 24V15H29V24" fill="#343c41"/>
+<g fill="#182027">
+<circle cx="34" cy="49" r="6.5"/><circle cx="45" cy="49" r="6.5"/><circle cx="56" cy="49" r="6.5"/><circle cx="67" cy="49" r="6.5"/>
+<circle cx="84" cy="49" r="6.5"/><circle cx="95" cy="49" r="6.5"/><circle cx="106" cy="49" r="6.5"/><circle cx="117" cy="49" r="6.5"/>
+<circle cx="12" cy="51" r="4"/><circle cx="21" cy="51" r="4"/><circle cx="130" cy="51" r="4"/><circle cx="140" cy="51" r="4"/>
+<circle cx="154" cy="52" r="5"/><circle cx="165" cy="52" r="5"/><circle cx="180" cy="52" r="5"/><circle cx="191" cy="52" r="5"/><circle cx="202" cy="52" r="5"/><circle cx="213" cy="52" r="5"/><circle cx="224" cy="52" r="5"/>
+</g><path d="M34 51H67M84 51H117" stroke="#c9cdcb" stroke-width="2"/></g>
+<text x="190" y="39" text-anchor="middle" fill="#ece8d9" font-family="sans-serif" font-size="8">UNION PACIFIC</text>
+</svg>

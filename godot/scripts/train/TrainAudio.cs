@@ -17,6 +17,7 @@ public partial class TrainAudio : Node3D
     private readonly Dictionary<string, (AudioStreamWav? Engine, AudioStreamWav? Chuff, AudioStreamWav? Horn)> _models = new();
     private readonly Dictionary<string, AudioStreamWav?> _wheelOverrides = new();
     private readonly Dictionary<string, AudioStreamWav[]> _chuffs = new();
+    private readonly Dictionary<string, (double[] Phases, double Radius)> _chuffEngines = new();
     private readonly Dictionary<string, EngineSoundProfile> _engineProfiles = new();
     private readonly Dictionary<int, Voice> _horns = new();
     private readonly HashSet<int> _presentHorns = new();
@@ -52,7 +53,9 @@ public partial class TrainAudio : Node3D
         public float WheelOffset;
         public Node3D? ChuffRoot;
         public AudioStreamPlayer3D[] Chuffs = Array.Empty<AudioStreamPlayer3D>();
-        public readonly SteamChuffClock ChuffClock = new();
+        public SteamChuffClock[] ChuffClocks = { new() };
+        public double[] ChuffPhases = { 0 };
+        public double ChuffRadius = .65;
         public int ChuffIndex;
         public double FallbackTurns;
         public EngineAudioController? Engine;
@@ -73,6 +76,9 @@ public partial class TrainAudio : Node3D
         if (config.TryGetProperty("departureHornChance", out var chance)) DepartureHornChance = Math.Clamp(chance.GetDouble(), 0, 1);
         foreach (var entry in config.GetProperty("vehicles").EnumerateObject())
         {
+            if (entry.Value.TryGetProperty("chuffPhases", out var phases))
+                _chuffEngines[entry.Name]=(phases.EnumerateArray().Select(p=>p.GetDouble()).ToArray(),
+                    entry.Value.TryGetProperty("chuffWheelRadius",out var radius)?radius.GetDouble():.65);
             _models[entry.Name] = (LoadLoop(entry.Value.GetProperty("engine").GetString()!),
                 entry.Value.TryGetProperty("chuff", out var chuff) ? LoadLoop(chuff.GetString()!) : null,
                 entry.Value.TryGetProperty("horn", out var horn) ? LoadLoop(horn.GetString()!, loop: false) : null);
@@ -259,6 +265,11 @@ public partial class TrainAudio : Node3D
             WheelPitch = .975f + (float)_random.NextDouble() * .05f,
             WheelOffset = (float)(_random.NextDouble() * (rolling?.GetLength() ?? 0))
         };
+        if (_chuffEngines.TryGetValue(model,out var engines))
+        {
+            voice.ChuffPhases=engines.Phases;voice.ChuffRadius=engines.Radius;
+            voice.ChuffClocks=engines.Phases.Select(_=>new SteamChuffClock()).ToArray();
+        }
         if (_engineProfiles.TryGetValue(model, out var engineProfile)) voice.Engine = new(engineProfile);
         if (_chuffs.TryGetValue(model, out var chuffs) && chuffs.Length > 0)
         {
@@ -325,10 +336,12 @@ public partial class TrainAudio : Node3D
     private void UpdateChuffs(Voice voice, TrainAudioVehicle vehicle, double delta, float doppler)
     {
         if (voice.Chuffs.Length == 0) return;
-        voice.FallbackTurns += vehicle.Speed * Math.Min(delta, .1) / (Math.Tau * .65);
-        int beats = voice.ChuffClock.Advance(double.IsFinite(vehicle.WheelTurns) ? vehicle.WheelTurns : voice.FallbackTurns);
+        voice.FallbackTurns += vehicle.Speed * Math.Min(delta, .1) / (Math.Tau * voice.ChuffRadius);
+        double turns=double.IsFinite(vehicle.WheelTurns)?vehicle.WheelTurns:voice.FallbackTurns;
+        int beats=0;
+        for(int i=0;i<voice.ChuffClocks.Length;i++) beats+=voice.ChuffClocks[i].Advance(turns+voice.ChuffPhases[i]);
         float gain = Settings.Muted ? 0 : (.05f + .15f * (float)Math.Clamp(vehicle.Effort, 0, 1))
-            * Math.Clamp(MasterVolume, 0, 1) * Math.Clamp(Settings.Engines, 0, 1);
+            * Math.Clamp(MasterVolume, 0, 1) * Math.Clamp(Settings.Engines, 0, 1) / MathF.Sqrt(voice.ChuffClocks.Length);
         foreach (var player in voice.Chuffs)
         {
             player.GlobalPosition = vehicle.Position + Vector3.Up * 2;

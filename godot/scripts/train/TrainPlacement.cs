@@ -7,9 +7,9 @@ namespace TransportSandbox;
 
 public readonly record struct TrainPosition(int Edge, double U, int Facing = 1, int RouteIndex = 0);
 public readonly record struct TrainSample(Vector3 Point, Vector3 Tangent, TrainPosition Position);
-public sealed record VehiclePose(Vector3 Center, Vector3 Front, Vector3 Rear, Vector3 FrontDirection, Vector3 RearDirection, VehiclePose[] Sections)
+public sealed record VehiclePose(Vector3 Center, Vector3 Front, Vector3 Rear, Vector3 FrontDirection, Vector3 RearDirection, VehiclePose[] Sections, ArticulatedPartPose[]? ArticulatedParts = null, Vector3? BodyOrigin = null)
 {
-    public Vector3 BodyCenter => (Front + Rear) / 2;
+    public Vector3 BodyCenter => BodyOrigin ?? (Front + Rear) / 2;
     public Basis Basis => TrackRenderer.Frame(Front - Rear);
 }
 /// <summary>Arc-distance walking, signed connections, station-end snapping and footprints ported from placement.ts.</summary>
@@ -61,12 +61,19 @@ public sealed class TrainPlacement : IDisposable
         if (!definition.Models.ContainsKey(edge.Gauge)) throw new InvalidOperationException("This train is incompatible with this track gauge.");
         position = position with { Facing = position.Facing * facing };
         sample(position, definition.Length / 2); sample(position, -definition.Length / 2);
-        var center = sample(position, 0); var front = sample(position, definition.BogieCenters / 2); var rear = sample(position, -definition.BogieCenters / 2);
-        if (definition.Sections.Count == 0 && front.Point.DistanceTo(rear.Point) < definition.BogieCenters * .94) throw new InvalidOperationException("This curve is too tight for the vehicle's bogie spacing.");
+        var center = sample(position, 0);
+        double frontStation=definition.BodySupports?.Front ?? definition.BogieCenters/2;
+        double rearStation=definition.BodySupports?.Rear ?? -definition.BogieCenters/2;
+        var front = sample(position, frontStation); var rear = sample(position, rearStation);
+        if (definition.Sections.Count == 0 && front.Point.DistanceTo(rear.Point) < (frontStation-rearStation) * .94) throw new InvalidOperationException("This curve is too tight for the vehicle's bogie spacing.");
         var sections = definition.Sections.Count == 0 ? Array.Empty<VehiclePose>() : new VehiclePose[definition.Sections.Count];
         for (int i = 0; i < sections.Length; i++)
         { var section = definition.Sections[i]; sections[i] = Pose(section.Definition, sample(position, section.Offset).Position, sample: sample); }
-        return new(center.Point, front.Point, rear.Point, front.Tangent, rear.Tangent, sections);
+        // Asymmetric support stations still retain the authored body origin.
+        var originShift=(front.Point-rear.Point).Normalized()*(float)(-(frontStation+rearStation)/2);
+        var origin=(front.Point+rear.Point)/2+originShift;
+        var parts=VehicleArticulation.Sample(definition,origin,TrackRenderer.Frame(front.Point-rear.Point),position,sample);
+        return new(center.Point, front.Point, rear.Point, front.Tangent, rear.Tangent, sections,parts,definition.BodySupports!=null?origin:null);
     }
     public VehiclePose[] Poses(TrainConsist train, TrainPosition position, Func<TrainPosition, double, TrainSample>? sample = null)
     {

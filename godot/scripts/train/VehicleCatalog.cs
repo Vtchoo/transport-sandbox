@@ -23,6 +23,8 @@ public sealed class VehicleDefinition
     public double Height { get; }
     public double BogieCenters { get; }
     public double RunningGearWheelRadius { get; }
+    public RigidSupports? BodySupports { get; }
+    public IReadOnlyList<ArticulatedPartDefinition> ArticulatedParts { get; }
     public VehiclePhysics Physics { get; }
     public IReadOnlyList<(double Offset, VehicleDefinition Definition)> Sections { get; }
     public string Id
@@ -67,6 +69,25 @@ public sealed class VehicleDefinition
         Height = data.GetProperty("height").GetDouble();
         BogieCenters = data.GetProperty("bogieCenters").GetDouble();
         RunningGearWheelRadius = data.TryGetProperty("runningGearWheelRadius", out var wheelRadius) && wheelRadius.GetDouble() > 0 ? wheelRadius.GetDouble() : .65;
+        if(data.TryGetProperty("bodySupports",out var supports))
+        {
+            double front=supports.GetProperty("front").GetDouble(),rear=supports.GetProperty("rear").GetDouble();
+            if(!double.IsFinite(front)||!double.IsFinite(rear)||front<=rear)throw new ArgumentException("Body supports require finite front > rear stations.");
+            BodySupports=new(front,rear);
+        }
+        var parts=new List<ArticulatedPartDefinition>();
+        if(data.TryGetProperty("articulatedParts",out var articulated))foreach(var part in articulated.EnumerateArray())
+        {
+            string node=part.GetProperty("node").GetString()!;
+            if(string.IsNullOrWhiteSpace(node)||parts.Any(p=>p.Node==node))throw new ArgumentException("Articulated parts require unique node names.");
+            Vector3? pivot=part.TryGetProperty("pivot",out var pivotData)?JsonData.Vector(pivotData):null;
+            double station=part.TryGetProperty("station",out var stationData)?stationData.GetDouble():0;
+            double[] axles=part.TryGetProperty("axleStations",out var axleData)?axleData.EnumerateArray().Select(a=>a.GetDouble()).ToArray():Array.Empty<double>();
+            if(!double.IsFinite(station)||axles.Any(a=>!double.IsFinite(a))||pivot is { } p && (!p.IsFinite()||!axles.Any(a=>Math.Abs(a-p.Z)>1e-6)))
+                throw new ArgumentException("Hinged parts need finite axle stations away from their pivot.");
+            parts.Add(new(node,pivot,station,axles));
+        }
+        ArticulatedParts=parts;
         var physics = data.GetProperty("physics");
         Physics = new(physics.GetProperty("massKg").GetDouble(), physics.GetProperty("powerW").GetDouble(), physics.GetProperty("tractiveEffortN").GetDouble(), physics.GetProperty("maxSpeedMps").GetDouble());
         var models = new Dictionary<int, string>();

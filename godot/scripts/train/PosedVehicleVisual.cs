@@ -24,6 +24,7 @@ public partial class PosedVehicleVisual : Node3D
         Definition = definition; Gauge = gauge;
         Vehicle = new(definition, gauge, reversed, livery: livery, cargoPreview: preview);
         AddChild(Vehicle);
+        _distanceGear=DistanceRunningGear.TryCreate(Vehicle.Model);
         if (preview) TintParts(Vehicle);
     }
     private void TintParts(Node node)
@@ -76,6 +77,16 @@ public partial class PosedVehicleVisual : Node3D
         Part(prefix + "bogie_0").GlobalTransform = new(TrackRenderer.Frame(pose.FrontDirection), pose.Front);
         Part(prefix + "bogie_1").GlobalTransform = new(TrackRenderer.Frame(pose.RearDirection), pose.Rear);
         for (int i = 0; i < pose.Sections.Length; i++) ApplyParts(definition.Sections[i].Definition, pose.Sections[i], $"{prefix}section_{i}_");
+        if (pose.ArticulatedParts is { } parts)
+        {
+            var body=Part(prefix+"body");
+            for(int i=0;i<parts.Length;i++)
+            {
+                var part=parts[i];var config=definition.ArticulatedParts[i];
+                var origin=config.Pivot is { } pivot?body.GlobalTransform*pivot:part.Position;
+                Part(part.Node).GlobalTransform=new(TrackRenderer.Frame(part.Direction),origin);
+            }
+        }
     }
     public IEnumerable<ExhaustOutlet> Exhausts()
     {
@@ -89,6 +100,7 @@ public partial class PosedVehicleVisual : Node3D
     }
     private AnimationPlayer[]? _runningGear;
     private double _wheelPhase;
+    private readonly DistanceRunningGear? _distanceGear;
     public double WheelTurns { get; private set; }
     public void AdvanceRunningGear(double distance)
     {
@@ -103,13 +115,16 @@ public partial class PosedVehicleVisual : Node3D
         }
         WheelTurns += distance / (Math.Tau * Definition.RunningGearWheelRadius);
         _wheelPhase = ((WheelTurns % 1) + 1) % 1;
+        _distanceGear?.ApplyDistance(WheelTurns*Math.Tau*Definition.RunningGearWheelRadius);
         foreach (var player in _runningGear)
             if (!string.IsNullOrEmpty(player.AssignedAnimation)) player.Seek(_wheelPhase, true);
     }
     public static VehiclePose Straight(VehicleDefinition definition, Vector3 center, Vector3 direction, int facing = 1)
     {
         direction *= facing;
-        return new(center, center + direction * (float)(definition.BogieCenters / 2), center - direction * (float)(definition.BogieCenters / 2), direction, direction,
-            System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(definition.Sections, s => Straight(s.Definition, center + direction * (float)s.Offset, direction))));
+        TrainSample Sample(TrainPosition _,double distance)=>new(center+direction*(float)distance,direction,default);
+        return new(center, center + direction * (float)(definition.BodySupports?.Front ?? definition.BogieCenters / 2), center + direction * (float)(definition.BodySupports?.Rear ?? -definition.BogieCenters / 2), direction, direction,
+            System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(definition.Sections, s => Straight(s.Definition, center + direction * (float)s.Offset, direction))),
+            VehicleArticulation.Sample(definition,center,TrackRenderer.Frame(direction),default,Sample),definition.BodySupports!=null?center:null);
     }
 }

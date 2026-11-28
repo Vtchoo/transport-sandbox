@@ -8,7 +8,7 @@ namespace TransportSandbox;
 public partial class TrainEditor
 {
     private readonly Dictionary<int, (VehiclePose[] Poses, TrackVector Origin)> _unsupportedOrigins = new();
-    private static VehiclePose ShiftPose(VehiclePose pose, TrackVector origin, WorldSpace space)
+    internal static VehiclePose ShiftPose(VehiclePose pose, TrackVector origin, WorldSpace space)
     {
         Vector3 Shift(Vector3 point) => space.ToLocal(origin + TrackVector.From(point));
         return pose with
@@ -16,7 +16,9 @@ public partial class TrainEditor
             Center = Shift(pose.Center),
             Front = Shift(pose.Front),
             Rear = Shift(pose.Rear),
-            Sections = pose.Sections.Select(p => ShiftPose(p, origin, space)).ToArray()
+            BodyOrigin = pose.BodyOrigin is { } body ? Shift(body) : null,
+            Sections = pose.Sections.Select(p => ShiftPose(p, origin, space)).ToArray(),
+            ArticulatedParts = pose.ArticulatedParts?.Select(part=>part with {Position=Shift(part.Position)}).ToArray()
         };
     }
     private void Rebased(TrackVector worldShift)

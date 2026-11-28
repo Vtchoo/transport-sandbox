@@ -43,6 +43,12 @@ public partial class TestRunner : Node
             string suite = _args.GetValueOrDefault("suite", "all");
             switch (suite)
             {
+                case "big-boy-author":
+                    BigBoyModel.Export();
+                    break;
+                case "big-boy":
+                    await BigBoyChecks.Run(Check, this, Frame);
+                    break;
                 case "track-arcs":
                     TrackArcChecks.Run(Check, _args.GetValueOrDefault("save"));
                     break;
